@@ -1,0 +1,17 @@
+[package]
+name = "forge-modeling-validation"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+
+[dependencies]
+forge-modeling = { path = "../../crates/forge-modeling" }
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

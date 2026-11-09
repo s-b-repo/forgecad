@@ -1,0 +1,10 @@
+target/
+*.forge.json
+*.dxf
+*.stl
+*.bak
+.DS_Store
+__pycache__/
+*.pyc
+!/examples/**
+!/crates/forge-core/tests/fixtures/**

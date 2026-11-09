@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized] target(s) in 0.03s
+     Running unittests ../../apps/forge-cli/src/main.rs (target/debug/deps/forge-2b4e550596fdf9df)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running ../../apps/forge-cli/tests/cli.rs (target/debug/deps/cli-8c87957bb2c14eb8)
+
+running 8 tests
+test all_individual_product_targets_are_available_to_automation ... ok
+test unsupported_native_formats_and_mixed_scene_transforms_are_refused ... ok
+test obj_metadata_requires_explicit_loss_authorization ... ok
+test drawing_edit_and_exchange_workflow_preserves_units_layers_and_coordinates ... ok
+test destination_and_original_data_survive_failed_or_unapproved_operations ... ok
+test native_commands_refuse_unreadable_input_and_unapproved_destinations ... ok
+test native_dwg_round_trip_and_translation_preserve_the_drawing_inventory ... ok
+test native_solids_export_and_import_as_real_mesh_geometry ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

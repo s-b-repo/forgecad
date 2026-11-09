@@ -1,0 +1,27 @@
+[package]
+name = "forge-cli-validation"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+
+[[bin]]
+name = "forge"
+path = "../../apps/forge-cli/src/main.rs"
+
+[[test]]
+name = "cli"
+path = "../../apps/forge-cli/tests/cli.rs"
+
+[dependencies]
+forge-core = { path = "../../crates/forge-core" }
+forge-dwg = { path = "../../crates/forge-dwg" }
+serde_json = "1.0"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

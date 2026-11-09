@@ -1,0 +1,1122 @@
+[
+  {
+    "id": "autocad",
+    "name": "AutoCAD",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "autocad-for-mac",
+    "name": "AutoCAD for Mac",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "autocad-lt",
+    "name": "AutoCAD LT",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "autocad-lt-for-mac",
+    "name": "AutoCAD LT for Mac",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "autocad-architecture",
+    "name": "AutoCAD Architecture",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-design-suite",
+    "name": "AutoCAD Design Suite",
+    "area": "draft",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-electrical",
+    "name": "AutoCAD Electrical",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-map-3d",
+    "name": "AutoCAD Map 3D",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-mechanical",
+    "name": "AutoCAD Mechanical",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-mep",
+    "name": "AutoCAD MEP",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-plant-3d",
+    "name": "AutoCAD Plant 3D",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-raster-design",
+    "name": "AutoCAD Raster Design",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-revit-lt-suite",
+    "name": "AutoCAD Revit LT Suite",
+    "area": "draft",
+    "kind": "collection",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autocad-web",
+    "name": "AutoCAD Web",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "dwf-writer",
+    "name": "DWF Writer",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "dwg-trueconvert",
+    "name": "DWG TrueConvert",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "dwg-trueview",
+    "name": "DWG TrueView",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "design-review",
+    "name": "Design Review",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fbx",
+    "name": "FBX",
+    "area": "draft",
+    "kind": "sdk",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fbx-review",
+    "name": "FBX Review",
+    "area": "draft",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "objectarx",
+    "name": "ObjectARX",
+    "area": "draft",
+    "kind": "sdk",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "architecture-engineering-construction-collection",
+    "name": "Architecture, Engineering & Construction Collection",
+    "area": "build",
+    "kind": "collection",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "advance-steel",
+    "name": "Advance Steel",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-build",
+    "name": "Autodesk Build",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-docs",
+    "name": "Autodesk Docs",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-takeoff",
+    "name": "Autodesk Takeoff",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "assemble",
+    "name": "Assemble",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "bim-collaborate",
+    "name": "BIM Collaborate",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "bim-collaborate-pro",
+    "name": "BIM Collaborate Pro",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "buildingconnected",
+    "name": "BuildingConnected",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "building-design-suite",
+    "name": "Building Design Suite",
+    "area": "build",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "civil-3d",
+    "name": "Civil 3D",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "constructware",
+    "name": "Constructware",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "renewal_only",
+    "status": "planned"
+  },
+  {
+    "id": "fabrication-cadmep",
+    "name": "Fabrication CADmep",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fabrication-camduct",
+    "name": "Fabrication CAMduct",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fabrication-estmep",
+    "name": "Fabrication ESTmep",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "forma",
+    "name": "Forma",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "formit",
+    "name": "FormIt",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "info360-asset",
+    "name": "Info360 Asset",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "info360-insight",
+    "name": "Info360 Insight",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "infodrainage",
+    "name": "InfoDrainage",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "infoworks-icm",
+    "name": "InfoWorks ICM",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "infoworks-ws-pro",
+    "name": "InfoWorks WS Pro",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "infowater-pro",
+    "name": "InfoWater Pro",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "infrastructure-design-suite",
+    "name": "Infrastructure Design Suite",
+    "area": "build",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "infraworks",
+    "name": "InfraWorks",
+    "area": "terrain",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "insight",
+    "name": "Insight",
+    "area": "build",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "navisworks-freedom",
+    "name": "Navisworks Freedom",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "navisworks-manage",
+    "name": "Navisworks Manage",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "navisworks-simulate",
+    "name": "Navisworks Simulate",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "plant-design-suite",
+    "name": "Plant Design Suite",
+    "area": "build",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "point-layout",
+    "name": "Point Layout",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "revit",
+    "name": "Revit",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "revit-live",
+    "name": "Revit Live",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "revit-lt",
+    "name": "Revit LT",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "robot-structural-analysis-professional",
+    "name": "Robot Structural Analysis Professional",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "simulation-robot-structural-analysis",
+    "name": "Simulation Robot Structural Analysis",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "structural-analysis-for-revit",
+    "name": "Structural Analysis for Revit",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "structural-bridge-design",
+    "name": "Structural Bridge Design",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vehicle-tracking",
+    "name": "Vehicle Tracking",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "the-wild",
+    "name": "The Wild",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "prospect-by-irisvr",
+    "name": "Prospect by IrisVR",
+    "area": "build",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "alias-autostudio",
+    "name": "Alias AutoStudio",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "alias-concept",
+    "name": "Alias Concept",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "alias-design",
+    "name": "Alias Design",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "alias-speedform",
+    "name": "Alias SpeedForm",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "alias-surface",
+    "name": "Alias Surface",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "eagle",
+    "name": "EAGLE",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "factory-design-utilities",
+    "name": "Factory Design Utilities",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion",
+    "name": "Fusion",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "fusion-360-additive-build-extension",
+    "name": "Fusion 360 Additive Build Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-generative-design-extension",
+    "name": "Fusion 360 Generative Design Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-machining-extension",
+    "name": "Fusion 360 Machining Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-manage-extension",
+    "name": "Fusion 360 Manage Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-nesting-fabrication-extension",
+    "name": "Fusion 360 Nesting & Fabrication Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-product-design-extension",
+    "name": "Fusion 360 Product Design Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-simulation-extension",
+    "name": "Fusion 360 Simulation Extension",
+    "area": "model",
+    "kind": "extension",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-360-manage-with-upchain",
+    "name": "Fusion 360 Manage with Upchain",
+    "area": "connect",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-team",
+    "name": "Fusion Team",
+    "area": "connect",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-with-powerinspect",
+    "name": "Fusion with PowerInspect",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-with-powermill",
+    "name": "Fusion with PowerMill",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "fusion-with-powershape",
+    "name": "Fusion with PowerShape",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "helius-composite",
+    "name": "Helius Composite",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "helius-pfa",
+    "name": "Helius PFA",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "hsmworks",
+    "name": "HSMWorks",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "inventor",
+    "name": "Inventor",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "prototype"
+  },
+  {
+    "id": "inventor-cam",
+    "name": "Inventor CAM",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "inventor-engineer-to-order",
+    "name": "Inventor Engineer-to-Order",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "inventor-nastran",
+    "name": "Inventor Nastran",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "inventor-nesting",
+    "name": "Inventor Nesting",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "moldflow-adviser",
+    "name": "Moldflow Adviser",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "moldflow-communicator",
+    "name": "Moldflow Communicator",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "moldflow-insight",
+    "name": "Moldflow Insight",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "netfabb",
+    "name": "Netfabb",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "product-design-manufacturing-collection",
+    "name": "Product Design & Manufacturing Collection",
+    "area": "model",
+    "kind": "collection",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "product-design-suite",
+    "name": "Product Design Suite",
+    "area": "model",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "trufiber",
+    "name": "TruFiber",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "renewal_only",
+    "status": "planned"
+  },
+  {
+    "id": "trulaser",
+    "name": "TruLaser",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "renewal_only",
+    "status": "planned"
+  },
+  {
+    "id": "trunest",
+    "name": "TruNest",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "truplan",
+    "name": "TruPlan",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "renewal_only",
+    "status": "planned"
+  },
+  {
+    "id": "vault-office",
+    "name": "Vault Office",
+    "area": "connect",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vault-professional",
+    "name": "Vault Professional",
+    "area": "connect",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "within-medical",
+    "name": "Within Medical",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "3ds-max",
+    "name": "3ds Max",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "arnold",
+    "name": "Arnold",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-rendering",
+    "name": "Autodesk Rendering",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "character-generator",
+    "name": "Character Generator",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "entertainment-creation-suite",
+    "name": "Entertainment Creation Suite",
+    "area": "motion",
+    "kind": "collection",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "flame",
+    "name": "Flame",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "flame-assist",
+    "name": "Flame Assist",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "flare",
+    "name": "Flare",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "flow-capture",
+    "name": "Flow Capture",
+    "area": "motion",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "flow-production-tracking",
+    "name": "Flow Production Tracking",
+    "area": "motion",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "flow-studio",
+    "name": "Flow Studio",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "lustre",
+    "name": "Lustre",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "maya",
+    "name": "Maya",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "maya-lt",
+    "name": "Maya LT",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "media-entertainment-collection",
+    "name": "Media & Entertainment Collection",
+    "area": "motion",
+    "kind": "collection",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "motion-fx",
+    "name": "Motion FX",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "motionbuilder",
+    "name": "MotionBuilder",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "mudbox",
+    "name": "Mudbox",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "recap",
+    "name": "ReCap",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "recap-pro",
+    "name": "ReCap Pro",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "remake",
+    "name": "ReMake",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "showcase",
+    "name": "Showcase",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "simulation-mechanical",
+    "name": "Simulation Mechanical",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "sketchbook-for-enterprise",
+    "name": "SketchBook for Enterprise",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "sketchbook-pro",
+    "name": "SketchBook Pro",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "stingray",
+    "name": "Stingray",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vred",
+    "name": "VRED",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vred-design",
+    "name": "VRED Design",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vred-presenter",
+    "name": "VRED Presenter",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vred-professional",
+    "name": "VRED Professional",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "vred-server",
+    "name": "VRED Server",
+    "area": "motion",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "a360",
+    "name": "A360",
+    "area": "connect",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-platform-services",
+    "name": "Autodesk Platform Services (formerly Forge)",
+    "area": "connect",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "autodesk-cfd",
+    "name": "Autodesk CFD",
+    "area": "make",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "dynamo-studio",
+    "name": "Dynamo Studio",
+    "area": "connect",
+    "kind": "application",
+    "lifecycle": "discontinued",
+    "status": "planned"
+  },
+  {
+    "id": "instructables",
+    "name": "Instructables",
+    "area": "connect",
+    "kind": "service",
+    "lifecycle": "active",
+    "status": "planned"
+  },
+  {
+    "id": "tinkercad",
+    "name": "Tinkercad",
+    "area": "model",
+    "kind": "application",
+    "lifecycle": "active",
+    "status": "planned"
+  }
+]

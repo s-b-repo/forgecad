@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "product": "autocad",
+      "input": "examples/office-plan.dxf",
+      "exit_code": 0
+    },
+    {
+      "product": "inventor",
+      "input": "examples/mesh-box.obj",
+      "exit_code": 0
+    },
+    {
+      "product": "revit",
+      "input": null,
+      "exit_code": 0
+    },
+    {
+      "product": "maya",
+      "input": null,
+      "exit_code": 0
+    },
+    {
+      "product": "civil-3d",
+      "input": null,
+      "exit_code": 0
+    }
+  ],
+  "scope": "native startup/import/render only; no claim of full product parity"
+}

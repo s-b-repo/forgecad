@@ -1,0 +1,11 @@
+{
+  "checks_passed": [
+    "pointer drag preserves the mouse-down anchor and saves the line",
+    "keyboard undo/redo and native save preserve history",
+    "point, text, polyline and arc tools author persistent native geometry",
+    "the dimension tool authors a semantic dimension that native save preserves",
+    "grouping the drawing keeps every object inside one reusable block reference",
+    "saved edited drawing reopens and renders in the native application"
+  ],
+  "scope": "real pointer/keyboard authoring, undo/redo and save on owned X11 display"
+}
