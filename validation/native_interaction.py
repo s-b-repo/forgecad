@@ -66,6 +66,22 @@ def exercise(root: Path, env: dict):
         if control:
             key("Control_L", False)
 
+    def type_text(text):
+        names = {" ": "space", "-": "minus", ".": "period"}
+        for character in text:
+            if character in names:
+                name = names[character]
+            elif "a" <= character <= "z" or "0" <= character <= "9":
+                name = character
+            else:
+                raise ValueError(f"Unsupported native test character: {character!r}")
+            key(name, True)
+            key(name, False)
+
+    def command(text):
+        type_text(text)
+        chord("Return")
+
     folder = root / "target" / "native-interaction"
     folder.mkdir(parents=True, exist_ok=True)
     project = folder / "drawing.forge.json"
@@ -84,7 +100,7 @@ def exercise(root: Path, env: dict):
     process = None
     try:
         with (root / "validation" / "results" / "native-interaction.log").open("w") as log:
-            process = subprocess.Popen([str(root / "target/desktop/debug/forge-studio"), "--product", "autocad", "--open", str(project)], env=env, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+            process = subprocess.Popen([str(root / "target/desktop/debug/forge-craft"), "--product", "autocad", "--open", str(project)], env=env, cwd=root, stdout=log, stderr=subprocess.STDOUT)
             time.sleep(2)
             assert process.poll() is None, "Application exited before interaction"
             root_window = x11.XDefaultRootWindow(display)
@@ -99,7 +115,7 @@ def exercise(root: Path, env: dict):
                     if x11.XFetchName(display, children[index], ctypes.byref(name)) and name.value:
                         title = name.value.decode(errors="replace")
                         x11.XFree(name)
-                        if "Forge Studio" in title:
+                        if "Forge Craft" in title:
                             x11.XSetInputFocus(display, children[index], 2, 0)
                             flush()
                             focused = True
@@ -155,10 +171,45 @@ def exercise(root: Path, env: dict):
             assert len(grouped["blocks"]) == 1, grouped["blocks"]
             assert len(grouped["blocks"][0]["entities"]) == 6, grouped["blocks"]
             checks.append("grouping the drawing keeps every object inside one reusable block reference")
+            click(300, 847)  # Numeric command field, above its hint at y866.
+            command("rectangle 0 0 120 80")
+            rectangle = save_and_read(2)["entities"][-1]["geometry"]
+            assert rectangle == {"type": "rectangle", "a": {"x": 0.0, "y": 0.0}, "b": {"x": 120.0, "y": 80.0}}, rectangle
+            command("offset -5")
+            offset = save_and_read(3)
+            inset = offset["entities"][-1]["geometry"]
+            assert inset == {"type": "rectangle", "a": {"x": 5.0, "y": 5.0}, "b": {"x": 115.0, "y": 75.0}}, inset
+            command("arrayrect 3 2 150 100")
+            array = save_and_read(8)
+            assert array["blocks"] == grouped["blocks"], "Numeric drafting changed the reusable block"
+            rectangles = [entity["geometry"] for entity in array["entities"] if entity["geometry"]["type"] == "rectangle"]
+            assert len(rectangles) == 7, rectangles
+            bounds = {(item["a"]["x"], item["a"]["y"], item["b"]["x"], item["b"]["y"]) for item in rectangles}
+            expected = {(0.0, 0.0, 120.0, 80.0)} | {
+                (5.0 + column * 150.0, 5.0 + row * 100.0, 115.0 + column * 150.0, 75.0 + row * 100.0)
+                for column in range(3) for row in range(2)
+            }
+            assert bounds == expected, bounds
+            checks.append("the focused numeric command bar authors exact rectangles, signed offsets and rectangular arrays")
+            command("undo")
+            assert save_and_read(3) == offset, "Array undo changed earlier drawing content or IDs"
+            command("redo")
+            assert save_and_read(8) == array, "Array redo changed persistent drawing content or IDs"
+            checks.append("UNDO and REDO commands reverse and restore the entire array in one history step")
+            # History restoration clears selection. Select the inset explicitly
+            # so this exercises collapsed geometry rather than missing selection.
+            command(f"select {offset['entities'][-1]['id']}")
+            command("offset -100")
+            assert save_and_read(8) == array, "Invalid offset altered drawing content or IDs"
+            command("undo")
+            assert save_and_read(3) == offset, "Invalid command added an undo history entry"
+            command("redo")
+            assert save_and_read(8) == array, "Redo after a rejected command changed the drawing"
+            checks.append("a collapsing offset is refused without changing document IDs, geometry or undo history")
             assert process.poll() is None, "Application exited during editing"
             process.terminate()
             process.wait(timeout=5)
-            reopened = subprocess.run([str(root / "target/desktop/debug/forge-studio"), "--product", "autocad", "--open", str(project)], env=dict(env, FORGE_SMOKE_FRAMES="8"), cwd=root, stdout=log, stderr=subprocess.STDOUT, timeout=30)
+            reopened = subprocess.run([str(root / "target/desktop/debug/forge-craft"), "--product", "autocad", "--open", str(project)], env=dict(env, FORGE_SMOKE_FRAMES="8"), cwd=root, stdout=log, stderr=subprocess.STDOUT, timeout=30)
             assert reopened.returncode == 0, "Saved drawing failed native reopen/render"
             checks.append("saved edited drawing reopens and renders in the native application")
     except Exception:
@@ -170,5 +221,5 @@ def exercise(root: Path, env: dict):
         if process and process.poll() is None:
             process.terminate()
             process.wait(timeout=5)
-        (root / "validation/results/native-interaction.json").write_text(json.dumps({"checks_passed": checks, "scope": "real pointer/keyboard authoring, undo/redo and save on owned X11 display"}, indent=2) + "\n")
-    assert len(checks) == 6
+        (root / "validation/results/native-interaction.json").write_text(json.dumps({"checks_passed": checks, "scope": "real pointer/keyboard and numeric command authoring, transactional edits, undo/redo and save on owned X11 display"}, indent=2) + "\n")
+    assert len(checks) == 9

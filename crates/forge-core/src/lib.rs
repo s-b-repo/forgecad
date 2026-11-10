@@ -7,16 +7,26 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
+pub mod automation;
 pub mod blocks;
 pub use blocks::BlockDefinition;
+pub mod building;
+pub mod cam;
 pub mod catalog;
+pub mod civil;
+pub mod command;
 pub mod dimension;
+pub mod drafting;
 pub mod dxf;
 pub mod edit;
 pub mod mesh;
+pub mod plot;
+pub mod review;
+pub mod scene;
 pub mod storage;
+pub mod terrain;
 
-pub const PROJECT_FORMAT_VERSION: u32 = 3;
+pub const PROJECT_FORMAT_VERSION: u32 = 5;
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Point {
@@ -373,6 +383,18 @@ pub struct Document {
     pub meshes: Vec<MeshObject>,
     #[serde(default)]
     pub blocks: Vec<BlockDefinition>,
+    #[serde(default)]
+    pub layouts: Vec<plot::PrintLayout>,
+    #[serde(default)]
+    pub building: building::Building,
+    #[serde(default)]
+    pub terrain: terrain::Terrain,
+    #[serde(default)]
+    pub scene: scene::Scene,
+    #[serde(default)]
+    pub manufacturing: cam::CamJob,
+    #[serde(default)]
+    pub review: review::ProjectReview,
     pub layers: Vec<Layer>,
     pub active_layer_id: u64,
     /// DXF INSUNITS code: 0 unitless, 1 inches, 4 millimetres, 6 metres, etc.
@@ -397,6 +419,12 @@ impl Document {
             solids: Vec::new(),
             meshes: Vec::new(),
             blocks: Vec::new(),
+            layouts: Vec::new(),
+            building: building::Building::default(),
+            terrain: terrain::Terrain::default(),
+            scene: scene::Scene::default(),
+            manufacturing: cam::CamJob::default(),
+            review: review::ProjectReview::default(),
             layers: vec![Layer {
                 id: 1,
                 name: "0".to_owned(),
@@ -473,6 +501,11 @@ impl Document {
     }
 
     pub fn validate(&self) -> io::Result<()> {
+        self.building.validate()?;
+        self.terrain.validate()?;
+        self.scene.validate()?;
+        self.manufacturing.validate()?;
+        self.review.validate()?;
         if self.units > 24 {
             return Err(invalid("Unknown drawing unit code"));
         }
@@ -496,6 +529,16 @@ impl Document {
         }
         if self.layer(self.active_layer_id).is_none() {
             return Err(invalid("The active layer does not exist"));
+        }
+        if self.layouts.len() > 100 {
+            return Err(invalid("Project exceeds 100 print layouts"));
+        }
+        let mut layout_names = HashSet::new();
+        for layout in &self.layouts {
+            layout.validate(self)?;
+            if !layout_names.insert(layout.name.to_lowercase()) {
+                return Err(invalid("Print layout names must be unique"));
+            }
         }
         for entity in self
             .entities
@@ -547,6 +590,21 @@ impl Document {
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
         Ok(data)
     }
+    /// Semantic workbench data cannot be silently discarded by neutral export.
+    pub fn has_workbench_data(&self) -> bool {
+        self.building != building::Building::default()
+            || self.terrain != terrain::Terrain::default()
+            || self.scene != scene::Scene::default()
+            || self.manufacturing != cam::CamJob::default()
+            || self.review != review::ProjectReview::default()
+    }
+    pub fn clear_workbench_data(&mut self) {
+        self.building = building::Building::default();
+        self.terrain = terrain::Terrain::default();
+        self.scene = scene::Scene::default();
+        self.manufacturing = cam::CamJob::default();
+        self.review = review::ProjectReview::default();
+    }
     pub fn save_json(&self, path: impl AsRef<Path>) -> io::Result<()> {
         write_atomic(path.as_ref(), self.to_json()?.as_bytes())
     }
@@ -557,7 +615,7 @@ impl Document {
         let project: ProjectFile = serde_json::from_str(source)
             .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
         if !(1..=PROJECT_FORMAT_VERSION).contains(&project.format_version) {
-            return Err(invalid("Unsupported Forge Studio project version"));
+            return Err(invalid("Unsupported Forge Craft project version"));
         }
         let mut document = project.document;
         document.validate()?;
@@ -600,13 +658,19 @@ impl Document {
     }
     pub fn export_box_stl(&self, path: impl AsRef<Path>) -> io::Result<usize> {
         self.validate()?;
+        if self.has_workbench_data() || !self.layouts.is_empty() {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "Legacy STL export cannot omit semantic workbench data; use the dedicated workbench export",
+            ));
+        }
         if self.solids.iter().any(|solid| solid.kind != SolidKind::Box) || !self.meshes.is_empty() {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,
                 "Legacy box STL export cannot omit cylinders, spheres, or imported meshes",
             ));
         }
-        let mut output = String::from("solid forge_studio\n");
+        let mut output = String::from("solid forge_craft\n");
         let mut triangle_count = 0;
         for solid in self
             .solids
@@ -649,7 +713,7 @@ impl Document {
                 triangle_count += 2;
             }
         }
-        output.push_str("endsolid forge_studio\n");
+        output.push_str("endsolid forge_craft\n");
         write_atomic(path.as_ref(), output.as_bytes())?;
         Ok(triangle_count)
     }
@@ -853,7 +917,7 @@ mod native_tests {
         assert!(invalid.to_json().is_err());
         let mut value: serde_json::Value =
             serde_json::from_str(&Document::default().to_json().unwrap()).unwrap();
-        value["format_version"] = serde_json::json!(4);
+        value["format_version"] = serde_json::json!(PROJECT_FORMAT_VERSION + 1);
         assert!(Document::from_json(&value.to_string()).is_err());
         value["format_version"] = serde_json::json!(1);
         value["document"]["unrecognized_object"] = serde_json::json!({"x":1});

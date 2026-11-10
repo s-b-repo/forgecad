@@ -5,7 +5,10 @@
     "point, text, polyline and arc tools author persistent native geometry",
     "the dimension tool authors a semantic dimension that native save preserves",
     "grouping the drawing keeps every object inside one reusable block reference",
+    "the focused numeric command bar authors exact rectangles, signed offsets and rectangular arrays",
+    "UNDO and REDO commands reverse and restore the entire array in one history step",
+    "a collapsing offset is refused without changing document IDs, geometry or undo history",
     "saved edited drawing reopens and renders in the native application"
   ],
-  "scope": "real pointer/keyboard authoring, undo/redo and save on owned X11 display"
+  "scope": "real pointer/keyboard and numeric command authoring, transactional edits, undo/redo and save on owned X11 display"
 }

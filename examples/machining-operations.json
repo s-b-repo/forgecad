@@ -1,0 +1,58 @@
+[
+  {
+    "type": "cam_setup",
+    "settings": { "tool_diameter": 3, "depth": 2.5, "step_down": 1, "step_over": 1.2 }
+  },
+  {
+    "type": "cam_operation",
+    "profile": {
+      "id": 1,
+      "name": "Rectangular pocket",
+      "operation": "pocket",
+      "compensation": "inside",
+      "geometry": { "type": "rectangle", "a": { "x": 5, "y": 5 }, "b": { "x": 45, "y": 35 } }
+    }
+  },
+  {
+    "type": "cam_operation",
+    "profile": {
+      "id": 2,
+      "name": "Circular pocket",
+      "operation": "pocket",
+      "compensation": "inside",
+      "geometry": { "type": "circle", "center": { "x": 70, "y": 25 }, "radius": 12 }
+    }
+  },
+  {
+    "type": "cam_operation",
+    "profile": {
+      "id": 3,
+      "name": "Polygon pocket with island",
+      "operation": "pocket",
+      "compensation": "inside",
+      "geometry": {
+        "type": "polyline",
+        "closed": true,
+        "vertices": [
+          { "point": { "x": 55, "y": 45 } },
+          { "point": { "x": 105, "y": 45 } },
+          { "point": { "x": 105, "y": 80 } },
+          { "point": { "x": 55, "y": 80 } }
+        ]
+      },
+      "islands": [
+        { "type": "circle", "center": { "x": 80, "y": 62 }, "radius": 6 }
+      ]
+    }
+  },
+  {
+    "type": "cam_operation",
+    "profile": {
+      "id": 4,
+      "name": "Peck drilled hole",
+      "operation": "drill",
+      "compensation": "center",
+      "geometry": { "type": "point", "position": { "x": 90, "y": 20 } }
+    }
+  }
+]

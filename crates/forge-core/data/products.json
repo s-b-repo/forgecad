@@ -197,7 +197,7 @@
     "area": "build",
     "kind": "service",
     "lifecycle": "active",
-    "status": "planned"
+    "status": "prototype"
   },
   {
     "id": "autodesk-takeoff",
@@ -253,7 +253,7 @@
     "area": "terrain",
     "kind": "application",
     "lifecycle": "active",
-    "status": "planned"
+    "status": "prototype"
   },
   {
     "id": "constructware",
@@ -421,7 +421,7 @@
     "area": "build",
     "kind": "application",
     "lifecycle": "active",
-    "status": "planned"
+    "status": "prototype"
   },
   {
     "id": "revit-live",
@@ -693,7 +693,7 @@
     "area": "make",
     "kind": "application",
     "lifecycle": "active",
-    "status": "planned"
+    "status": "prototype"
   },
   {
     "id": "inventor-engineer-to-order",
@@ -925,7 +925,7 @@
     "area": "motion",
     "kind": "application",
     "lifecycle": "active",
-    "status": "planned"
+    "status": "prototype"
   },
   {
     "id": "maya-lt",

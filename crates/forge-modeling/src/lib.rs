@@ -75,7 +75,7 @@ impl BrepModel {
     pub fn regenerated_geometry_step(&self) -> io::Result<String> {
         checked_kernel(|| {
             let compressed = self.solid.compress();
-            let text = format_step(&compressed, "Forge Studio B-rep");
+            let text = format_step(&compressed, "Forge Craft B-rep");
             let round_trip = Self::from_step(&text)?;
             if round_trip.stats != self.stats {
                 return Err(invalid("STEP re-export changed the topology counts"));
@@ -97,7 +97,7 @@ pub fn make_box(center: [f64; 3], size: [f64; 3]) -> io::Result<BrepModel> {
         let edge = builder::tsweep(&vertex, Vector3::new(size[0], 0.0, 0.0));
         let face = builder::tsweep(&edge, Vector3::new(0.0, size[1], 0.0));
         let solid: Solid = builder::tsweep(&face, Vector3::new(0.0, 0.0, size[2]));
-        authored(solid, "Forge Studio box")
+        authored(solid, "Forge Craft box")
     })
 }
 
@@ -127,7 +127,7 @@ pub fn make_elliptic_cylinder(center: [f64; 3], size: [f64; 3]) -> io::Result<Br
             .map_err(|error| invalid(format!("cannot create disk: {error}")))?;
         let solid: Solid = builder::tsweep(&disk, Vector3::new(0.0, 0.0, size[2]));
         let solid = builder::translated(&solid, Vector3::new(center[0], center[1], center[2]));
-        authored(solid, "Forge Studio elliptic cylinder")
+        authored(solid, "Forge Craft elliptic cylinder")
     })
 }
 
@@ -155,7 +155,7 @@ where
         StepModel::from(solid),
         StepHeaderDescriptor {
             file_name: name.to_owned(),
-            organization_system: "Forge Studio / Truck analytic B-rep".into(),
+            organization_system: "Forge Craft / Truck analytic B-rep".into(),
             ..Default::default()
         },
     )
@@ -477,7 +477,7 @@ mod tests {
         let source = make_box([0.0; 3], [5.0; 3])
             .unwrap()
             .step_source()
-            .replace("Forge Studio box", "Document metadata preserved");
+            .replace("Forge Craft box", "Document metadata preserved");
         assert_eq!(BrepModel::from_step(&source).unwrap().step_source(), source);
     }
 }

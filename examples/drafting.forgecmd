@@ -1,0 +1,16 @@
+# A small dimensioned plan, in millimetres. Each command selects its output.
+UNITS 4
+LAYER Walls
+RECTANGLE 0 0 1200 800
+OFFSET -20
+
+# Twelve columns, with counts including the original circle.
+LAYER Columns
+CIRCLE 100 100 15
+ARRAYRECT 4 3 300 300
+
+LAYER Annotations
+TEXT 30 840 25 0 Workspace plan
+DIM H 0 0 1200 0 0 -70
+DIM V 1200 0 1200 800 1270 0
+SELECT ALL

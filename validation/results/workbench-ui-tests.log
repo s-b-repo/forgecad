@@ -1,0 +1,59 @@
+   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
+   Compiling forge-studio v0.1.0 (/home/kali/Downloads/autocad/apps/craft-suite)
+warning: field `focus` is never read
+  --> apps/craft-suite/src/app.rs:53:5
+   |
+48 | struct WorkbenchInfo {
+   |        ------------- field in this struct
+...
+53 |     focus: &'static str,
+   |     ^^^^^
+   |
+   = note: `WorkbenchInfo` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `forge-studio` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.01s
+     Running unittests src/lib.rs (target/debug/deps/forge_studio-c98403d5513934b0)
+
+running 38 tests
+test app::application_tests::degenerate_dimension_references_are_refused_without_history ... ok
+test app::application_tests::changing_tools_cancels_uncommitted_construction ... ok
+test app::application_tests::arc_authoring_uses_center_radius_and_counterclockwise_end_angle ... ok
+test app::application_tests::dimension_kind_selects_the_measured_projection ... ok
+test app::application_tests::invalid_edit_leaves_document_and_history_unchanged ... ok
+test app::application_tests::new_action_waits_for_unsaved_decision ... ok
+test app::application_tests::polyline_authoring_is_a_single_undoable_geometry_operation ... ok
+test app::application_tests::block_definition_picks_and_explodes_through_expanded_geometry ... ok
+test app::application_tests::invalid_block_definitions_leave_the_document_and_history_unchanged ... ok
+test app::application_tests::text_and_point_authoring_validate_before_adding_history ... ok
+test app::application_tests::linear_dimension_authoring_records_the_semantic_measurement ... ok
+test app::application_tests::radial_dimension_authoring_measures_radius_and_diameter ... ok
+test app::application_tests::mesh_export_cannot_silently_discard_drawing_or_primitive_history ... ok
+test app::application_tests::model_projection_places_positive_z_up_and_nearer_the_viewer ... ok
+test app::application_tests::selection_edits_have_one_reversible_history_entry ... ok
+test app::building_ui::tests::deleting_storey_cascades_hosted_elements_in_one_history_entry ... ok
+test app::review_ui::tests::board_filters_match_status_and_all_issue_text ... ok
+test app::review_ui::tests::invalid_issue_edits_and_exhausted_ids_preserve_history ... ok
+test app::drafting_ui::tests::commands_respect_selection_and_errors_leave_history_untouched ... ok
+test app::application_tests::individual_named_targets_keep_distinct_identity_and_routing ... ok
+test app::drafting_ui::tests::selection_pivots_use_block_contents_instead_of_insertion_points ... ok
+test app::scene_ui::tests::invalid_keyframe_and_last_key_removal_preserve_document_and_history ... ok
+test app::drafting_ui::tests::numeric_edits_and_arrays_each_have_one_reversible_history_entry ... ok
+test app::building_ui::tests::invalid_wall_edits_leave_applied_building_and_history_unchanged ... ok
+test app::workbench_ui::tests::drafting_profiles_convert_to_mm_without_relabeling_source_units ... ok
+test app::building_ui::tests::building_authoring_creates_valid_references_and_undoable_openings ... ok
+test app::terrain_ui::tests::survey_edits_rebuild_and_undo_preserve_derived_surface ... ok
+test app::terrain_ui::tests::duplicate_and_degenerate_survey_edits_leave_document_and_history_unchanged ... ok
+test app::scene_ui::tests::scene_authoring_uses_one_undo_entry_per_keyframe_and_preserves_other_workbenches ... ok
+test session::tests::imported_exchange_file_is_never_native_save_destination ... ok
+test session::tests::native_paths_and_export_stems_are_preserved ... ok
+test session::tests::unsupported_and_empty_native_destinations_are_rejected ... ok
+test app::drafting_ui::tests::plot_exports_are_nonmutating_and_report_3d_content ... ok
+test app::review_ui::tests::issue_lifecycle_uses_undo_and_preserves_other_workbenches ... ok
+test app::workbench_ui::tests::view_cache_reuses_static_geometry_and_evaluates_changed_scene_times ... ok
+test app::workbench_ui::tests::semantic_workbench_changes_share_undo_and_native_persistence ... ok
+test app::workbench_ui::tests::exporting_one_workbench_keeps_other_domains_intact ... ok
+test app::workbench_ui::tests::open_routes_between_drawing_model_and_semantic_workbenches ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

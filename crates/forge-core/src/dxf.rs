@@ -581,6 +581,18 @@ fn read_block(records: &[Record<'_>], report: &mut ImportReport) -> io::Result<u
 
 /// UTF-8 AutoCAD 2007 ASCII DXF with handles, owner links, and layer tables.
 pub fn write(document: &Document) -> io::Result<String> {
+    if !document.layouts.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "DXF subset cannot retain print layouts; save a native project or explicitly authorize layout loss in the CLI",
+        ));
+    }
+    if document.has_workbench_data() {
+        return Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "DXF export cannot retain building, terrain, animation or manufacturing data; use dedicated workbench export or save a native project",
+        ));
+    }
     document.validate()?;
     if !document.solids.is_empty() || !document.meshes.is_empty() {
         return Err(io::Error::new(

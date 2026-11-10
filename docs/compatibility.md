@@ -4,10 +4,10 @@ The requested end state includes Autodesk native formats and complete editable c
 
 | Format | Current implementation | Explicit limits / remaining evidence |
 | --- | --- | --- |
-| Forge JSON | Versioned document serialization, validation, atomic save, v1 migration, v2 meshes, v3 semantic dimensions | Project-specific format; does not establish Autodesk native compatibility |
+| Forge JSON | Versioned serialization, validation and atomic save; v5 adds saved viewport sheets/paper notes, scene parent references, terrain alignments, pocket/drill operations and optional pocket islands; v1–v4 migration preserves existing models | Project-specific format; stores supported relationships and parameters, without establishing Autodesk native compatibility |
 | ASCII DXF | LINE, CIRCLE, ARC, POINT, LWPOLYLINE, planar POLYLINE, basic TEXT, INSERT and BLOCK definitions with base points and nesting; layers, visibility, RGB colors, units, bulges; AC1021 output | No binary DXF, hatches, layouts, xrefs, splines, proxy/custom objects, or full styling; semantic DIMENSION entities are retained natively but refused on DXF export instead of being flattened silently. Unsupported input is reported and strict import refuses loss |
 | STL | ASCII/binary triangle geometry, primitive tessellation, validation and round trips | Mesh geometry only; no feature history, assemblies, units, materials, color attributes or editable analytic surfaces |
-| OBJ | Vertex positions and polygon triangulation, including negative indices | Triangle geometry only; texture/material/normal/group semantics are not retained; freeform records refused |
+| OBJ | Vertex positions and polygon triangulation, including negative indices; dedicated derived building/TIN/evaluated-scene exports | Triangle geometry only; semantic building relationships, survey triangulation parameters, scene keyframes, colors, texture/material/normal/group semantics are not retained; freeform records refused |
 | DWG / DWT / DWS | Native read and write through the unmodified acadrust 0.6.8 engine, exposed by the `forge native` CLI commands (inspect, convert, transform); R2000 (AC1015) and R2018 (AC1032) write targets; every save re-reads the output and compares the entity, layer and block inventory | Engine-supported entity subset only; saves are refused when the engine reports unsupported or unrecovered content; version conversion is refused for version-locked data; handles are the engine's identifiers; no acceptance corpus checked in AutoCAD itself. The desktop editor keeps its documented DXF subset and does not open DWG directly |
 | RVT / RFA / RTE / RFT | Unimplemented | Requires semantic BIM models, families, relationships, parameters, views and versioned native-file verification |
 | IPT / IAM / IDW / IPN / IDE | Unimplemented | Requires parametric parts, assembly references/features, drawings, presentations and iFeatures |
@@ -16,9 +16,13 @@ The requested end state includes Autodesk native formats and complete editable c
 | MA / MB | Unimplemented | Maya scene/node/dependency semantics, animation, dynamics, reference and plug-in preservation |
 | FBX | Unimplemented | Geometry plus scene hierarchy, materials, skins, rigs, animation and format-version coverage |
 | NWD / NWC / NWF, RCS / RCP, WIRE, DWF / DWFx | Unimplemented | Product-specific models and native acceptance fixtures required |
-| STEP / IGES / SAT, IFC, USD / Alembic | Unimplemented | Interchange coverage is also required; it does not replace the native formats above |
+| SVG | Physical model-space plots and saved multi-viewport layouts with independent clipping/scales/rotation/layer filters and paper notes; expanded blocks/dimensions and exact arcs | Output only; approximate sans-serif text metrics; no vendor plot styles or DXF paper-space exchange. Ordinary model plots refuse mixed 3D/workbench content; a named layout explicitly selects the drafting area |
+| CSV | Building/review schedules, survey point exchange, stationed alignment profiles with outside-surface gaps, and exact cut/fill quantities against a level datum | Reports/point exchange only; coordinates and squared/cubed quantities use model units; no BIM family format or arbitrary surface-to-surface volume comparison |
+| NC / G-code | 2.5D compensated profiles, rectangular/circular/polygon pocket clearing with optional uncut islands, point-based peck drilling, depth passes and clearance retracts with millimetre absolute coordinates | Generic LinuxCNC-style output; no adaptive/ramped paths, machine-specific canned cycles, tool changes, stock/collision simulation or machine acceptance result |
+| STEP / STP | Checked Truck-based analytic B-rep CLI: create box/circular or elliptic cylinder, inspect topology, exact source-preserving copy, explicit geometry-only regeneration | One closed manifold solid with one shell; no assemblies, multi-body files, external references or feature histories; not integrated into desktop documents; no originating-application acceptance corpus |
+| IGES / SAT, IFC, USD / Alembic | Unimplemented | Interchange coverage is also required; it does not replace the native formats above |
 
-The core tests include hand-authored exchange fixtures and round trips. Passing these tests does not prove interoperability with every Autodesk release or preserve unsupported content.
+The core tests include hand-authored exchange fixtures and round trips. New semantic models persist in the project's native JSON; dedicated workbench exports derive one selected area's output while retaining the source file. Passing these tests does not prove interoperability with every Autodesk release or preserve unsupported content in a neutral output.
 
 ## Why native data remains a separate requirement
 

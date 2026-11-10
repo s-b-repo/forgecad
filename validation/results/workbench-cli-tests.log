@@ -1,0 +1,30 @@
+   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
+   Compiling forge-cli v0.1.0 (/home/kali/Downloads/autocad/apps/forge-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.46s
+     Running tests/cli.rs (target/debug/deps/cli-b4e454cb4ea9007f)
+
+running 22 tests
+test all_individual_product_targets_are_available_to_automation ... ok
+test destination_and_original_data_survive_failed_or_unapproved_operations ... ok
+test drafting_script_preserves_command_order_selection_and_editable_exchange ... ok
+test manufacturing_program_retracts_before_xy_and_reaches_final_stepdown_depth ... ok
+test drawing_edit_and_exchange_workflow_preserves_units_layers_and_coordinates ... ok
+test draft_failure_never_writes_partial_batches_or_replaces_unapproved_files ... ok
+test motion_frame_exports_evaluate_animation_in_actual_mesh_vertices ... ok
+test invalid_plot_settings_or_3d_input_preserve_existing_output ... ok
+test unsupported_native_formats_and_mixed_scene_transforms_are_refused ... ok
+test obj_metadata_requires_explicit_loss_authorization ... ok
+test plotting_produces_physical_svg_sheets_with_visible_layers_and_escaped_annotation ... ok
+test analytic_step_box_is_inspectable_and_default_exchange_preserves_source_bytes ... ok
+test survey_csv_import_interpolates_elevations_and_reimports_derived_points ... ok
+test native_commands_refuse_unreadable_input_and_unapproved_destinations ... ok
+test workbench_examples_round_trip_native_v4_with_all_semantic_domains ... ok
+test semantic_export_failures_do_not_write_or_replace_files_and_loss_is_explicit ... ok
+test step_output_is_never_replaced_without_authorization_or_after_failed_validation ... ok
+test step_commands_reject_unsupported_formats_open_shells_and_invalid_parameters ... ok
+test workbench_exports_derive_geometry_quantities_and_contours_without_changing_source ... ok
+test native_dwg_round_trip_and_translation_preserve_the_drawing_inventory ... ok
+test analytic_step_cylinder_keeps_curves_and_requires_regeneration_loss_authorization ... ok
+test native_solids_export_and_import_as_real_mesh_geometry ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s

@@ -151,7 +151,7 @@ impl TriangleMesh {
         let count =
             u32::try_from(self.triangles.len()).map_err(|_| invalid("too many STL triangles"))?;
         let mut result = vec![0; 80];
-        let label = b"Forge Studio geometry-only binary STL";
+        let label = b"Forge Craft geometry-only binary STL";
         result[..label.len()].copy_from_slice(label);
         result.extend_from_slice(&count.to_le_bytes());
         for triangle in &self.triangles {
@@ -192,7 +192,7 @@ impl TriangleMesh {
 
     pub fn to_obj(&self, name: &str) -> io::Result<String> {
         self.validate()?;
-        let mut result = format!("# Forge Studio geometry-only OBJ\no {}\n", safe_name(name));
+        let mut result = format!("# Forge Craft geometry-only OBJ\no {}\n", safe_name(name));
         for p in &self.vertices {
             result.push_str(&format!("v {} {} {}\n", p[0], p[1], p[2]));
         }

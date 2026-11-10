@@ -13,9 +13,14 @@ path = "../../apps/forge-cli/src/main.rs"
 name = "cli"
 path = "../../apps/forge-cli/tests/cli.rs"
 
+[[test]]
+name = "remaining_cli"
+path = "../../apps/forge-cli/tests/remaining_cli.rs"
+
 [dependencies]
 forge-core = { path = "../../crates/forge-core" }
 forge-dwg = { path = "../../crates/forge-dwg" }
+forge-modeling = { path = "../../crates/forge-modeling" }
 serde_json = "1.0"
 
 [profile.dev]

@@ -20,6 +20,23 @@ const MUTED: Color32 = Color32::from_rgb(148, 159, 178);
 const ACCENT: Color32 = Color32::from_rgb(105, 190, 255);
 const SELECTED: Color32 = Color32::from_rgb(255, 197, 92);
 
+#[path = "building_ui.rs"]
+mod building_ui;
+#[path = "civil_ui.rs"]
+mod civil_ui;
+#[path = "drafting_ui.rs"]
+mod drafting_ui;
+#[path = "layout_ui.rs"]
+mod layout_ui;
+#[path = "review_ui.rs"]
+mod review_ui;
+#[path = "scene_ui.rs"]
+mod scene_ui;
+#[path = "terrain_ui.rs"]
+mod terrain_ui;
+#[path = "workbench_ui.rs"]
+mod workbench_ui;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Workspace {
     Draft,
@@ -38,8 +55,6 @@ struct WorkbenchInfo {
     symbol: &'static str,
     subtitle: &'static str,
     focus: &'static str,
-    status: &'static str,
-    products: &'static [&'static str],
 }
 
 const WORKBENCHES: [WorkbenchInfo; 7] = [
@@ -49,8 +64,6 @@ const WORKBENCHES: [WorkbenchInfo; 7] = [
         symbol: "2D",
         subtitle: "Drafting & documentation",
         focus: "Plans, details, layers, and annotations",
-        status: "EARLY ACCESS",
-        products: &["AutoCAD", "AutoCAD LT", "AutoCAD toolsets", "DWG viewers"],
     },
     WorkbenchInfo {
         workspace: Workspace::Model,
@@ -58,70 +71,41 @@ const WORKBENCHES: [WorkbenchInfo; 7] = [
         symbol: "3D",
         subtitle: "Product design & 3D modeling",
         focus: "Parametric parts and manufacturing models",
-        status: "EARLY ACCESS",
-        products: &["Fusion", "Inventor", "Alias", "ReCap"],
     },
     WorkbenchInfo {
         workspace: Workspace::Build,
         name: "Build",
         symbol: "BIM",
         subtitle: "Architecture & construction",
-        focus: "Building information, design coordination, and documentation",
-        status: "ROADMAP",
-        products: &["Revit", "Forma", "FormIt", "Navisworks", "BIM Collaborate"],
+        focus: "Storeys, walls, slabs, openings and quantities",
     },
     WorkbenchInfo {
         workspace: Workspace::Terrain,
         name: "Terrain",
         symbol: "CIV",
         subtitle: "Civil & infrastructure",
-        focus: "Terrain, roads, utilities, drainage, and asset planning",
-        status: "ROADMAP",
-        products: &[
-            "Civil 3D",
-            "InfraWorks",
-            "InfoWorks",
-            "InfoDrainage",
-            "Info360",
-        ],
+        focus: "Survey points, triangulated surfaces, contours and profiles",
     },
     WorkbenchInfo {
         workspace: Workspace::Make,
         name: "Make",
         symbol: "CAM",
         subtitle: "Manufacturing & simulation",
-        focus: "Machining, simulation, additive, and factory planning",
-        status: "ROADMAP",
-        products: &[
-            "Inventor CAM",
-            "PowerMill",
-            "FeatureCAM",
-            "Moldflow",
-            "Netfabb",
-        ],
+        focus: "2.5D profile toolpaths, compensation and G-code",
     },
     WorkbenchInfo {
         workspace: Workspace::Motion,
         name: "Motion",
         symbol: "FX",
         subtitle: "Media & entertainment",
-        focus: "Scenes, animation, rendering, and production review",
-        status: "ROADMAP",
-        products: &["Maya", "3ds Max", "MotionBuilder", "Flame", "Arnold"],
+        focus: "Primitive scenes, keyframes, timeline and playback",
     },
     WorkbenchInfo {
         workspace: Workspace::Connect,
         name: "Connect",
         symbol: "↗",
-        subtitle: "Project data & collaboration",
-        focus: "Local project exchange, review, and shared information",
-        status: "ROADMAP",
-        products: &[
-            "Autodesk Docs",
-            "Autodesk Build",
-            "Vault",
-            "Platform Services",
-        ],
+        subtitle: "Local project review",
+        focus: "Project issues, priorities and resolution status",
     },
 ];
 
@@ -233,8 +217,8 @@ impl Camera3d {
         let z = point[2] as f32;
         let rotated_x = x * cos_yaw - y * sin_yaw;
         let rotated_y = x * sin_yaw + y * cos_yaw;
-        let view_y = rotated_y * cos_pitch - z * sin_pitch;
-        let depth = rotated_y * sin_pitch + z * cos_pitch;
+        let view_y = rotated_y * sin_pitch + z * cos_pitch;
+        let depth = z * sin_pitch - rotated_y * cos_pitch;
         let screen = rect.center() + self.pan + Vec2::new(rotated_x, -view_y) * self.zoom;
         (screen, depth as f64)
     }
@@ -283,6 +267,12 @@ pub struct ForgeApp {
     selection_angle: f64,
     selection_scale: f64,
     selection_copy: bool,
+    drafting: drafting_ui::DraftingState,
+    building_ui: building_ui::BuildingUiState,
+    terrain_ui: terrain_ui::TerrainUiState,
+    scene_ui: scene_ui::SceneUiState,
+    workbench_ui: workbench_ui::WorkbenchUiState,
+    review_ui: review_ui::ReviewUiState,
     file_path: String,
     save_destination: String,
     pending_save_path: String,
@@ -339,6 +329,12 @@ impl ForgeApp {
             selection_angle: 0.0,
             selection_scale: 1.0,
             selection_copy: false,
+            drafting: drafting_ui::DraftingState::default(),
+            building_ui: building_ui::BuildingUiState::default(),
+            terrain_ui: terrain_ui::TerrainUiState::default(),
+            scene_ui: scene_ui::SceneUiState::default(),
+            workbench_ui: workbench_ui::WorkbenchUiState::default(),
+            review_ui: review_ui::ReviewUiState::default(),
             file_path: "untitled.forge.json".to_owned(),
             save_destination: "untitled.forge.json".to_owned(),
             pending_save_path: "untitled.forge.json".to_owned(),
@@ -403,7 +399,7 @@ pub fn launch(start_workspace: Workspace) -> eframe::Result {
             }
             "--help" | "-h" => {
                 println!(
-                    "Forge Studio\nUsage: forge-studio [--product ID] [--open FILE]\n\nIndividual product compatibility targets:"
+                    "Forge Craft\nUsage: forge-craft [--product ID] [--open FILE]\n\nIndividual product compatibility targets:"
                 );
                 for product in catalog::products() {
                     println!(
@@ -423,8 +419,8 @@ pub fn launch(start_workspace: Workspace) -> eframe::Result {
         .map(|product| workspace_for_area(product.area))
         .unwrap_or(start_workspace);
     let title = selected_product
-        .map(|product| format!("{} compatibility target · Forge Studio", product.name))
-        .unwrap_or_else(|| format!("Forge Studio · {}", workbench(start_workspace).name));
+        .map(|product| format!("{} compatibility target · Forge Craft", product.name))
+        .unwrap_or_else(|| format!("Forge Craft · {}", workbench(start_workspace).name));
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title(title.clone())
@@ -459,7 +455,7 @@ impl eframe::App for ForgeApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         if let Some(product) = catalog::product(&self.selected_product_id) {
-            let title = format!("{} compatibility target · Forge Studio", product.name);
+            let title = format!("{} compatibility target · Forge Craft", product.name);
             if self.window_title != title {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
                 self.window_title = title;
@@ -481,6 +477,9 @@ impl eframe::App for ForgeApp {
         self.top_bar(ui);
         self.ribbon(ui);
         self.status_bar(ui);
+        if self.active_workspace == Workspace::Draft {
+            self.command_bar(ui);
+        }
         self.workbench_rail(ui);
         self.tool_panel(ui);
         self.inspector_panel(ui);
@@ -489,7 +488,10 @@ impl eframe::App for ForgeApp {
             .show(ui, |ui| match self.active_workspace {
                 Workspace::Draft => self.drafting_canvas(ui),
                 Workspace::Model => self.model_canvas(ui),
-                _ => self.roadmap_workspace(ui),
+                Workspace::Build | Workspace::Terrain | Workspace::Motion | Workspace::Make => {
+                    self.workbench_canvas(ui)
+                }
+                Workspace::Connect => self.review_canvas(ui),
             });
         self.unsaved_changes_dialog(&ctx);
         self.product_selector(&ctx);
@@ -542,7 +544,7 @@ impl ForgeApp {
                     product.name, product.status
                 );
                 ctx.send_viewport_cmd(egui::ViewportCommand::Title(format!(
-                    "{} compatibility target · Forge Studio",
+                    "{} compatibility target · Forge Craft",
                     product.name
                 )));
                 self.show_products = false;
@@ -558,12 +560,7 @@ impl ForgeApp {
                 ui.horizontal_centered(|ui| {
                     ui.add_space(11.0);
                     ui.label(RichText::new("F").strong().size(18.0).color(ACCENT));
-                    ui.label(
-                        RichText::new("FORGE STUDIO")
-                            .strong()
-                            .size(13.0)
-                            .color(TEXT),
-                    );
+                    ui.label(RichText::new("FORGE CRAFT").strong().size(13.0).color(TEXT));
                     ui.add_space(11.0);
                     ui.separator();
                     if ui.small_button("Products").clicked() {
@@ -666,13 +663,15 @@ impl ForgeApp {
                         }
                         ui.separator();
                         ui.label(RichText::new("Right-drag to orbit · scroll to zoom").size(11.0).color(MUTED));
+                    } else if self.active_workspace != Workspace::Connect {
+                        if ui.button("Fit view").clicked() { self.model_fit_requested = true; }
+                        if ui.button("Undo").clicked() { self.undo(); }
+                        if ui.button("Redo").clicked() { self.redo(); }
+                        ui.label(RichText::new("Right-drag to orbit · middle-drag to pan · scroll to zoom").size(11.0).color(MUTED));
                     } else {
-                        let info = workbench(self.active_workspace);
-                        ui.label(RichText::new(info.symbol).strong().size(16.0).color(ACCENT));
-                        ui.vertical(|ui| {
-                            ui.label(RichText::new(info.subtitle).strong());
-                            ui.label(RichText::new("Workbench roadmap · local-first").size(10.0).color(MUTED));
-                        });
+                        if ui.button("Undo").clicked() { self.undo(); }
+                        if ui.button("Redo").clicked() { self.redo(); }
+                        ui.label("Local project review · issues and resolution status");
                     }
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         ui.add_space(12.0);
@@ -700,6 +699,34 @@ impl ForgeApp {
     }
 
     fn status_bar(&self, root: &mut egui::Ui) {
+        let inventory = match self.active_workspace {
+            Workspace::Build => format!(
+                "{} walls · {} slabs · {} openings",
+                self.document.building.walls.len(),
+                self.document.building.slabs.len(),
+                self.document.building.openings.len()
+            ),
+            Workspace::Terrain => format!(
+                "{} points · {} terrain faces",
+                self.document.terrain.points.len(),
+                self.document.terrain.triangles.len()
+            ),
+            Workspace::Motion => format!(
+                "{} scene objects · {:.2} s",
+                self.document.scene.objects.len(),
+                self.scene_ui.time
+            ),
+            Workspace::Make => format!(
+                "{} machining profiles",
+                self.document.manufacturing.profiles.len()
+            ),
+            Workspace::Connect => format!("{} review issues", self.document.review.items.len()),
+            _ => format!(
+                "{} entities · {} solids",
+                self.document.entities.len(),
+                self.document.solids.len()
+            ),
+        };
         egui::Panel::bottom("status_bar")
             .exact_size(28.0)
             .frame(egui::Frame::new().fill(Color32::from_rgb(24, 29, 38)))
@@ -724,15 +751,7 @@ impl ForgeApp {
                     ));
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         ui.add_space(11.0);
-                        ui.label(
-                            RichText::new(format!(
-                                "{} entities  ·  {} solids",
-                                self.document.entities.len(),
-                                self.document.solids.len()
-                            ))
-                            .size(10.0)
-                            .color(MUTED),
-                        );
+                        ui.label(RichText::new(inventory).size(10.0).color(MUTED));
                         ui.add_space(12.0);
                         if self.active_workspace == Workspace::Draft {
                             ui.label(
@@ -767,10 +786,12 @@ impl ForgeApp {
                     let label = RichText::new(format!("{}\n{}", info.symbol, info.name))
                         .size(10.0)
                         .color(if selected { ACCENT } else { MUTED });
-                    let response = ui.add_sized(
-                        Vec2::new(74.0, 48.0),
-                        egui::Button::new(label).selected(selected),
-                    );
+                    let response = ui
+                        .add_sized(
+                            Vec2::new(74.0, 48.0),
+                            egui::Button::new(label).selected(selected),
+                        )
+                        .on_hover_text(format!("{}\n{}", info.subtitle, info.focus));
                     if response.clicked() {
                         self.switch_workspace(info.workspace);
                     }
@@ -792,10 +813,16 @@ impl ForgeApp {
                     .fill(PANEL)
                     .stroke(Stroke::new(1.0, BORDER)),
             )
-            .show(root, |ui| match self.active_workspace {
-                Workspace::Draft => self.draft_tools(ui),
-                Workspace::Model => self.model_browser(ui),
-                _ => self.roadmap_sidebar(ui),
+            .show(root, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| match self.active_workspace {
+                    Workspace::Draft => self.draft_tools(ui),
+                    Workspace::Model => self.model_browser(ui),
+                    Workspace::Build => self.building_tools(ui),
+                    Workspace::Terrain => self.terrain_tools(ui),
+                    Workspace::Motion => self.scene_tools(ui),
+                    Workspace::Make => self.cam_tools(ui),
+                    Workspace::Connect => self.review_tools(ui),
+                });
             });
     }
 
@@ -1005,44 +1032,6 @@ impl ForgeApp {
         );
     }
 
-    fn roadmap_sidebar(&mut self, ui: &mut egui::Ui) {
-        let info = workbench(self.active_workspace);
-        section_header(ui, info.name, info.status);
-        ui.add_space(12.0);
-        ui.label(
-            RichText::new("Workflow family")
-                .size(10.0)
-                .strong()
-                .color(MUTED),
-        );
-        for product in info.products {
-            ui.label(RichText::new(format!("•  {product}")).size(11.0));
-        }
-        ui.add_space(18.0);
-        ui.separator();
-        ui.add_space(12.0);
-        ui.label(
-            RichText::new("Shared project")
-                .size(10.0)
-                .strong()
-                .color(MUTED),
-        );
-        ui.label(RichText::new("The workbench boundaries are set up for the listed product families. Domain features are still planned here.").size(10.0).color(MUTED));
-        ui.add_space(12.0);
-        ui.label(
-            RichText::new("Available now")
-                .size(10.0)
-                .strong()
-                .color(MUTED),
-        );
-        if ui.button("Open Draft workbench").clicked() {
-            self.switch_workspace(Workspace::Draft);
-        }
-        if ui.button("Open Model workbench").clicked() {
-            self.switch_workspace(Workspace::Model);
-        }
-    }
-
     fn inspector_panel(&mut self, root: &mut egui::Ui) {
         egui::Panel::right("inspector")
             .default_size(260.0)
@@ -1056,7 +1045,22 @@ impl ForgeApp {
                 egui::ScrollArea::vertical().show(ui, |ui| match self.active_workspace {
                     Workspace::Draft => self.draft_inspector(ui),
                     Workspace::Model => self.model_inspector(ui),
-                    _ => self.roadmap_inspector(ui),
+                    Workspace::Build | Workspace::Terrain | Workspace::Motion | Workspace::Make => {
+                        match self.active_workspace {
+                            Workspace::Build => self.building_inspector(ui),
+                            Workspace::Terrain => self.terrain_inspector(ui),
+                            Workspace::Motion => self.scene_inspector(ui),
+                            Workspace::Make => self.cam_inspector(ui),
+                            _ => unreachable!(),
+                        }
+                        self.project_controls(ui);
+                        self.workbench_export_controls(ui);
+                    }
+                    Workspace::Connect => {
+                        self.review_inspector(ui);
+                        self.project_controls(ui);
+                        self.workbench_export_controls(ui);
+                    }
                 });
             });
     }
@@ -1214,6 +1218,7 @@ impl ForgeApp {
                 self.export_current();
             }
         });
+        self.plot_controls(ui);
     }
 
     fn selection_controls(&mut self, ui: &mut egui::Ui) {
@@ -1222,9 +1227,10 @@ impl ForgeApp {
         ui.label(RichText::new(format!("{} selected", self.selected_entities.len())).strong());
         let length: f64 = self
             .document
-            .entities
+            .expanded_entities()
+            .unwrap_or_default()
             .iter()
-            .filter(|entity| self.selected_entities.contains(&entity.id))
+            .filter(|entity| self.selected_entities.contains(&entity.source_id))
             .map(|entity| entity.geometry.length())
             .sum();
         ui.label(format!("Curve length: {length:.3}"));
@@ -1248,26 +1254,10 @@ impl ForgeApp {
             ui.add(egui::DragValue::new(&mut self.selection_pivot[1]).speed(1.0));
         });
         if ui.small_button("Use selection center").clicked() {
-            let mut bounds: Option<forge_core::edit::Bounds2d> = None;
-            for entity in self
-                .document
-                .entities
-                .iter()
-                .filter(|entity| self.selected_entities.contains(&entity.id))
-            {
-                if let Some(entity_bounds) = entity.geometry.bounds() {
-                    if let Some(bounds) = &mut bounds {
-                        bounds.include(entity_bounds.min);
-                        bounds.include(entity_bounds.max);
-                    } else {
-                        bounds = Some(entity_bounds);
-                    }
-                }
-            }
-            if let Some(bounds) = bounds {
+            if let Some(bounds) = self.selection_bounds() {
                 self.selection_pivot = [
-                    (bounds.min.x + bounds.max.x) * 0.5,
-                    (bounds.min.y + bounds.max.y) * 0.5,
+                    bounds.min.x / 2.0 + bounds.max.x / 2.0,
+                    bounds.min.y / 2.0 + bounds.max.y / 2.0,
                 ];
             }
         }
@@ -1291,6 +1281,7 @@ impl ForgeApp {
                 ));
             }
         });
+        self.advanced_selection_controls(ui);
         if ui.button("Assign current layer").clicked() {
             self.record_change();
             for entity in &mut self.document.entities {
@@ -1324,6 +1315,20 @@ impl ForgeApp {
             .size(9.0)
             .color(MUTED),
         );
+    }
+
+    fn selection_bounds(&self) -> Option<forge_core::edit::Bounds2d> {
+        self.document
+            .expanded_entities()
+            .ok()?
+            .iter()
+            .filter(|entity| self.selected_entities.contains(&entity.source_id))
+            .filter_map(|entity| entity.geometry.bounds())
+            .reduce(|mut total, item| {
+                total.include(item.min);
+                total.include(item.max);
+                total
+            })
     }
 
     /// Replaces the selected entities with a reusable block reference. The whole
@@ -1578,83 +1583,6 @@ impl ForgeApp {
                 self.export_current();
             }
         });
-    }
-
-    fn roadmap_inspector(&mut self, ui: &mut egui::Ui) {
-        section_header(ui, "PROJECT", "Shared local document");
-        ui.add_space(8.0);
-        ui.label(RichText::new("Forge Studio stores project data locally. Connect workbench features are planned and no account or network connection is used.").size(10.0).color(MUTED));
-        self.project_controls(ui);
-    }
-
-    fn roadmap_workspace(&self, ui: &mut egui::Ui) {
-        let info = workbench(self.active_workspace);
-        let rect = ui.available_rect_before_wrap();
-        let (stage, _) = ui.allocate_exact_size(ui.available_size(), Sense::hover());
-        let painter = ui.painter_at(stage);
-        painter.rect_filled(stage, 0.0, BG);
-        let card =
-            Rect::from_center_size(stage.center(), Vec2::new(stage.width().min(760.0), 410.0));
-        painter.rect_filled(card, 14.0, PANEL);
-        painter.rect_stroke(card, 14.0, Stroke::new(1.0, BORDER), StrokeKind::Inside);
-        let center = card.center();
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 38.0),
-            Align2::LEFT_TOP,
-            info.status,
-            FontId::proportional(10.0),
-            ACCENT,
-        );
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 88.0),
-            Align2::LEFT_TOP,
-            info.name,
-            FontId::proportional(34.0),
-            TEXT,
-        );
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 137.0),
-            Align2::LEFT_TOP,
-            info.subtitle,
-            FontId::proportional(18.0),
-            MUTED,
-        );
-        painter.line_segment(
-            [
-                Pos2::new(card.left() + 34.0, card.top() + 183.0),
-                Pos2::new(card.right() - 34.0, card.top() + 183.0),
-            ],
-            Stroke::new(1.0, BORDER),
-        );
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 207.0),
-            Align2::LEFT_TOP,
-            info.focus,
-            FontId::proportional(14.0),
-            TEXT,
-        );
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 247.0),
-            Align2::LEFT_TOP,
-            "Product families mapped for future clean-room implementations:",
-            FontId::proportional(11.0),
-            MUTED,
-        );
-        painter.text(
-            Pos2::new(card.left() + 34.0, card.top() + 276.0),
-            Align2::LEFT_TOP,
-            info.products.join("   ·   "),
-            FontId::proportional(12.0),
-            TEXT,
-        );
-        painter.text(
-            Pos2::new(center.x, card.bottom() - 32.0),
-            Align2::CENTER_BOTTOM,
-            "This workbench is planned; its product workflows are not implemented yet.",
-            FontId::proportional(10.0),
-            MUTED,
-        );
-        let _ = rect;
     }
 
     fn drafting_canvas(&mut self, ui: &mut egui::Ui) {
@@ -2003,7 +1931,9 @@ impl ForgeApp {
         if response.drag_stopped_by(egui::PointerButton::Secondary) {
             self.drag_state = DragState::None;
         }
-        if response.clicked_by(egui::PointerButton::Primary) {
+        if self.active_workspace == Workspace::Model
+            && response.clicked_by(egui::PointerButton::Primary)
+        {
             if let Some(pointer) = response.interact_pointer_pos() {
                 let nearest = self
                     .document
@@ -2648,6 +2578,7 @@ impl ForgeApp {
     fn new_document(&mut self) {
         self.construction_points.clear();
         self.document = Document::default();
+        self.reset_workbench_views();
         self.selected_entities.clear();
         self.selected_solid = None;
         self.selected_mesh = None;
@@ -2702,6 +2633,7 @@ impl ForgeApp {
             Ok(document) => {
                 self.construction_points.clear();
                 self.document = document;
+                self.reset_workbench_views();
                 self.selected_entities.clear();
                 self.selected_solid = None;
                 self.selected_mesh = None;
@@ -2730,15 +2662,14 @@ impl ForgeApp {
                     self.file_path = path.to_string_lossy().into_owned();
                     self.status = format!("Opened {}", path.display());
                 }
-                if self.document.entities.is_empty()
-                    && (!self.document.meshes.is_empty() || !self.document.solids.is_empty())
-                {
-                    self.active_workspace = Workspace::Model;
-                    self.selected_mesh = self.document.meshes.first().map(|object| object.id);
-                    self.model_fit_requested = true;
-                } else {
-                    self.fit_requested = true;
+                let workspace = self.document_workspace();
+                if workspace != self.active_workspace {
+                    self.active_workspace = workspace;
+                    self.selected_product_id = default_product_id(workspace).into();
                 }
+                self.selected_mesh = self.document.meshes.first().map(|object| object.id);
+                self.fit_requested = true;
+                self.model_fit_requested = true;
                 self.save_destination = self.file_path.clone();
             }
             Err(error) => {
@@ -2775,9 +2706,25 @@ impl ForgeApp {
     }
 
     fn prepare_export(&self) -> std::io::Result<PreparedExport> {
+        if matches!(
+            self.active_workspace,
+            Workspace::Build
+                | Workspace::Terrain
+                | Workspace::Motion
+                | Workspace::Make
+                | Workspace::Connect
+        ) {
+            return self.prepare_workbench_export();
+        }
         self.document.validate()?;
         let mut losses = Vec::new();
+        if !self.document.layouts.is_empty() {
+            losses.push("Saved print layouts and paper notes are omitted from neutral export. Native Save retains them; Export saved layout produces their SVG sheets.".into());
+        }
         let (path, bytes) = if self.active_workspace == Workspace::Model {
+            if self.document.has_workbench_data() {
+                losses.push("Semantic workbench models are omitted from Model mesh export; export each workbench separately to include its derived geometry.".to_owned());
+            }
             let path = export_path(&self.file_path, &self.model_export_format);
             if !self.document.entities.is_empty() {
                 losses.push(
@@ -2820,9 +2767,11 @@ impl ForgeApp {
             };
             (path, bytes)
         } else {
+            let mut drawing = self.document.clone();
+            drawing.layouts.clear();
             (
                 export_path(&self.file_path, "dxf"),
-                forge_core::dxf::write(&self.document)?.into_bytes(),
+                forge_core::dxf::write(&drawing)?.into_bytes(),
             )
         };
         let replace_existing = std::fs::symlink_metadata(&path).is_ok();
@@ -2910,6 +2859,7 @@ impl ForgeApp {
     fn switch_workspace(&mut self, workspace: Workspace) {
         self.construction_points.clear();
         self.active_workspace = workspace;
+        self.model_fit_requested = true;
         if catalog::product(&self.selected_product_id)
             .is_none_or(|product| workspace_for_area(product.area) != workspace)
         {
@@ -2924,6 +2874,60 @@ impl ForgeApp {
 
     fn record_change(&mut self) {
         self.record_snapshot(self.document.clone());
+    }
+
+    fn commit_workbench_document(&mut self, candidate: Document, label: impl Into<String>) -> bool {
+        if let Err(error) = candidate.validate() {
+            self.status = error.to_string();
+            self.status_is_error = true;
+            return false;
+        }
+        if candidate == self.document {
+            return true;
+        }
+        self.record_change();
+        self.document = candidate;
+        self.model_fit_requested = true;
+        self.mark_dirty(label);
+        true
+    }
+
+    fn reset_workbench_views(&mut self) {
+        self.building_ui = building_ui::BuildingUiState::default();
+        self.terrain_ui = terrain_ui::TerrainUiState::default();
+        self.scene_ui = scene_ui::SceneUiState::default();
+        self.workbench_ui = workbench_ui::WorkbenchUiState::default();
+        self.review_ui = review_ui::ReviewUiState::default();
+        self.model_fit_requested = true;
+    }
+
+    fn document_workspace(&self) -> Workspace {
+        let has_content = |area| match area {
+            Workspace::Draft => !self.document.entities.is_empty(),
+            Workspace::Model => {
+                !self.document.solids.is_empty() || !self.document.meshes.is_empty()
+            }
+            Workspace::Build => !self.document.building.is_empty(),
+            Workspace::Terrain => !self.document.terrain.is_empty(),
+            Workspace::Motion => self.document.scene != forge_core::scene::Scene::default(),
+            Workspace::Make => self.document.manufacturing != forge_core::cam::CamJob::default(),
+            Workspace::Connect => !self.document.review.is_empty(),
+        };
+        if has_content(self.active_workspace) {
+            return self.active_workspace;
+        }
+        [
+            Workspace::Draft,
+            Workspace::Model,
+            Workspace::Build,
+            Workspace::Terrain,
+            Workspace::Motion,
+            Workspace::Make,
+            Workspace::Connect,
+        ]
+        .into_iter()
+        .find(|area| has_content(*area))
+        .unwrap_or(self.active_workspace)
     }
 
     fn record_snapshot(&mut self, snapshot: Document) {
@@ -3400,6 +3404,15 @@ fn paint_sphere(painter: &Painter, rect: Rect, camera: Camera3d, solid: &Solid, 
 #[cfg(test)]
 mod application_tests {
     use super::*;
+    #[test]
+    fn model_projection_places_positive_z_up_and_nearer_the_viewer() {
+        let rect = Rect::from_min_size(Pos2::ZERO, Vec2::new(800.0, 600.0));
+        let camera = Camera3d::default();
+        let origin = camera.project([0.0, 0.0, 0.0], rect);
+        let top = camera.project([0.0, 0.0, 100.0], rect);
+        assert!(top.0.y < origin.0.y);
+        assert!(top.1 > origin.1);
+    }
     #[test]
     fn polyline_authoring_is_a_single_undoable_geometry_operation() {
         let mut app = ForgeApp::default();

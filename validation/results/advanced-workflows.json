@@ -1,0 +1,56 @@
+{
+  "checks_passed": [
+    "Saved native two-viewport layout plots and independently renders with paper text, physical scales and a rotated model view",
+    "Documented machining script produces rectangular, circular and islanded polygon pockets, peck drilling and a generic G-code program",
+    "Documented civil script retains stationing and generates sampled alignment and exact level-datum earthwork reports",
+    "Documented parented scene evaluates and exports a derived frame while retaining native local keys"
+  ],
+  "artifacts": {
+    "target/feature-acceptance/alignment-profile.csv": {
+      "bytes": 6782,
+      "sha256": "f2c0ddfea1dff103520f26320b1120141ccb8796d8b40803e026ac6b0fd6e656"
+    },
+    "target/feature-acceptance/earthwork.csv": {
+      "bytes": 105,
+      "sha256": "c3c8c97d2739ed257464bc2cde622cbb8ed4b03d9335d466a4840b6196b6481d"
+    },
+    "target/feature-acceptance/machining.forge.json": {
+      "bytes": 3376,
+      "sha256": "fce1c6d1db805320a7825b90363c14fa16e5b2eec3a154eb92c6e17d4ba593c7"
+    },
+    "target/feature-acceptance/machining.nc": {
+      "bytes": 155975,
+      "sha256": "67b343bf1114bef135e34460f41efdb16987336a789eca78a4c1b40ae9b6064f"
+    },
+    "target/feature-acceptance/motion.forge.json": {
+      "bytes": 4104,
+      "sha256": "31b72f58ee71acee3fa41f10f0052b22cc43a6d46eb7660e1b9ed87ab027a0b3"
+    },
+    "target/feature-acceptance/parented-frame.obj": {
+      "bytes": 6163,
+      "sha256": "29a5e3d68f5b8e8ddaa9ed892bf0587c4df2e80b8d134aed8544609db21e43e8"
+    },
+    "target/feature-acceptance/plan.forge.json": {
+      "bytes": 6689,
+      "sha256": "3428fc709249f29c5d47b4c918eb3401300553d3eaf31a2ab84e5843c808cff2"
+    },
+    "target/feature-acceptance/sheet-preview.png": {
+      "bytes": 16493,
+      "sha256": "ffc8a687cd1485cd16a5fd0e759e9ba679c4270b8809879669d2fa44c9a1957d"
+    },
+    "target/feature-acceptance/sheet.forge.json": {
+      "bytes": 8104,
+      "sha256": "feab7f722c7827b44dcf843514c847a4aa44e6d13bdff3ce31e2461d73efc48d"
+    },
+    "target/feature-acceptance/sheet.svg": {
+      "bytes": 8217,
+      "sha256": "bad9017e0ce2734380043dd25329d78f568f23d3ae7459eaaac04f4931090427"
+    },
+    "target/feature-acceptance/terrain.forge.json": {
+      "bytes": 2611,
+      "sha256": "46e3ae73529acb62c1deae6304422ea84289a2895836bb54981c3d93319edcf6"
+    }
+  },
+  "objective_complete": false,
+  "scope": "Documented bounded workflows and independent SVG rendering; no full product or native-format parity claim"
+}

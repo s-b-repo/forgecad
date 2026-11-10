@@ -1,0 +1,15 @@
+autocad: exit 0
+inventor: exit 0
+revit: exit 0
+maya: exit 0
+civil-3d: exit 0
+inventor-cam: exit 0
+autodesk-docs: exit 0
+native pointer/keyboard editing: passed
+autocad: populated draft preview captured
+inventor: populated model preview captured
+revit: populated build preview captured
+maya: populated motion preview captured
+civil-3d: populated terrain preview captured
+inventor-cam: populated make preview captured
+autodesk-docs: populated connect preview captured

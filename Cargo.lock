@@ -878,6 +878,7 @@ version = "0.1.0"
 dependencies = [
  "forge-core",
  "forge-dwg",
+ "forge-modeling",
  "serde_json",
 ]
 
@@ -887,6 +888,14 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "forge-craft"
+version = "0.1.0"
+dependencies = [
+ "eframe",
+ "forge-core",
 ]
 
 [[package]]
@@ -904,14 +913,6 @@ dependencies = [
  "truck-modeling",
  "truck-stepio",
  "truck-topology",
-]
-
-[[package]]
-name = "forge-studio"
-version = "0.1.0"
-dependencies = [
- "eframe",
- "forge-core",
 ]
 
 [[package]]

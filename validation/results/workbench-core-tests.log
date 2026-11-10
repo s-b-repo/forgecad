@@ -1,0 +1,23 @@
+   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
+error[E0282]: type annotations needed for `BTreeSet<_>`
+  --> crates/forge-core/src/terrain.rs:47:13
+   |
+47 |         let mut used = BTreeSet::new();
+   |             ^^^^^^^^   --------------- type must be known at this point
+   |
+help: consider giving `used` an explicit type, where the type for type parameter `T` is specified
+   |
+47 |         let mut used: BTreeSet<T> = BTreeSet::new();
+   |                     +++++++++++++
+
+error[E0609]: no field `mesh` on type `mesh::TriangleMesh`
+   --> crates/forge-core/src/terrain.rs:405:58
+    |
+405 |         assert_eq!(TriangleMesh::from_obj(&obj).unwrap().mesh.triangles.len(),mesh.triangles.len());
+    |                                                          ^^^^ unknown field
+    |
+    = note: available fields are: `vertices`, `triangles`
+
+Some errors have detailed explanations: E0282, E0609.
+For more information about an error, try `rustc --explain E0282`.
+error: could not compile `forge-core` (lib test) due to 2 previous errors
