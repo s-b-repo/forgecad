@@ -13,6 +13,9 @@ pub struct Alignment {
     pub name: String,
     pub start_station: f64,
     pub vertices: Vec<Point>,
+    /// tan(signed sweep / 4) for each segment; empty means all straight.
+    #[serde(default)]
+    pub bulges: Vec<f64>,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -27,43 +30,92 @@ pub struct StationOffset {
 
 impl Alignment {
     pub fn validate(&self) -> io::Result<()> {
+        self.segments().map(|_| ())
+    }
+
+    fn segments(&self) -> io::Result<Vec<AlignmentSegment>> {
         if self.id == 0
             || self.name.trim().is_empty()
             || self.name.contains(['\r', '\n', '\0'])
             || !self.start_station.is_finite()
             || !(2..=2048).contains(&self.vertices.len())
             || self.vertices.iter().any(|p| !p.is_finite())
+            || (!self.bulges.is_empty() && self.bulges.len() != self.vertices.len() - 1)
         {
             return Err(invalid(
                 "Alignments require a nonzero ID, single-line name, finite start station and 2..2048 vertices",
             ));
         }
         let mut length = 0.0;
-        for pair in self.vertices.windows(2) {
-            let segment = pair[0].distance(pair[1]);
+        let mut output = Vec::with_capacity(self.vertices.len() - 1);
+        for (index, pair) in self.vertices.windows(2).enumerate() {
+            let bulge = self.bulges.get(index).copied().unwrap_or(0.0);
+            if !bulge.is_finite() {
+                return Err(invalid("Alignment bulges must be finite"));
+            }
+            let arc = if bulge == 0.0 {
+                None
+            } else {
+                Some(
+                    crate::bulge_arc(pair[0], pair[1], bulge)
+                        .ok_or_else(|| invalid("Invalid circular alignment segment"))?,
+                )
+            };
+            let segment = arc
+                .map(|(_, r, _, s)| r * s.to_radians().abs())
+                .unwrap_or_else(|| pair[0].distance(pair[1]));
             if !segment.is_finite() || segment <= 0.0 || length + segment <= length {
                 return Err(invalid(
                     "Alignment segments must have finite positive representable lengths",
                 ));
             }
             length += segment;
+            if let Some((center, radius, _, _)) = arc {
+                if [
+                    center.x - radius,
+                    center.x + radius,
+                    center.y - radius,
+                    center.y + radius,
+                ]
+                .iter()
+                .any(|v| !v.is_finite())
+                {
+                    return Err(invalid("Circular alignment extents exceed numeric range"));
+                }
+            }
+            output.push(AlignmentSegment {
+                a: pair[0],
+                b: pair[1],
+                length: segment,
+                arc,
+            });
         }
         let end = self.start_station + length;
         if !length.is_finite() || !end.is_finite() || end <= self.start_station {
             return Err(invalid("Alignment station range exceeds numeric precision"));
         }
-        Ok(())
+        Ok(output)
     }
 
     pub fn length(&self) -> io::Result<f64> {
-        self.validate()?;
-        Ok(self.vertices.windows(2).map(|p| p[0].distance(p[1])).sum())
+        Ok(self.segments()?.iter().map(|s| s.length).sum())
     }
 
     /// At an internal vertex offsets follow the outgoing segment. Station must
     /// be within the authored range; no extrapolation or corner fillet is made.
     pub fn point_at(&self, station: f64, offset: f64) -> io::Result<Point> {
-        let length = self.length()?;
+        let segments = self.segments()?;
+        let length: f64 = segments.iter().map(|s| s.length).sum();
+        self.point_on_segments(station, offset, &segments, length)
+    }
+
+    fn point_on_segments(
+        &self,
+        station: f64,
+        offset: f64,
+        segments: &[AlignmentSegment],
+        length: f64,
+    ) -> io::Result<Point> {
         if !station.is_finite()
             || !offset.is_finite()
             || station < self.start_station
@@ -73,53 +125,41 @@ impl Alignment {
                 "Station must lie on the alignment and offset must be finite",
             ));
         }
-        let mut distance = (station - self.start_station).min(length);
-        for (index, pair) in self.vertices.windows(2).enumerate() {
-            let segment = pair[0].distance(pair[1]);
-            if distance < segment || index + 2 == self.vertices.len() {
-                let (dx, dy) = (
-                    (pair[1].x - pair[0].x) / segment,
-                    (pair[1].y - pair[0].y) / segment,
-                );
-                let distance = distance.clamp(0.0, segment);
-                let result = Point::new(
-                    pair[0].x + dx * distance - dy * offset,
-                    pair[0].y + dy * distance + dx * offset,
-                );
-                if !result.is_finite() {
-                    return Err(invalid("Alignment offset exceeds numeric range"));
-                }
-                return Ok(result);
-            }
-            distance -= segment;
+        if station == self.start_station + length {
+            let last = segments
+                .last()
+                .ok_or_else(|| invalid("Alignment has no segments"))?;
+            return last.position(last.length, offset);
         }
-        unreachable!("validated alignment")
+        let mut prefix = 0.0;
+        for (index, segment) in segments.iter().enumerate() {
+            if station < self.start_station + (prefix + segment.length)
+                || index + 1 == segments.len()
+            {
+                return segment.position(
+                    (station - (self.start_station + prefix)).clamp(0.0, segment.length),
+                    offset,
+                );
+            }
+            prefix += segment.length;
+        }
+        Err(invalid("Station could not be located on the alignment"))
     }
 
     /// Nearest segment projection; ties select the earliest segment. Station
     /// clamps to endpoints and offset is the signed perpendicular component.
     pub fn station_offset(&self, query: Point) -> io::Result<StationOffset> {
-        self.validate()?;
+        let segments = self.segments()?;
         if !query.is_finite() {
             return Err(invalid("Alignment query must be finite"));
         }
         let mut best: Option<StationOffset> = None;
         let mut prefix = 0.0;
-        for pair in self.vertices.windows(2) {
-            let length = pair[0].distance(pair[1]);
-            let (dx, dy) = (
-                (pair[1].x - pair[0].x) / length,
-                (pair[1].y - pair[0].y) / length,
-            );
-            let (qx, qy) = (query.x - pair[0].x, query.y - pair[0].y);
-            let distance_along = (qx * dx + qy * dy).clamp(0.0, length);
-            let position = Point::new(
-                pair[0].x + dx * distance_along,
-                pair[0].y + dy * distance_along,
-            );
+        for segment in &segments {
+            let (distance_along, position, offset) = segment.project(query)?;
             let candidate = StationOffset {
                 station: self.start_station + prefix + distance_along,
-                offset: -qx * dy + qy * dx,
+                offset,
                 distance: query.distance(position),
                 position,
             };
@@ -133,9 +173,111 @@ impl Alignment {
             if best.is_none_or(|b| candidate.distance < b.distance) {
                 best = Some(candidate);
             }
-            prefix += length;
+            prefix += segment.length;
         }
-        Ok(best.expect("validated segments"))
+        best.ok_or_else(|| invalid("Alignment has no projectable segments"))
+    }
+
+    /// Preview tessellation only; stationing and projection stay analytic.
+    pub fn display_lines(&self) -> io::Result<Vec<(Point, Point)>> {
+        let segments = self.segments()?;
+        let mut output = Vec::new();
+        for s in segments {
+            let count = s
+                .arc
+                .map(|(_, _, _, sweep)| (sweep.abs() / 3.0).ceil() as usize)
+                .unwrap_or(1)
+                .max(1);
+            if output.len() + count > 100_000 {
+                return Err(invalid("Alignment preview exceeds 100000 segments"));
+            }
+            for i in 0..count {
+                output.push((
+                    s.position(s.length * (i as f64 / count as f64), 0.0)?,
+                    s.position(s.length * ((i + 1) as f64 / count as f64), 0.0)?,
+                ));
+            }
+        }
+        Ok(output)
+    }
+}
+
+struct AlignmentSegment {
+    a: Point,
+    b: Point,
+    length: f64,
+    arc: Option<(Point, f64, f64, f64)>,
+}
+impl AlignmentSegment {
+    fn tangent(&self, distance: f64) -> (f64, f64) {
+        if let Some((_, _, start, sweep)) = self.arc {
+            let angle = (start + sweep * (distance / self.length)).to_radians();
+            (-angle.sin() * sweep.signum(), angle.cos() * sweep.signum())
+        } else {
+            (
+                (self.b.x - self.a.x) / self.length,
+                (self.b.y - self.a.y) / self.length,
+            )
+        }
+    }
+    fn position(&self, distance: f64, offset: f64) -> io::Result<Point> {
+        let result = if let Some((center, radius, start, sweep)) = self.arc {
+            let r = radius - sweep.signum() * offset;
+            if !r.is_finite() || r <= radius * f64::EPSILON * 64.0 {
+                return Err(invalid(
+                    "Alignment offset collapses or reverses a circular segment",
+                ));
+            }
+            if offset == 0.0 && distance == 0.0 {
+                self.a
+            } else if offset == 0.0 && distance == self.length {
+                self.b
+            } else {
+                crate::arc_point(center, r, start + sweep * (distance / self.length))
+            }
+        } else {
+            let (dx, dy) = self.tangent(distance);
+            Point::new(
+                self.a.x + dx * distance - dy * offset,
+                self.a.y + dy * distance + dx * offset,
+            )
+        };
+        if !result.is_finite() {
+            return Err(invalid("Alignment offset exceeds numeric range"));
+        }
+        Ok(result)
+    }
+    fn project(&self, query: Point) -> io::Result<(f64, Point, f64)> {
+        let along = if let Some((center, _, start, sweep)) = self.arc {
+            let (qx, qy) = (query.x - center.x, query.y - center.y);
+            if qx == 0.0 && qy == 0.0 {
+                0.0
+            } else {
+                let angle = qy.atan2(qx).to_degrees();
+                let delta = if sweep > 0.0 {
+                    (angle - start).rem_euclid(360.0)
+                } else {
+                    (start - angle).rem_euclid(360.0)
+                };
+                if delta <= sweep.abs() + 1e-10 {
+                    self.length * (delta / sweep.abs()).min(1.0)
+                } else if query.distance(self.a) <= query.distance(self.b) {
+                    0.0
+                } else {
+                    self.length
+                }
+            }
+        } else {
+            let (dx, dy) = self.tangent(0.0);
+            ((query.x - self.a.x) * dx + (query.y - self.a.y) * dy).clamp(0.0, self.length)
+        };
+        let point = self.position(along, 0.0)?;
+        let (dx, dy) = self.tangent(along);
+        Ok((
+            along,
+            point,
+            -(query.x - point.x) * dy + (query.y - point.y) * dx,
+        ))
     }
 }
 
@@ -165,11 +307,12 @@ impl Terrain {
             .iter()
             .find(|a| a.id == id)
             .ok_or_else(|| invalid("Alignment does not exist"))?;
-        let length = alignment.length()?;
+        let segments = alignment.segments()?;
+        let length: f64 = segments.iter().map(|s| s.length).sum();
         (0..samples)
             .map(|i| {
                 let station = alignment.start_station + length * (i as f64 / (samples - 1) as f64);
-                let position = alignment.point_at(station, offset)?;
+                let position = alignment.point_on_segments(station, offset, &segments, length)?;
                 Ok(ProfileSample {
                     distance: station,
                     position,
@@ -188,7 +331,7 @@ impl Terrain {
                 "{},{},{},{}",
                 sample.distance, sample.position.x, sample.position.y, z
             )
-            .unwrap();
+            .map_err(io::Error::other)?;
         }
         Ok(out)
     }

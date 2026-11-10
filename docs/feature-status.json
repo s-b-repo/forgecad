@@ -1,0 +1,591 @@
+{
+  "scope": "Repository workflow inventory; implemented means the bounded capability described, not Autodesk product parity.",
+  "features": [
+    {
+      "id": "draft-authoring",
+      "area": "Draft",
+      "name": "2D entity authoring",
+      "status": "implemented",
+      "coverage": "Lines, rectangles, circles, arcs, points, straight/curved polylines and text",
+      "limits": "No spline or hatch authoring",
+      "evidence": [
+        "crates/forge-core/src/lib.rs",
+        "apps/craft-suite/src/app.rs"
+      ]
+    },
+    {
+      "id": "draft-transforms",
+      "area": "Draft",
+      "name": "Selection and transforms",
+      "status": "implemented",
+      "coverage": "Move, copy, rotate, uniform scale, mirror and multi-selection",
+      "limits": "Unsupported text/INSERT mirror cases are refused",
+      "evidence": [
+        "crates/forge-core/src/edit.rs"
+      ]
+    },
+    {
+      "id": "draft-snaps",
+      "area": "Draft",
+      "name": "Grid and object snapping",
+      "status": "implemented",
+      "coverage": "Grid and supported geometry reference points",
+      "limits": "No complete vendor drafting-aid set",
+      "evidence": [
+        "crates/forge-core/src/edit.rs"
+      ]
+    },
+    {
+      "id": "draft-offset-array",
+      "area": "Draft",
+      "name": "Offsets and arrays",
+      "status": "implemented",
+      "coverage": "Analytic/straight and tangent-continuous curved offsets; rectangular and polar arrays",
+      "limits": "Invalid joins, collapsing offsets and excessive arrays are refused",
+      "evidence": [
+        "crates/forge-core/src/drafting.rs"
+      ]
+    },
+    {
+      "id": "draft-trim",
+      "area": "Draft",
+      "name": "LINE trim and extend",
+      "status": "implemented",
+      "coverage": "Picked target LINE against finite LINE boundaries",
+      "limits": "General curve trimming remains planned",
+      "evidence": [
+        "crates/forge-core/src/drafting.rs"
+      ]
+    },
+    {
+      "id": "draft-layers",
+      "area": "Draft",
+      "name": "Layers",
+      "status": "implemented",
+      "coverage": "Names, colors, visibility and assignment",
+      "limits": "Full linetype/plot-style systems are not implemented",
+      "evidence": [
+        "crates/forge-core/src/lib.rs"
+      ]
+    },
+    {
+      "id": "draft-blocks",
+      "area": "Draft",
+      "name": "Reusable nested blocks",
+      "status": "implemented",
+      "coverage": "Definitions, references, expansion, picking and transactional explosion",
+      "limits": "No dynamic blocks or vendor custom objects",
+      "evidence": [
+        "crates/forge-core/src/blocks.rs"
+      ]
+    },
+    {
+      "id": "draft-dimensions",
+      "area": "Draft",
+      "name": "Semantic dimensions",
+      "status": "implemented",
+      "coverage": "Horizontal, vertical, aligned, rotated, radius and diameter annotations",
+      "limits": "DXF DIMENSION export is refused; full styles remain planned",
+      "evidence": [
+        "crates/forge-core/src/dimension.rs"
+      ]
+    },
+    {
+      "id": "draft-commands",
+      "area": "Draft",
+      "name": "Numeric commands and batch scripts",
+      "status": "implemented",
+      "coverage": "Shared transactional desktop command bar and CLI scripts",
+      "limits": "Not AutoLISP, ObjectARX or vendor script compatibility",
+      "evidence": [
+        "crates/forge-core/src/command.rs"
+      ]
+    },
+    {
+      "id": "draft-layouts",
+      "area": "Draft",
+      "name": "Saved viewport sheets",
+      "status": "implemented",
+      "coverage": "Clipping, independent scale/rotation, hidden layers and paper notes",
+      "limits": "No DXF paper-space exchange or CTB/STB styles",
+      "evidence": [
+        "crates/forge-core/src/plot.rs"
+      ]
+    },
+    {
+      "id": "draft-constraints",
+      "area": "Draft",
+      "name": "Sketch constraints",
+      "status": "planned",
+      "coverage": "Required geometric/dimensional solver and editable references",
+      "limits": "No constraint solver is implemented",
+      "evidence": []
+    },
+    {
+      "id": "draft-toolsets",
+      "area": "Draft",
+      "name": "Specialist toolsets and extensions",
+      "status": "planned",
+      "coverage": "Electrical, mechanical, MEP, plant, mapping, raster and extension workflows",
+      "limits": "Catalog routing is not specialist toolset implementation",
+      "evidence": []
+    },
+    {
+      "id": "model-primitives",
+      "area": "Model",
+      "name": "Parametric primitives",
+      "status": "implemented",
+      "coverage": "Editable boxes, cylinders and ellipsoids",
+      "limits": "Tessellated preview/export; no general feature graph",
+      "evidence": [
+        "crates/forge-core/src/mesh.rs"
+      ]
+    },
+    {
+      "id": "model-extrusions",
+      "area": "Model",
+      "name": "Editable profile extrusions",
+      "status": "implemented",
+      "coverage": "Concave straight profiles, rectangles and circles; native parameters, desktop/CLI edits",
+      "limits": "No holes, sketch dependencies or B-rep extrusion",
+      "evidence": [
+        "crates/forge-core/src/model.rs",
+        "crates/forge-core/tests/model_motion_civil.rs"
+      ]
+    },
+    {
+      "id": "model-meshes",
+      "area": "Model",
+      "name": "Imported triangle meshes",
+      "status": "implemented",
+      "coverage": "Native persistence, display/picking and model-area exports",
+      "limits": "Geometry only; no retained imported materials/textures",
+      "evidence": [
+        "crates/forge-core/src/mesh.rs"
+      ]
+    },
+    {
+      "id": "model-step",
+      "area": "Model",
+      "name": "Analytic STEP exchange",
+      "status": "partial",
+      "coverage": "Box/cylinder authoring and checked one-shell, one-solid exchange",
+      "limits": "Separate CLI; no assemblies, multi-body files or desktop B-rep history",
+      "evidence": [
+        "crates/forge-modeling/src/lib.rs"
+      ]
+    },
+    {
+      "id": "model-kernel",
+      "area": "Model",
+      "name": "General solid feature history",
+      "status": "planned",
+      "coverage": "Dependent sketches, booleans, fillets, shells, revolutions and robust topology",
+      "limits": "Primitive/extrusion parameters do not establish a full modeling kernel",
+      "evidence": []
+    },
+    {
+      "id": "model-assemblies",
+      "area": "Model",
+      "name": "Assemblies and manufacturing drawings",
+      "status": "planned",
+      "coverage": "Components, joints/constraints, linked drawings and revisions",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "build-elements",
+      "area": "Build",
+      "name": "Semantic building elements",
+      "status": "implemented",
+      "coverage": "Storeys, straight walls, rectangular slabs and hosted door/window openings",
+      "limits": "No curved/compound walls, arbitrary slab outlines or full families",
+      "evidence": [
+        "crates/forge-core/src/building.rs"
+      ]
+    },
+    {
+      "id": "build-quantities",
+      "area": "Build",
+      "name": "Opening-aware geometry and quantities",
+      "status": "implemented",
+      "coverage": "Actual wall cutouts, net areas/volumes, native relationships and CSV schedules",
+      "limits": "Model-unit quantities; no takeoff product parity",
+      "evidence": [
+        "crates/forge-core/src/building.rs"
+      ]
+    },
+    {
+      "id": "build-families",
+      "area": "Build",
+      "name": "Families, rooms and advanced schedules",
+      "status": "planned",
+      "coverage": "Parameterized reusable building systems and space semantics",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "build-analysis",
+      "area": "Build",
+      "name": "Structural, MEP and engineering analysis",
+      "status": "planned",
+      "coverage": "Structural/energy systems, routing and independently validated analysis",
+      "limits": "No engineering solver or analysis acceptance corpus",
+      "evidence": []
+    },
+    {
+      "id": "build-coordination",
+      "area": "Build",
+      "name": "Multi-model coordination",
+      "status": "planned",
+      "coverage": "Clash detection, linked models and coordination workflows",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "terrain-tin",
+      "area": "Terrain",
+      "name": "Survey and checked TIN surfaces",
+      "status": "implemented",
+      "coverage": "XYZ editing, deterministic XY Delaunay triangulation and survey CSV",
+      "limits": "2.5D surface; no breaklines or constrained triangulation",
+      "evidence": [
+        "crates/forge-core/src/terrain.rs"
+      ]
+    },
+    {
+      "id": "terrain-contours",
+      "area": "Terrain",
+      "name": "Contours, elevations and profiles",
+      "status": "implemented",
+      "coverage": "TIN interpolation, contour segments, longitudinal profiles and surface exports",
+      "limits": "Contours are unsmoothed segments; outside-surface gaps remain explicit",
+      "evidence": [
+        "crates/forge-core/src/terrain.rs"
+      ]
+    },
+    {
+      "id": "terrain-alignments",
+      "area": "Terrain",
+      "name": "Line and circular-arc alignments",
+      "status": "implemented",
+      "coverage": "Analytic station/offset queries, left-positive offsets and terrain profiles",
+      "limits": "No spirals, station equations, design standards or corridors",
+      "evidence": [
+        "crates/forge-core/src/civil.rs",
+        "crates/forge-core/tests/model_motion_civil.rs"
+      ]
+    },
+    {
+      "id": "terrain-earthwork",
+      "area": "Terrain",
+      "name": "Cut/fill against a level datum",
+      "status": "implemented",
+      "coverage": "Exact integration after clipping each TIN triangle by datum height",
+      "limits": "No arbitrary TIN-to-TIN comparison or grading optimizer",
+      "evidence": [
+        "crates/forge-core/src/civil.rs"
+      ]
+    },
+    {
+      "id": "terrain-grading",
+      "area": "Terrain",
+      "name": "Corridors, grading and drainage",
+      "status": "planned",
+      "coverage": "Road assemblies, grading rules, hydrology and drainage networks",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "terrain-assets",
+      "area": "Terrain",
+      "name": "Utility networks, assets and geospatial systems",
+      "status": "planned",
+      "coverage": "Network/asset workflows, CRS transformation and project standards",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "make-profiles",
+      "area": "Make",
+      "name": "Compensated profile machining",
+      "status": "implemented",
+      "coverage": "Rectangle/circle/straight-polygon contours, stock/tool setup and depth passes",
+      "limits": "Single-tool bounded 2.5D operations",
+      "evidence": [
+        "crates/forge-core/src/cam.rs"
+      ]
+    },
+    {
+      "id": "make-pockets",
+      "area": "Make",
+      "name": "Pocket milling with islands",
+      "status": "implemented",
+      "coverage": "Rectangular, circular and polygon clearing with checked uncut islands",
+      "limits": "No adaptive strategy, ramping, tool changes or multi-axis paths",
+      "evidence": [
+        "crates/forge-core/src/cam.rs"
+      ]
+    },
+    {
+      "id": "make-drilling",
+      "area": "Make",
+      "name": "Peck drilling",
+      "status": "implemented",
+      "coverage": "Point-based incremental depth plunges with full clearance retracts",
+      "limits": "Explicit moves; no controller-specific canned cycles",
+      "evidence": [
+        "crates/forge-core/src/cam.rs"
+      ]
+    },
+    {
+      "id": "make-preview",
+      "area": "Make",
+      "name": "Motion preview and generic posting",
+      "status": "implemented",
+      "coverage": "Checked cutter footprints, travel/depth limits and generic millimetre G-code",
+      "limits": "No machine acceptance, acceleration model or stock-removal simulation",
+      "evidence": [
+        "crates/forge-core/src/cam.rs"
+      ]
+    },
+    {
+      "id": "make-production",
+      "area": "Make",
+      "name": "Production CAM and postprocessors",
+      "status": "planned",
+      "coverage": "Tools, machine posts, adaptive/ramped and multi-axis operations",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "make-simulation",
+      "area": "Make",
+      "name": "Stock, collision and engineering simulation",
+      "status": "planned",
+      "coverage": "Stock removal, fixtures, collisions, FEA/CFD and manufacturing validation",
+      "limits": "Motion previews do not provide these solvers",
+      "evidence": []
+    },
+    {
+      "id": "make-additive",
+      "area": "Make",
+      "name": "Additive, nesting and manufacturing management",
+      "status": "planned",
+      "coverage": "Slicing, build preparation, nesting, inspection and manufacturing services",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "motion-scene",
+      "area": "Motion",
+      "name": "Colored primitive scene graph",
+      "status": "implemented",
+      "coverage": "Persistent objects, checked parent references and composed affine transforms",
+      "limits": "No vendor dependency graph or scene format compatibility",
+      "evidence": [
+        "crates/forge-core/src/scene.rs"
+      ]
+    },
+    {
+      "id": "motion-animation",
+      "area": "Motion",
+      "name": "Transform animation and playback",
+      "status": "implemented",
+      "coverage": "Translation/scale/Euler keys, linear/step/smoothstep interpolation and visibility inheritance",
+      "limits": "No quaternion curves, per-channel tangents or rig animation",
+      "evidence": [
+        "crates/forge-core/src/scene.rs",
+        "crates/forge-core/tests/model_motion_civil.rs"
+      ]
+    },
+    {
+      "id": "motion-modifiers",
+      "area": "Motion",
+      "name": "Editable modifier stack",
+      "status": "partial",
+      "coverage": "Local-space arrays and mirrored copies with outward winding",
+      "limits": "Eight modifiers and 128 copies per object; no general deformation stack",
+      "evidence": [
+        "crates/forge-core/src/scene.rs"
+      ]
+    },
+    {
+      "id": "motion-rigs",
+      "area": "Motion",
+      "name": "Rigging, skinning and animation constraints",
+      "status": "planned",
+      "coverage": "Skeletons, deformation, animation controllers and production animation",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "motion-rendering",
+      "area": "Motion",
+      "name": "Materials, lighting and production rendering",
+      "status": "planned",
+      "coverage": "Shaders, lighting, cameras and offline rendering",
+      "limits": "Colored viewport primitives are not a production renderer",
+      "evidence": []
+    },
+    {
+      "id": "motion-dynamics",
+      "area": "Motion",
+      "name": "Dynamics and compositing",
+      "status": "planned",
+      "coverage": "Physics, particles, effects, compositing and production interchange",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "connect-review",
+      "area": "Connect",
+      "name": "Local issue/review board",
+      "status": "implemented",
+      "coverage": "Descriptions, references, priority/status lifecycle, search and CSV",
+      "limits": "References are descriptive text; no cloud identity or synchronization",
+      "evidence": [
+        "crates/forge-core/src/review.rs"
+      ]
+    },
+    {
+      "id": "connect-services",
+      "area": "Connect",
+      "name": "Accounts, permissions and synchronization",
+      "status": "planned",
+      "coverage": "Multi-user projects, identity, permissions, revisions and coordination services",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "connect-vendor",
+      "area": "Connect",
+      "name": "Vendor cloud/service compatibility",
+      "status": "planned",
+      "coverage": "Connected Autodesk account/project/service workflows",
+      "limits": "No vendor integration or acceptance data",
+      "evidence": []
+    },
+    {
+      "id": "exchange-native",
+      "area": "Exchange",
+      "name": "Native JSON persistence",
+      "status": "implemented",
+      "coverage": "Version 6, validated atomic writes and v1-v5 migration",
+      "limits": "Project-specific format; no Autodesk native compatibility implied",
+      "evidence": [
+        "crates/forge-core/src/lib.rs",
+        "crates/forge-core/src/storage.rs"
+      ]
+    },
+    {
+      "id": "exchange-dxf",
+      "area": "Exchange",
+      "name": "ASCII DXF subset",
+      "status": "partial",
+      "coverage": "Analytic drawing entities, units, layers, nested blocks and strict loss diagnostics",
+      "limits": "No binary DXF, semantic dimension export, paper space, hatches, splines or proxies",
+      "evidence": [
+        "crates/forge-core/src/dxf.rs"
+      ]
+    },
+    {
+      "id": "exchange-dwg",
+      "area": "Exchange",
+      "name": "DWG/DWT/DWS engine workflow",
+      "status": "partial",
+      "coverage": "acadrust-supported entities; CLI read/write with R2000/R2018 output checks",
+      "limits": "Desktop DWG editing and full vendor fidelity remain unverified",
+      "evidence": [
+        "crates/forge-dwg/src/lib.rs"
+      ]
+    },
+    {
+      "id": "exchange-mesh",
+      "area": "Exchange",
+      "name": "Geometry-only OBJ/STL",
+      "status": "implemented",
+      "coverage": "ASCII/binary STL, OBJ polygon triangulation and checked mesh output",
+      "limits": "No materials, animation, unit metadata or editable CAD parameters",
+      "evidence": [
+        "crates/forge-core/src/mesh.rs"
+      ]
+    },
+    {
+      "id": "exchange-proprietary",
+      "area": "Exchange",
+      "name": "Remaining Autodesk native formats",
+      "status": "planned",
+      "coverage": "RVT/RFA, IPT/IAM, F3D/F3Z, MAX, MA/MB, FBX, NWD/NWC, RCS/RCP and DWF",
+      "limits": "No integrated implementation or native acceptance corpus",
+      "evidence": []
+    },
+    {
+      "id": "exchange-open",
+      "area": "Exchange",
+      "name": "Further open interchange",
+      "status": "planned",
+      "coverage": "IFC, IGES, SAT, USD and Alembic workflows",
+      "limits": "Not implemented",
+      "evidence": []
+    },
+    {
+      "id": "quality-history",
+      "area": "Quality",
+      "name": "Undo/redo and transactional edits",
+      "status": "implemented",
+      "coverage": "Document snapshots and validated candidate edits across native workbenches",
+      "limits": "No cross-session recovery journal",
+      "evidence": [
+        "apps/craft-suite/src/app.rs",
+        "crates/forge-core/src/automation.rs"
+      ]
+    },
+    {
+      "id": "quality-linux",
+      "area": "Quality",
+      "name": "Linux verification",
+      "status": "implemented",
+      "coverage": "Workspace tests, native launch/edit/reopen cases and artifact hashes",
+      "limits": "Tests prove their stated bounded cases",
+      "evidence": [
+        "validation/native_smoke.py",
+        "validation/summarize.py"
+      ]
+    },
+    {
+      "id": "quality-release",
+      "area": "Quality",
+      "name": "Installers and cross-platform releases",
+      "status": "planned",
+      "coverage": "Packaged Windows/macOS/Linux installs, migration and recovery acceptance",
+      "limits": "Only local Linux binaries have been verified",
+      "evidence": []
+    },
+    {
+      "id": "quality-native-acceptance",
+      "area": "Quality",
+      "name": "Originating-product acceptance",
+      "status": "external",
+      "coverage": "Versioned fixtures checked in each originating application",
+      "limits": "No Autodesk installation or authoritative fixture corpus connected",
+      "evidence": [
+        "docs/requirements.md"
+      ]
+    },
+    {
+      "id": "quality-audit",
+      "area": "Quality",
+      "name": "Supplied Rust pattern audit",
+      "status": "partial",
+      "coverage": "All workspace Rust files scanned; focused new-code remediation and recorded hashes/findings",
+      "limits": "Raw strict gate remains non-clean; legacy primitive ID exhaustion can panic and other matches require contextual review",
+      "evidence": [
+        "audit-bad-patterns.sh",
+        "scripts/run_code_audit.py",
+        "docs/code-audit.md",
+        "validation/results/code-audit-id-exhaustion.json"
+      ]
+    }
+  ]
+}

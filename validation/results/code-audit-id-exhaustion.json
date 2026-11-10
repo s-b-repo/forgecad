@@ -1,0 +1,14 @@
+{
+  "finding": "Legacy primitive authoring panics when a loadable native document has exhausted ID capacity",
+  "source": "crates/forge-core/src/lib.rs",
+  "function": "Document::allocate_id via Document::add_solid",
+  "source_sha256": "adc7efd8158ee379706d4ebbb4897034ccf915c3af00a19d22bbb79262c3fc70",
+  "reproduction": "use forge_core::{Document, SolidKind};\nfn main() {\n    let mut document = Document::load_json(\"target/audit-id-limit.forge.json\").unwrap();\n    let before = document.clone();\n    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| document.add_solid(\"Box\", SolidKind::Box)));\n    assert!(result.is_err(), \"legacy authoring should expose the audit finding\");\n    assert_eq!(document, before);\n    println!(\"Confirmed panic in legacy primitive authoring; document preserved\");\n}\n",
+  "caught_panic": true,
+  "document_preserved": true,
+  "stdout": "Confirmed panic in legacy primitive authoring; document preserved\n",
+  "stderr": "\nthread 'main' (32) panicked at crates/forge-core/src/lib.rs:734:32:\nObject ID space exhausted: Custom { kind: InvalidData, error: \"Object ID space exhausted\" }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+  "expected_behavior": "Return an authoring error instead of panicking",
+  "status": "open",
+  "scope": "Reproduced by directly invoking the public authoring API on a loaded project; numeric drafting commands and new extrusion authoring preflight/return an error"
+}

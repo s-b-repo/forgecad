@@ -1,7 +1,7 @@
 use forge_core::{
     Document, Point, SolidKind, catalog, dxf,
     edit::Transform2d,
-    mesh::{StlEncoding, TessellationOptions, TriangleMesh, tessellate_solids},
+    mesh::{StlEncoding, TessellationOptions, TriangleMesh},
     plot::{SvgOptions, export_svg},
 };
 use forge_dwg::{NativeDrawing, NativeVersion};
@@ -10,6 +10,7 @@ use serde_json::json;
 use std::{collections::BTreeMap, env, fs, io, path::Path};
 
 mod layout;
+mod model;
 mod workbench;
 
 const HELP: &str = "Forge Craft headless tools
@@ -25,6 +26,7 @@ Usage:
   forge brep inspect INPUT.step [--json]
   forge workbench --help
   forge layout --help
+  forge model --help
   forge brep primitive box|cylinder OUTPUT.step [--size X Y Z] [--center X Y Z] [--overwrite]
   forge brep convert INPUT.step OUTPUT.step [--regenerate --allow-lossy] [--overwrite]
   forge native inspect INPUT [--json]
@@ -148,6 +150,7 @@ fn run(values: &[String]) -> io::Result<()> {
         "brep" => brep_command(&mut args)?,
         "workbench" => workbench::run(&mut args)?,
         "layout" => layout::run(&mut args)?,
+        "model" => model::run(&mut args)?,
         command => {
             return Err(input(format!(
                 "unknown command {command}; run forge --help"
@@ -412,7 +415,7 @@ fn inspect_command(args: &mut Arguments<'_>) -> io::Result<()> {
             "{}",
             serde_json::to_string_pretty(&json!({
                 "format":loaded.format.name(),"name":doc.name,"entities":doc.entities.len(),
-                "solids":doc.solids.len(),"meshes":doc.meshes.len(),"vertices":vertices,"triangles":triangles,
+                "solids":doc.solids.len(),"extrusions":doc.extrusions.len(),"meshes":doc.meshes.len(),"vertices":vertices,"triangles":triangles,
                 "layers":doc.layers,"layouts":doc.layouts.len(),"units":doc.units,"drawing_bounds":bounds,"conversion_losses":loaded.losses,
                 "workbenches":{"storeys":doc.building.storeys.len(),"walls":doc.building.walls.len(),"slabs":doc.building.slabs.len(),"openings":doc.building.openings.len(),"survey_points":doc.terrain.points.len(),"terrain_triangles":doc.terrain.triangles.len(),"terrain_alignments":doc.terrain.alignments.len(),"scene_objects":doc.scene.objects.len(),"parented_objects":doc.scene.objects.iter().filter(|o| o.parent_id.is_some()).count(),"cam_profiles":doc.manufacturing.profiles.len(),"cam_pockets":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Pocket).count(),"cam_drills":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Drill).count(),"cam_islands":doc.manufacturing.profiles.iter().map(|p| p.islands.len()).sum::<usize>(),"review_items":doc.review.items.len()},
             }))?
@@ -494,7 +497,7 @@ fn encode(
         Format::Native => Ok(document.to_json()?.into_bytes()),
         Format::Dxf => {
             let mut drawing = document.clone();
-            if !drawing.solids.is_empty() || !drawing.meshes.is_empty() {
+            if drawing.has_model_geometry() {
                 authorize_loss(
                     options,
                     warnings,
@@ -502,10 +505,9 @@ fn encode(
                 )?;
                 drawing.solids.clear();
                 drawing.meshes.clear();
+                drawing.extrusions.clear();
             }
-            if drawing.entities.is_empty()
-                && (!document.solids.is_empty() || !document.meshes.is_empty())
-            {
+            if drawing.entities.is_empty() && document.has_model_geometry() {
                 return Err(unsupported(
                     "conversion would produce an empty drawing; no output written",
                 ));
@@ -520,14 +522,14 @@ fn encode(
                     "mesh exchange cannot retain 2D drawing entities or their layers",
                 )?;
             }
-            if !document.solids.is_empty() {
+            if !document.solids.is_empty() || !document.extrusions.is_empty() {
                 authorize_loss(
                     options,
                     warnings,
-                    "parametric solids become tessellated triangle surfaces without editable primitive parameters",
+                    "parametric solids and extrusions become tessellated triangle surfaces without editable parameters",
                 )?;
             }
-            if document.meshes.len() + document.solids.len() > 1 {
+            if document.meshes.len() + document.solids.len() + document.extrusions.len() > 1 {
                 authorize_loss(
                     options,
                     warnings,
@@ -541,14 +543,14 @@ fn encode(
                     "mesh exchange does not encode the project unit code",
                 )?;
             }
-            let mut mesh = tessellate_solids(&document.solids, options.tessellation)?;
-            for object in &document.meshes {
-                mesh.append(&object.mesh)?;
-            }
+            let mesh = document.model_mesh(options.tessellation)?;
             if mesh.triangles.is_empty() {
                 return Err(unsupported("no 3D triangle geometry to export"));
             }
-            let name = if document.meshes.len() == 1 && document.solids.is_empty() {
+            let name = if document.meshes.len() == 1
+                && document.solids.is_empty()
+                && document.extrusions.is_empty()
+            {
                 &document.meshes[0].name
             } else {
                 &document.name
@@ -622,7 +624,7 @@ fn transform_command(args: &mut Arguments<'_>) -> io::Result<()> {
         authorize_loss(&options, &mut warnings, loss)?;
     }
     let mut document = loaded.document;
-    if !document.solids.is_empty() || !document.meshes.is_empty() || document.has_workbench_data() {
+    if document.has_model_geometry() || document.has_workbench_data() {
         return Err(unsupported(
             "transform currently edits 2D drafting only; files containing model geometry are refused so model objects cannot be left behind or discarded",
         ));

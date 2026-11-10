@@ -16,6 +16,7 @@ fn alignment() -> Alignment {
         id: 1,
         name: "Road".into(),
         start_station: 1000.0,
+        bulges: Vec::new(),
         vertices: vec![
             Point::new(0.0, 0.0),
             Point::new(10.0, 0.0),
@@ -169,6 +170,7 @@ fn alignment_profiles_keep_stations_offsets_and_surface_gaps() {
         name: "Large".into(),
         start_station: 0.0,
         vertices: vec![Point::default(), Point::new(1e308, 0.0)],
+        bulges: Vec::new(),
     });
     let samples = empty.alignment_profile(1, 3, 0.0).unwrap();
     assert_eq!(samples[1].position, Point::new(5e307, 0.0));

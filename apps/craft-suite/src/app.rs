@@ -7,7 +7,7 @@ use forge_core::blocks::ExpandedEntity;
 use forge_core::catalog::{self, WorkArea};
 use forge_core::dimension::{Dimension, LinearDimension, LinearDimensionKind, RadialDimension};
 use forge_core::edit::{SnapOptions, Transform2d};
-use forge_core::mesh::{TessellationOptions, TriangleMesh, tessellate_solids};
+use forge_core::mesh::{TessellationOptions, TriangleMesh};
 use forge_core::{Document, Geometry, Point, PolylineVertex, Solid, SolidKind};
 use std::{collections::BTreeSet, path::PathBuf};
 
@@ -28,6 +28,8 @@ mod civil_ui;
 mod drafting_ui;
 #[path = "layout_ui.rs"]
 mod layout_ui;
+#[path = "model_ui.rs"]
+mod model_ui;
 #[path = "review_ui.rs"]
 mod review_ui;
 #[path = "scene_ui.rs"]
@@ -255,6 +257,7 @@ pub struct ForgeApp {
     selected_solid: Option<u64>,
     selected_mesh: Option<u64>,
     model_export_format: String,
+    model_ui: model_ui::ModelUiState,
     undo_stack: Vec<Document>,
     redo_stack: Vec<Document>,
     show_grid: bool,
@@ -317,6 +320,7 @@ impl ForgeApp {
             selected_solid: None,
             selected_mesh: None,
             model_export_format: "stl".to_owned(),
+            model_ui: model_ui::ModelUiState::default(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             show_grid: true,
@@ -721,6 +725,12 @@ impl ForgeApp {
                 self.document.manufacturing.profiles.len()
             ),
             Workspace::Connect => format!("{} review issues", self.document.review.items.len()),
+            Workspace::Model => format!(
+                "{} primitives · {} extrusions · {} meshes",
+                self.document.solids.len(),
+                self.document.extrusions.len(),
+                self.document.meshes.len()
+            ),
             _ => format!(
                 "{} entities · {} solids",
                 self.document.entities.len(),
@@ -947,8 +957,9 @@ impl ForgeApp {
 
     fn model_browser(&mut self, ui: &mut egui::Ui) {
         section_header(ui, "MODEL TREE", "Parametric solids · early access");
+        self.extrusion_tools(ui);
         ui.add_space(9.0);
-        if self.document.solids.is_empty() && self.document.meshes.is_empty() {
+        if !self.document.has_model_geometry() {
             ui.label(
                 RichText::new("This design is empty.")
                     .size(11.0)
@@ -1452,6 +1463,14 @@ impl ForgeApp {
 
     fn model_inspector(&mut self, ui: &mut egui::Ui) {
         section_header(ui, "INSPECTOR", "Solid parameters");
+        if self
+            .selected_solid
+            .is_some_and(|id| self.document.extrusions.iter().any(|p| p.id == id))
+        {
+            self.extrusion_inspector(ui);
+            self.project_controls(ui);
+            return;
+        }
         ui.add_space(12.0);
         if let Some(id) = self.selected_mesh {
             if let Some(object) = self.document.meshes.iter().find(|object| object.id == id) {
@@ -1814,6 +1833,19 @@ impl ForgeApp {
         let (rect, response) = ui.allocate_exact_size(ui.available_size(), Sense::click_and_drag());
         let painter = ui.painter_at(rect);
         painter.rect_filled(rect, 0.0, BG);
+        let parts = match self.cached_extrusions() {
+            Ok(parts) => parts,
+            Err(error) => {
+                painter.text(
+                    rect.center(),
+                    Align2::CENTER_CENTER,
+                    error.to_string(),
+                    FontId::proportional(14.0),
+                    Color32::LIGHT_RED,
+                );
+                return;
+            }
+        };
         if self.model_fit_requested {
             let unit_camera = Camera3d {
                 zoom: 1.0,
@@ -1821,6 +1853,11 @@ impl ForgeApp {
                 ..self.camera_3d
             };
             let mut bounds = Rect::NOTHING;
+            for (_, mesh) in parts.iter() {
+                for vertex in &mesh.vertices {
+                    bounds.extend_with(unit_camera.project(*vertex, rect).0);
+                }
+            }
             for object in &self.document.meshes {
                 for vertex in &object.mesh.vertices {
                     bounds.extend_with(unit_camera.project(*vertex, rect).0);
@@ -1856,6 +1893,15 @@ impl ForgeApp {
         }
         self.interact_model(ui, rect, &response);
         paint_model_grid(&painter, rect, self.camera_3d);
+        for (id, mesh) in parts.iter() {
+            paint_triangle_mesh(
+                &painter,
+                rect,
+                self.camera_3d,
+                mesh,
+                self.selected_solid == Some(*id),
+            );
+        }
         for solid in &self.document.solids {
             paint_solid(
                 &painter,
@@ -1935,7 +1981,7 @@ impl ForgeApp {
             && response.clicked_by(egui::PointerButton::Primary)
         {
             if let Some(pointer) = response.interact_pointer_pos() {
-                let nearest = self
+                let mut nearest = self
                     .document
                     .solids
                     .iter()
@@ -1945,6 +1991,18 @@ impl ForgeApp {
                     })
                     .filter(|(_, distance)| *distance < 100.0)
                     .min_by(|a, b| a.1.total_cmp(&b.1));
+                if let Some((_, parts)) = &self.model_ui.cache {
+                    for (id, mesh) in parts.iter() {
+                        if let Some((min, max)) = mesh.bounds() {
+                            let center =
+                                std::array::from_fn(|axis| min[axis] / 2.0 + max[axis] / 2.0);
+                            let distance = self.camera_3d.project(center, rect).0.distance(pointer);
+                            if distance < 100.0 && nearest.is_none_or(|(_, d)| distance < d) {
+                                nearest = Some((*id, distance));
+                            }
+                        }
+                    }
+                }
                 self.selected_solid = nearest.map(|(id, _)| id);
                 self.selected_mesh = None;
                 let nearest_mesh = self
@@ -2731,21 +2789,21 @@ impl ForgeApp {
                     "2D drawing entities and their layers are omitted from mesh export.".to_owned(),
                 );
             }
-            if !self.document.solids.is_empty() {
+            if !self.document.solids.is_empty() || !self.document.extrusions.is_empty() {
                 losses.push("Primitive parameters become triangle surfaces without editable feature history.".to_owned());
             }
-            if self.document.solids.len() + self.document.meshes.len() > 1 {
+            if self.document.solids.len()
+                + self.document.meshes.len()
+                + self.document.extrusions.len()
+                > 1
+            {
                 losses.push("Individual object identities are merged into one mesh.".to_owned());
             }
             if self.document.units != 0 {
                 losses
                     .push("The mesh file does not retain the native project unit code.".to_owned());
             }
-            let mut mesh =
-                tessellate_solids(&self.document.solids, TessellationOptions::default())?;
-            for object in &self.document.meshes {
-                mesh.append(&object.mesh)?;
-            }
+            let mesh = self.document.model_mesh(TessellationOptions::default())?;
             if mesh.triangles.is_empty() {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
@@ -2898,15 +2956,14 @@ impl ForgeApp {
         self.scene_ui = scene_ui::SceneUiState::default();
         self.workbench_ui = workbench_ui::WorkbenchUiState::default();
         self.review_ui = review_ui::ReviewUiState::default();
+        self.model_ui = model_ui::ModelUiState::default();
         self.model_fit_requested = true;
     }
 
     fn document_workspace(&self) -> Workspace {
         let has_content = |area| match area {
             Workspace::Draft => !self.document.entities.is_empty(),
-            Workspace::Model => {
-                !self.document.solids.is_empty() || !self.document.meshes.is_empty()
-            }
+            Workspace::Model => self.document.has_model_geometry(),
             Workspace::Build => !self.document.building.is_empty(),
             Workspace::Terrain => !self.document.terrain.is_empty(),
             Workspace::Motion => self.document.scene != forge_core::scene::Scene::default(),
@@ -3039,11 +3096,25 @@ fn paint_triangle_mesh(
         Color32::from_rgb(111, 162, 190)
     };
     for (_, points) in faces {
-        painter.add(Shape::convex_polygon(
-            points.to_vec(),
-            fill,
-            Stroke::new(0.5, edge),
-        ));
+        paint_mesh_face(painter, points, fill, Stroke::new(0.5, edge));
+    }
+}
+
+fn paint_mesh_face(painter: &Painter, points: [Pos2; 3], fill: Color32, stroke: Stroke) {
+    // Joined strokes/AA polygon fringes produce long miters on skinny cap
+    // triangles. Fill the exact triangle and stroke its three edges separately.
+    let mut face = egui::Mesh::default();
+    for point in points {
+        face.colored_vertex(point, fill);
+    }
+    face.add_triangle(0, 1, 2);
+    painter.add(Shape::mesh(face));
+    for edge in [
+        [points[0], points[1]],
+        [points[1], points[2]],
+        [points[2], points[0]],
+    ] {
+        painter.line_segment(edge, stroke);
     }
 }
 

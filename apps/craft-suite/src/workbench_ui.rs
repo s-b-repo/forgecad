@@ -1,6 +1,7 @@
 //! Shared semantic workbench canvas, manufacturing forms and derived exports.
 use super::*;
 use forge_core::cam::{CamJob, Compensation, Operation, Profile};
+use forge_core::mesh::tessellate_solids;
 use std::sync::Arc;
 
 type WorkbenchMeshes = Vec<(u64, [u8; 3], TriangleMesh)>;
@@ -545,8 +546,13 @@ impl ForgeApp {
                     .reduce(f64::max)
                     .unwrap_or(0.0);
                 for alignment in &self.document.terrain.alignments {
-                    for pair in alignment.vertices.windows(2) {
-                        alignments.push([[pair[0].x, pair[0].y, z], [pair[1].x, pair[1].y, z]]);
+                    for (a, b) in alignment.display_lines()? {
+                        if alignments.len() >= 100_000 {
+                            return Err(std::io::Error::other(
+                                "Terrain alignment preview exceeds 100000 segments",
+                            ));
+                        }
+                        alignments.push([[a.x, a.y, z], [b.x, b.y, z]]);
                     }
                 }
             }
@@ -772,11 +778,12 @@ fn paint_workbench_meshes(
     }
     faces.sort_by(|a, b| a.0.total_cmp(&b.0));
     for (_, points, fill) in faces {
-        painter.add(Shape::convex_polygon(
-            points.to_vec(),
+        paint_mesh_face(
+            painter,
+            points,
             fill,
             Stroke::new(0.4, fill.gamma_multiply(0.75)),
-        ));
+        );
     }
 }
 

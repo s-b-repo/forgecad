@@ -20,13 +20,14 @@ pub mod drafting;
 pub mod dxf;
 pub mod edit;
 pub mod mesh;
+pub mod model;
 pub mod plot;
 pub mod review;
 pub mod scene;
 pub mod storage;
 pub mod terrain;
 
-pub const PROJECT_FORMAT_VERSION: u32 = 5;
+pub const PROJECT_FORMAT_VERSION: u32 = 6;
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Point {
@@ -380,6 +381,8 @@ pub struct Document {
     pub entities: Vec<Entity>,
     pub solids: Vec<Solid>,
     #[serde(default)]
+    pub extrusions: Vec<model::Extrusion>,
+    #[serde(default)]
     pub meshes: Vec<MeshObject>,
     #[serde(default)]
     pub blocks: Vec<BlockDefinition>,
@@ -417,6 +420,7 @@ impl Document {
             name: name.into(),
             entities: Vec::new(),
             solids: Vec::new(),
+            extrusions: Vec::new(),
             meshes: Vec::new(),
             blocks: Vec::new(),
             layouts: Vec::new(),
@@ -495,12 +499,14 @@ impl Document {
         before != self.entities.len()
     }
     pub fn remove_solid(&mut self, id: u64) -> bool {
-        let before = self.solids.len();
+        let before = self.solids.len() + self.extrusions.len();
         self.solids.retain(|solid| solid.id != id);
-        before != self.solids.len()
+        self.extrusions.retain(|part| part.id != id);
+        before != self.solids.len() + self.extrusions.len()
     }
 
     pub fn validate(&self) -> io::Result<()> {
+        model::validate_features(&self.extrusions)?;
         self.building.validate()?;
         self.terrain.validate()?;
         self.scene.validate()?;
@@ -568,6 +574,12 @@ impl Document {
                 ));
             }
         }
+        for part in &self.extrusions {
+            if part.id == 0 || !ids.insert(part.id) {
+                return Err(invalid("Object IDs must be unique and nonzero"));
+            }
+            part.validate()?;
+        }
         for object in &self.meshes {
             if object.id == 0 || !ids.insert(object.id) {
                 return Err(invalid("Object IDs must be unique and nonzero"));
@@ -624,6 +636,7 @@ impl Document {
             .iter()
             .map(|item| item.id)
             .chain(document.solids.iter().map(|item| item.id))
+            .chain(document.extrusions.iter().map(|item| item.id))
             .chain(document.meshes.iter().map(|item| item.id))
             .chain(
                 document
@@ -658,7 +671,7 @@ impl Document {
     }
     pub fn export_box_stl(&self, path: impl AsRef<Path>) -> io::Result<usize> {
         self.validate()?;
-        if self.has_workbench_data() || !self.layouts.is_empty() {
+        if self.has_workbench_data() || !self.layouts.is_empty() || !self.extrusions.is_empty() {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,
                 "Legacy STL export cannot omit semantic workbench data; use the dedicated workbench export",
@@ -718,6 +731,9 @@ impl Document {
         Ok(triangle_count)
     }
     fn allocate_id(&mut self) -> u64 {
+        self.try_allocate_id().expect("Object ID space exhausted")
+    }
+    fn try_allocate_id(&mut self) -> io::Result<u64> {
         // Public vectors may have been edited directly; never issue an existing ID.
         let highest = self
             .layers
@@ -730,13 +746,16 @@ impl Document {
                     .flat_map(|block| block.entities.iter().map(|entity| entity.id)),
             )
             .chain(self.solids.iter().map(|item| item.id))
+            .chain(self.extrusions.iter().map(|item| item.id))
             .chain(self.meshes.iter().map(|item| item.id))
             .max()
             .unwrap_or(0);
         let id = self.next_id.max(highest.saturating_add(1)).max(1);
-        assert!(id < u64::MAX, "Object ID space exhausted");
+        if id == u64::MAX {
+            return Err(invalid("Object ID space exhausted"));
+        }
         self.next_id = id + 1;
-        id
+        Ok(id)
     }
 }
 #[derive(Deserialize, Serialize)]

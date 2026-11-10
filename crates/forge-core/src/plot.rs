@@ -334,7 +334,7 @@ pub fn export_svg(document: &Document, options: SvgOptions) -> io::Result<String
             "Drawing plots cannot omit semantic workbench data; use the dedicated workbench export or a separate drawing",
         ));
     }
-    if !document.solids.is_empty() || !document.meshes.is_empty() {
+    if document.has_model_geometry() {
         return Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "SVG plotting supports 2D drawings only; the document contains solids or meshes",

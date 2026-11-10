@@ -1,6 +1,6 @@
 # Building, terrain, motion and manufacturing
 
-Build, Terrain, Motion and Make store separate semantic models in native Forge JSON v5. Connect retains local review issues, and Draft retains saved print layouts. Each workbench has authoring controls, a derived preview and dedicated exports. Native saves keep all areas together, including unrelated drawing/model content. Earlier v1–v3 projects migrate with empty workbench models. V4 projects retain their workbench data and receive empty alignments/layouts, world-space scene parents, profile-operation defaults and empty pocket-island lists. Derived OBJ, CSV, DXF and G-code carry only their selected output; native saves retain editable relationships and parameters.
+Build, Terrain, Motion and Make store separate semantic models in native Forge JSON v6. Connect retains local review issues, and Draft retains saved print layouts. Each workbench has authoring controls, a derived preview and dedicated exports. Native saves keep all areas together, including unrelated drawing/model content. Earlier v1–v3 projects migrate with empty workbench models. V4 projects retain their workbench data and receive empty alignments/layouts, world-space scene parents, profile-operation defaults and empty pocket-island lists. V5 and earlier projects receive empty extrusions, straight alignment segments, linear scene interpolation, visible objects and empty modifier stacks. Derived OBJ, CSV, DXF and G-code carry only their selected output; native saves retain editable relationships and parameters.
 
 Create a project containing all five semantic examples, then open one of its workbenches:
 
@@ -47,19 +47,24 @@ Contours are unsmoothed line segments at multiples of the chosen interval. The i
 
 You can also supply your own survey CSV at the input path. Rows contain three numeric values, X,Y,Z. The optional header is `x,y,z` or `x,y,elevation`. Blank lines and `#` comment lines are ignored. Derived survey CSV begins with `# units: CODE`, which import preserves; files without that metadata default to millimetres (unit code 4). Metadata must precede point rows. Desktop coordinates follow the project's model units. CSV import immediately triangulates, so it requires at least three non-collinear points.
 
-Surface OBJ exports derived triangles. Contour DXF exports 2D XY line geometry on layers named `Contour {level}`; elevation is retained in that layer name, rather than a Z coordinate. It does not encode 3D contour polylines or a Civil 3D semantic surface. Horizontal polyline alignments now retain editable stations/vertices, provide left-positive station/offset queries and sample terrain profiles. Cut/fill quantities integrate the TIN exactly against a level design datum. See the [workflow guide](advanced-workflows.md) for controls, reports and bounds. Breaklines, constrained triangulation, grading rules, curved alignments/corridors, drainage, utility networks and Civil 3D native formats remain unfinished.
+Surface OBJ exports derived triangles. Contour DXF exports 2D XY line geometry on layers named `Contour {level}`; elevation is retained in that layer name, rather than a Z coordinate. It does not encode 3D contour polylines or a Civil 3D semantic surface. Horizontal line/circular-arc alignments retain editable stations/vertices/bulges, provide left-positive station/offset queries and sample terrain profiles. Cut/fill quantities integrate the TIN exactly against a level design datum. See the [workflow guide](advanced-workflows.md) for controls, reports and bounds. Breaklines, constrained triangulation, grading rules, spiral alignments/corridors, drainage, utility networks and Civil 3D native formats remain unfinished.
 
 ## Motion
 
 The Motion workbench stores named box/cylinder/ellipsoid objects with sizes, colors and ordered keyframes. Keys retain time, translation, Euler rotation in degrees and positive XYZ scale. Duration and frame rate define playback sampling; scrubbing or playback changes the viewed time without adding edit history.
 
-Translation and scale interpolate linearly. Each Euler angle follows its shortest arc; an exact 180° tie follows the negative direction. Geometry is locally scaled, rotated about X/Y/Z in that order, then translated into its parent space. Ancestor transforms compose through up to 64 levels, retaining shear induced by nonuniform parent scales. Changing parent retains local keys and may change world positions. Cycles and missing parents are refused; deleting an object deletes its descendants in one undo step. Evaluation clamps outside times to the scene range, and the first/last keys hold their poses. A native save preserves colors, keys and parent references.
+By default, translation and scale interpolate linearly. Each Euler angle follows its shortest arc; an exact 180° tie follows the negative direction. Geometry is locally scaled, rotated about X/Y/Z in that order, then translated into its parent space. Ancestor transforms compose through up to 64 levels, retaining shear induced by nonuniform parent scales. Changing parent retains local keys and may change world positions. Cycles and missing parents are refused; deleting an object deletes its descendants in one undo step. Evaluation clamps outside times to the scene range, and the first/last keys hold their poses. A native save preserves colors, keys and parent references.
 
 ```sh
 ./target/desktop/debug/forge workbench export target/suite.forge.json target/frame-at-two.obj --area motion --time 2
 ```
 
-Evaluated OBJ contains geometry at one time. It does not encode keyframes, colors/materials, scene hierarchy or animation. The current scene has up to 1,000 objects and 10,000 total keyframes, with bounded frame counts. Rigging, modifiers, constraints, dynamics, lighting/shader materials, production rendering, compositing and MAX/MA/MB/FBX exchange remain unfinished.
+Evaluated OBJ contains geometry at one time. It does not encode keyframes, colors/materials, scene hierarchy or animation. The current scene has up to 1,000 objects and 10,000 total keyframes, with bounded frame counts. General deformation modifiers, rigging, constraints, dynamics, lighting/shader materials, production rendering, compositing and MAX/MA/MB/FBX exchange remain unfinished.
+
+
+Objects support Linear, Step and Smoothstep interpolation in the inspector. Step holds the left key until the next authored key; Smoothstep uses an eased interval for position, scale and shortest Euler rotations. Visibility is inherited: hiding a parent hides its descendants without deleting keys.
+
+The editable local-space modifier stack supplies arrays and X/Y/Z mirror planes. Arrays include the original copy. Mirroring reverses face winding so reflected geometry stays outward-facing; Keep original retains both copies. Modifiers apply in list order before object and parent transforms. Use Up/Remove to adjust the stack, then Apply object properties. Limits are eight modifiers and 128 combined copies per object, with a scene-wide derived triangle budget of 5,000,000. Overlapping copies remain separate surfaces; these are not boolean unions.
 
 ## Manufacturing
 

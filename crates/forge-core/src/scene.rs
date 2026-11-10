@@ -19,6 +19,50 @@ use std::{
 pub const MAX_SCENE_OBJECTS: usize = 1_000;
 pub const MAX_SCENE_KEYFRAMES: usize = 10_000;
 pub const MAX_SCENE_FRAMES: usize = 100_000;
+const MAX_SCENE_TRIANGLES: usize = 5_000_000;
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Interpolation {
+    #[default]
+    Linear,
+    Step,
+    Smoothstep,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+impl Axis {
+    fn index(self) -> usize {
+        match self {
+            Self::X => 0,
+            Self::Y => 1,
+            Self::Z => 2,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Modifier {
+    Array {
+        count: usize,
+        offset: [f64; 3],
+    },
+    Mirror {
+        axis: Axis,
+        offset: f64,
+        keep_original: bool,
+    },
+}
+fn visible_default() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -76,6 +120,12 @@ pub struct SceneObject {
     pub size: [f64; 3],
     pub color: [u8; 3],
     pub keyframes: Vec<Keyframe>,
+    #[serde(default)]
+    pub interpolation: Interpolation,
+    #[serde(default = "visible_default")]
+    pub visible: bool,
+    #[serde(default)]
+    pub modifiers: Vec<Modifier>,
 }
 
 impl SceneObject {
@@ -92,10 +142,14 @@ impl SceneObject {
             },
             color: [105, 190, 255],
             keyframes: vec![Keyframe::default()],
+            interpolation: Interpolation::Linear,
+            visible: true,
+            modifiers: Vec::new(),
         }
     }
 
     pub fn validate(&self) -> io::Result<()> {
+        self.copy_count()?;
         if self.id == 0 || self.name.trim().is_empty() || self.name.contains(['\r', '\n', '\0']) {
             return Err(invalid(
                 "Scene objects require a nonzero ID and a nonempty single-line name",
@@ -142,6 +196,46 @@ impl SceneObject {
         Ok(())
     }
 
+    fn copy_count(&self) -> io::Result<usize> {
+        if self.modifiers.len() > 8 {
+            return Err(invalid("A scene object supports at most 8 modifiers"));
+        }
+        let mut copies = 1usize;
+        for modifier in &self.modifiers {
+            let factor = match modifier {
+                Modifier::Array { count, offset } => {
+                    if !(1..=128).contains(count)
+                        || offset.iter().any(|v| !v.is_finite() || v.abs() > 1e12)
+                    {
+                        return Err(invalid(
+                            "Array modifiers require 1..128 copies and offsets within +/-1e12 model units",
+                        ));
+                    }
+                    *count
+                }
+                Modifier::Mirror {
+                    offset,
+                    keep_original,
+                    ..
+                } => {
+                    if !offset.is_finite() || offset.abs() > 1e12 {
+                        return Err(invalid(
+                            "Mirror plane offset must be finite and within +/-1e12 model units",
+                        ));
+                    }
+                    if *keep_original { 2 } else { 1 }
+                }
+            };
+            copies = copies
+                .checked_mul(factor)
+                .ok_or_else(|| invalid("Modifier copy count overflow"))?;
+            if copies > 128 {
+                return Err(invalid("Combined modifiers exceed 128 copies per object"));
+            }
+        }
+        Ok(copies)
+    }
+
     /// Insert a keyframe in order or replace the key at the exact same time.
     /// Invalid edits leave the complete object unchanged. The containing Scene
     /// must additionally validate that this time lies within its duration.
@@ -181,6 +275,11 @@ impl SceneObject {
         let a = &self.keyframes[right - 1];
         let b = &self.keyframes[right];
         let factor = (time - a.time) / (b.time - a.time);
+        let factor = match self.interpolation {
+            Interpolation::Linear => factor,
+            Interpolation::Step => 0.0,
+            Interpolation::Smoothstep => factor * factor * (3.0 - 2.0 * factor),
+        };
         let pose = Keyframe {
             time,
             translation: std::array::from_fn(|axis| {
@@ -228,8 +327,20 @@ impl Scene {
         }
         let mut ids = BTreeSet::new();
         let mut keys = 0usize;
+        let mut triangles = 0usize;
         for object in &self.objects {
             object.validate()?;
+            let per_copy = match object.shape {
+                SolidKind::Box => 12,
+                SolidKind::Cylinder => 192,
+                SolidKind::Sphere => 2304,
+            };
+            triangles = triangles
+                .checked_add(per_copy * object.copy_count()?)
+                .ok_or_else(|| invalid("Scene triangle count overflow"))?;
+            if triangles > MAX_SCENE_TRIANGLES {
+                return Err(invalid("Scene modifier output exceeds 5000000 triangles"));
+            }
             if !ids.insert(object.id) {
                 return Err(invalid("Scene object IDs must be unique"));
             }
@@ -318,6 +429,15 @@ impl Scene {
         let mut matrices = BTreeMap::new();
         let mut output = Vec::with_capacity(self.objects.len());
         for object in &self.objects {
+            let mut visible = object.visible;
+            let mut parent = object.parent_id;
+            while let Some(id) = parent {
+                visible &= lookup[&id].visible;
+                parent = lookup[&id].parent_id;
+            }
+            if !visible {
+                continue;
+            }
             let matrix = world_matrix(object.id, time, &lookup, &mut matrices)?;
             let solid = Solid {
                 id: object.id,
@@ -326,7 +446,10 @@ impl Scene {
                 center: [0.0; 3],
                 size: object.size,
             };
-            let mut mesh = tessellate_solid(&solid, TessellationOptions::default())?;
+            let mut mesh = apply_modifiers(
+                tessellate_solid(&solid, TessellationOptions::default())?,
+                &object.modifiers,
+            )?;
             for vertex in &mut mesh.vertices {
                 let v = *vertex;
                 *vertex = std::array::from_fn(|axis| {
@@ -399,6 +522,58 @@ impl Scene {
             ..Self::default()
         }
     }
+}
+
+fn append_mesh(destination: &mut TriangleMesh, source: &TriangleMesh) -> io::Result<()> {
+    if destination.triangles.len() + source.triangles.len() > MAX_SCENE_TRIANGLES {
+        return Err(invalid("Modifier mesh exceeds triangle budget"));
+    }
+    let offset = u32::try_from(destination.vertices.len())
+        .map_err(|_| invalid("Modifier vertex index overflow"))?;
+    destination.vertices.extend_from_slice(&source.vertices);
+    destination
+        .triangles
+        .extend(source.triangles.iter().map(|t| t.map(|i| i + offset)));
+    Ok(())
+}
+fn apply_modifiers(mut mesh: TriangleMesh, modifiers: &[Modifier]) -> io::Result<TriangleMesh> {
+    for modifier in modifiers {
+        match modifier {
+            Modifier::Array { count, offset } => {
+                let source = mesh;
+                mesh = TriangleMesh::default();
+                for index in 0..*count {
+                    let mut copy = source.clone();
+                    for vertex in &mut copy.vertices {
+                        for axis in 0..3 {
+                            vertex[axis] += offset[axis] * index as f64;
+                        }
+                    }
+                    append_mesh(&mut mesh, &copy)?;
+                }
+            }
+            Modifier::Mirror {
+                axis,
+                offset,
+                keep_original,
+            } => {
+                let mut mirrored = mesh.clone();
+                for vertex in &mut mirrored.vertices {
+                    vertex[axis.index()] = 2.0 * offset - vertex[axis.index()];
+                }
+                for face in &mut mirrored.triangles {
+                    face.swap(1, 2);
+                }
+                if *keep_original {
+                    append_mesh(&mut mesh, &mirrored)?;
+                } else {
+                    mesh = mirrored;
+                }
+            }
+        }
+        mesh.validate()?;
+    }
+    Ok(mesh)
 }
 
 type Matrix = [[f64; 4]; 3];

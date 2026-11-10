@@ -91,6 +91,13 @@ def main():
     assert info["manufacturing"]["islands"] == 1
     checks.append("Documented machining script produces rectangular, circular and islanded polygon pockets, peck drilling and a generic G-code program")
 
+    model=ARTIFACTS / "model.forge.json"
+    run("workbench","apply","-",model,"--script","examples/model-parts.json","--overwrite")
+    model_info=json.loads(run("model","inspect",model,"--json"))
+    assert len(model_info["extrusions"])==2 and all(p["volume"]>0 for p in model_info["extrusions"])
+    run("convert",model,ARTIFACTS / "extrusions.obj","--allow-lossy","--overwrite")
+    checks.append("Editable concave and circular extrusion profiles persist natively, derive positive closed volumes and export through explicit parameter-loss authorization")
+
     terrain = ARTIFACTS / "terrain.forge.json"
     run("workbench", "create", "terrain", terrain, "--overwrite")
     run("workbench", "apply", terrain, terrain, "--script", "examples/civil-alignment.json", "--overwrite")
@@ -100,14 +107,15 @@ def main():
     run("workbench", "export", terrain, ARTIFACTS / "earthwork.csv", "--area", "terrain", "--datum", 15, "--overwrite")
     quantities = json.loads(run("workbench", "earthwork", terrain, "--datum", 15, "--json"))
     assert quantities["quantities"]["area"] > 0
-    checks.append("Documented civil script retains stationing and generates sampled alignment and exact level-datum earthwork reports")
+    checks.append("Documented line/circular-arc civil script retains analytic stationing and generates sampled alignment and exact level-datum earthwork reports")
 
     motion = ARTIFACTS / "motion.forge.json"
     run("workbench", "create", "motion", motion, "--overwrite")
     run("workbench", "apply", motion, motion, "--script", "examples/scene-parenting.json", "--overwrite")
+    run("workbench","apply",motion,motion,"--script","examples/scene-modifiers.json","--overwrite")
     run("workbench", "export", motion, ARTIFACTS / "parented-frame.obj", "--area", "motion", "--time", 2.5, "--overwrite")
-    assert json.loads(run("workbench", "inspect", motion, "--json"))["scene"]["parented_objects"] == 1
-    checks.append("Documented parented scene evaluates and exports a derived frame while retaining native local keys")
+    assert json.loads(run("workbench", "inspect", motion, "--json"))["scene"]["parented_objects"] == 2
+    checks.append("Parented scene preserves smoothstep animation and array/mirror modifiers while exporting an evaluated frame")
 
     artifacts = {str(p.relative_to(ROOT)): {"bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(ARTIFACTS.iterdir()) if p.is_file()}
     report = {"checks_passed": checks, "artifacts": artifacts, "objective_complete": False, "scope": "Documented bounded workflows and independent SVG rendering; no full product or native-format parity claim"}

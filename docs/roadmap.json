@@ -1,0 +1,142 @@
+{
+  "title": "Forge Craft progress plan",
+  "completion_rule": "A workflow is verified only within its documented bounds. Product parity requires a release/platform-specific inventory and originating-application acceptance evidence.",
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Native editing foundation",
+      "status": "verified",
+      "features": [
+        "draft-authoring",
+        "draft-transforms",
+        "draft-snaps",
+        "draft-layers",
+        "draft-blocks",
+        "draft-dimensions",
+        "draft-commands",
+        "model-primitives",
+        "model-meshes",
+        "exchange-native",
+        "exchange-mesh",
+        "quality-history",
+        "quality-linux"
+      ],
+      "acceptance": "Author, undo, save/reopen and export supported content without silent loss."
+    },
+    {
+      "id": "M2",
+      "title": "Semantic engineering workbenches",
+      "status": "verified",
+      "features": [
+        "build-elements",
+        "build-quantities",
+        "terrain-tin",
+        "terrain-contours",
+        "terrain-earthwork",
+        "make-profiles",
+        "make-pockets",
+        "make-drilling",
+        "make-preview",
+        "motion-scene",
+        "connect-review"
+      ],
+      "acceptance": "Retain domain parameters and references; independently check geometry, quantities, interpolation and toolpaths."
+    },
+    {
+      "id": "M3",
+      "title": "Advanced authoring and maintained documentation",
+      "status": "verified",
+      "features": [
+        "draft-offset-array",
+        "draft-trim",
+        "draft-layouts",
+        "model-extrusions",
+        "terrain-alignments",
+        "motion-animation",
+        "motion-modifiers",
+        "quality-audit"
+      ],
+      "acceptance": "Pass closed-mesh volume/winding, analytic arc stationing, interpolation/modifier, migration, CLI and reversible desktop cases; publish generated wiki, full feature inventory and progress records. Record raw code-audit findings and remediate new production failure paths without hiding legacy debt."
+    },
+    {
+      "id": "M4",
+      "title": "Constraint-driven CAD and solid modeling",
+      "status": "planned",
+      "features": [
+        "draft-constraints",
+        "model-kernel",
+        "model-assemblies"
+      ],
+      "acceptance": "Implement persistent sketch constraints with convergence/conflict diagnostics, feature dependencies, robust solid operations and assembly/drawing workflows."
+    },
+    {
+      "id": "M5",
+      "title": "Building and infrastructure systems",
+      "status": "planned",
+      "features": [
+        "build-families",
+        "build-analysis",
+        "build-coordination",
+        "terrain-grading",
+        "terrain-assets",
+        "draft-toolsets"
+      ],
+      "acceptance": "Add families/spaces, specialist systems, coordination, engineering analysis, corridors, grading, networks, assets and geospatial validation."
+    },
+    {
+      "id": "M6",
+      "title": "Production manufacturing",
+      "status": "planned",
+      "features": [
+        "make-production",
+        "make-simulation",
+        "make-additive"
+      ],
+      "acceptance": "Validate machine posts, tools, ramp/adaptive/multi-axis paths, stock/fixture collision models, additive/nesting and manufacturing analysis."
+    },
+    {
+      "id": "M7",
+      "title": "Media production",
+      "status": "planned",
+      "features": [
+        "motion-rigs",
+        "motion-rendering",
+        "motion-dynamics"
+      ],
+      "acceptance": "Implement rigs, skinning, constraints, shaders, cameras, lighting, production rendering, dynamics and compositing with independent fixtures."
+    },
+    {
+      "id": "M8",
+      "title": "Connected project services",
+      "status": "planned",
+      "features": [
+        "connect-services",
+        "connect-vendor"
+      ],
+      "acceptance": "Implement account/project permissions, multi-user revisions/sync and independently exercised service workflows."
+    },
+    {
+      "id": "M9",
+      "title": "Interchange and packaged releases",
+      "status": "planned",
+      "features": [
+        "model-step",
+        "exchange-dxf",
+        "exchange-dwg",
+        "exchange-proprietary",
+        "exchange-open",
+        "quality-release"
+      ],
+      "acceptance": "Expand neutral and native interchange; verify metadata/references/editability and clean Windows/macOS/Linux installs and recovery."
+    },
+    {
+      "id": "M10",
+      "title": "Full product acceptance",
+      "status": "external",
+      "features": [
+        "quality-native-acceptance"
+      ],
+      "acceptance": "Choose each product release and platform; obtain authoritative fixtures and originating applications, inventory every required workflow and record independent acceptance results."
+    }
+  ]
+}

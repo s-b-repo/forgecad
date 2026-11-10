@@ -1,7 +1,7 @@
 //! Scene authoring and timeline controls. View time is transient; scene and
 //! keyframe edits use validated document transactions and one undo entry.
 use super::*;
-use forge_core::scene::{Keyframe, Scene, SceneObject};
+use forge_core::scene::{Axis, Interpolation, Keyframe, Modifier, Scene, SceneObject};
 
 pub(super) struct SceneUiState {
     pub(super) time: f64,
@@ -120,7 +120,7 @@ impl ForgeApp {
             self.scene_delete_object();
         }
         ui.add_space(12.0);
-        ui.label(RichText::new("Linear position/scale, shortest Euler rotations. Scene objects and animation remain editable in native projects.").size(10.0).color(MUTED));
+        ui.label(RichText::new("Per-object interpolation, shortest Euler rotations. Scene objects and animation remain editable in native projects.").size(10.0).color(MUTED));
         ui.label(
             RichText::new("Middle-drag: pan · right-drag: orbit · scroll: zoom")
                 .size(10.0)
@@ -216,6 +216,22 @@ impl ForgeApp {
         ui.label(RichText::new(format!("OBJECT #{id}")).strong());
         if let Some(properties) = &mut self.scene_ui.properties {
             ui.add(egui::TextEdit::singleline(&mut properties.name).hint_text("Object name"));
+            ui.checkbox(&mut properties.visible, "Visible (including descendants)");
+            egui::ComboBox::from_id_salt("scene_interpolation")
+                .selected_text(format!("{:?}", properties.interpolation))
+                .show_ui(ui, |ui| {
+                    for mode in [
+                        Interpolation::Linear,
+                        Interpolation::Step,
+                        Interpolation::Smoothstep,
+                    ] {
+                        ui.selectable_value(
+                            &mut properties.interpolation,
+                            mode,
+                            format!("{mode:?}"),
+                        );
+                    }
+                });
             let parent_name = properties
                 .parent_id
                 .and_then(|parent| self.document.scene.objects.iter().find(|o| o.id == parent))
@@ -241,6 +257,65 @@ impl ForgeApp {
                 ui.color_edit_button_srgb(&mut properties.color);
             });
             scene_xyz(ui, "Local dimensions", &mut properties.size, 1.0);
+            ui.collapsing("Modifier stack", |ui| {
+                ui.label("Modifiers apply in local space before object and parent transforms.");
+                let mut remove = None;
+                let mut swap = None;
+                for (index, modifier) in properties.modifiers.iter_mut().enumerate() {
+                    ui.push_id(index, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(format!("{}", index + 1));
+                            if ui.small_button("Up").clicked() && index > 0 {
+                                swap = Some((index, index - 1));
+                            }
+                            if ui.small_button("Remove").clicked() {
+                                remove = Some(index);
+                            }
+                        });
+                        match modifier {
+                            Modifier::Array { count, offset } => {
+                                ui.add(
+                                    egui::DragValue::new(count).range(1..=128).prefix("Copies "),
+                                );
+                                scene_xyz(ui, "Array step", offset, 1.0);
+                            }
+                            Modifier::Mirror {
+                                axis,
+                                offset,
+                                keep_original,
+                            } => {
+                                egui::ComboBox::from_id_salt("mirror_axis")
+                                    .selected_text(format!("{axis:?}"))
+                                    .show_ui(ui, |ui| {
+                                        for value in [Axis::X, Axis::Y, Axis::Z] {
+                                            ui.selectable_value(axis, value, format!("{value:?}"));
+                                        }
+                                    });
+                                ui.add(egui::DragValue::new(offset).prefix("Mirror plane "));
+                                ui.checkbox(keep_original, "Keep original");
+                            }
+                        }
+                    });
+                }
+                if let Some(index) = remove {
+                    properties.modifiers.remove(index);
+                } else if let Some((a, b)) = swap {
+                    properties.modifiers.swap(a, b);
+                }
+                if ui.button("Add array modifier").clicked() {
+                    properties.modifiers.push(Modifier::Array {
+                        count: 3,
+                        offset: [80.0, 0.0, 0.0],
+                    });
+                }
+                if ui.button("Add mirror modifier").clicked() {
+                    properties.modifiers.push(Modifier::Mirror {
+                        axis: Axis::X,
+                        offset: 0.0,
+                        keep_original: true,
+                    });
+                }
+            });
         }
         if ui.button("Apply object properties").clicked() {
             self.scene_apply_properties();
@@ -391,6 +466,9 @@ impl ForgeApp {
         object.color = properties.color;
         object.size = properties.size;
         object.parent_id = properties.parent_id;
+        object.interpolation = properties.interpolation;
+        object.visible = properties.visible;
+        object.modifiers = properties.modifiers;
         self.commit_workbench_document(candidate, "Scene object properties updated");
     }
 

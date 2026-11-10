@@ -361,6 +361,7 @@ fn require_id_capacity(document: &Document, count: usize) -> io::Result<()> {
                 .flat_map(|block| block.entities.iter().map(|entity| entity.id)),
         )
         .chain(document.solids.iter().map(|item| item.id))
+        .chain(document.extrusions.iter().map(|item| item.id))
         .chain(document.meshes.iter().map(|item| item.id))
         .max()
         .unwrap_or(0);

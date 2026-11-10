@@ -13,6 +13,7 @@ def exercise(root: Path, env: dict):
     x11.XOpenDisplay.restype = ctypes.c_void_p
     x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
     x11.XFlush.argtypes = [ctypes.c_void_p]
+    x11.XSync.argtypes = [ctypes.c_void_p,ctypes.c_int]
     x11.XStringToKeysym.argtypes = [ctypes.c_char_p]
     x11.XStringToKeysym.restype = ctypes.c_ulong
     x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
@@ -32,6 +33,7 @@ def exercise(root: Path, env: dict):
 
     def flush():
         x11.XFlush(display)
+        x11.XSync(display,0)
         time.sleep(0.07)
 
     def motion(x, y):
@@ -65,6 +67,10 @@ def exercise(root: Path, env: dict):
             key("Shift_L", False)
         if control:
             key("Control_L", False)
+        # Tool changes replace controls before the canvas. Let the native UI
+        # process that frame before injecting the first construction click.
+        if not control and name in {"o","t","p","a","d"}:
+            time.sleep(0.2)
 
     def type_text(text):
         names = {" ": "space", "-": "minus", ".": "period"}

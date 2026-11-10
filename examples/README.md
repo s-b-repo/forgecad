@@ -25,3 +25,5 @@ cargo run -p forge-cli -- plot target/plan.forge.json target/plan.svg
 ```
 
 The source examples are preserved when opened; native saves use a `.forge.json` project path.
+
+`model-parts.json` authors a concave bracket and circular extrusion through `forge workbench apply`. `scene-modifiers.json` adds an animated mirrored array to the Motion example. `civil-alignment.json` now contains a straight segment followed by a circular arc. Native v6 saves retain all these editable parameters.

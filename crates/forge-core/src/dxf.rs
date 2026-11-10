@@ -594,7 +594,7 @@ pub fn write(document: &Document) -> io::Result<String> {
         ));
     }
     document.validate()?;
-    if !document.solids.is_empty() || !document.meshes.is_empty() {
+    if document.has_model_geometry() {
         return Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "DXF export supports drafting entities; use STL or OBJ for model geometry",

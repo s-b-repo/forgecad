@@ -1,0 +1,24 @@
+[
+  {
+    "type": "extrusion",
+    "name": "L bracket",
+    "base_z": 0,
+    "height": 20,
+    "profile": {
+      "type": "polyline",
+      "closed": true,
+      "vertices": [
+        {"point": {"x": 0, "y": 0}}, {"point": {"x": 100, "y": 0}},
+        {"point": {"x": 100, "y": 20}}, {"point": {"x": 30, "y": 20}},
+        {"point": {"x": 30, "y": 70}}, {"point": {"x": 0, "y": 70}}
+      ]
+    }
+  },
+  {
+    "type": "extrusion",
+    "name": "Circular boss",
+    "base_z": 0,
+    "height": 50,
+    "profile": {"type": "circle", "center": {"x": 65, "y": 45}, "radius": 15}
+  }
+]

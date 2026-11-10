@@ -25,9 +25,9 @@ fn suite() -> Document {
 }
 
 #[test]
-fn native_v5_preserves_all_semantic_models_and_derived_results() {
+fn native_v6_preserves_all_semantic_models_and_derived_results() {
     let original = suite();
-    assert_eq!(PROJECT_FORMAT_VERSION, 5);
+    assert_eq!(PROJECT_FORMAT_VERSION, 6);
     let source = original.to_json().unwrap();
     let restored = Document::from_json(&source).unwrap();
     assert_eq!(restored, original);

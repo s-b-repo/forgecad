@@ -647,7 +647,10 @@ fn obj_index(value: &str, count: usize, line: usize) -> io::Result<usize> {
     Ok(resolved as usize)
 }
 
-fn triangulate_polygon(vertices: &[[f64; 3]], indices: &[u32]) -> Result<Vec<[u32; 3]>, String> {
+pub(crate) fn triangulate_polygon(
+    vertices: &[[f64; 3]],
+    indices: &[u32],
+) -> Result<Vec<[u32; 3]>, String> {
     let mut polygon = indices.to_vec();
     if polygon.first() == polygon.last() {
         polygon.pop();

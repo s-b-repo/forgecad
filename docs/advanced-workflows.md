@@ -1,6 +1,6 @@
 # Saved layouts, hierarchies, machining and civil analysis
 
-These workflows extend the existing suite. They do not complete the larger [140-product scope](requirements.md). Native JSON v5 retains layouts, parent references, alignment definitions and machining operation types. V1–v4 files remain readable; a v5 save preserves older content and adds default values for missing fields.
+These workflows extend the existing suite. They do not complete the larger [140-product scope](requirements.md). Native JSON v6 retains layouts, parent references, alignment definitions and machining operation types. V1–v5 files remain readable; a v6 save preserves older content and adds default values for missing fields.
 
 Commands below use the built `target/desktop/debug/forge` binary. Run `cargo build --workspace --bins --target-dir target/desktop` to build it, or substitute `cargo run -p forge-cli --`. Each command refuses an existing output unless `--overwrite`/`--force` is supplied.
 
@@ -34,7 +34,7 @@ target/desktop/debug/forge workbench apply target/motion.forge.json target/paren
 target/desktop/debug/forge workbench export target/parented.forge.json target/frame.obj --area motion --time 2.5
 ```
 
-Changing parent keeps the local keyframes and can move the object in world space. Missing parents, cycles and chains beyond 64 levels are refused. **Delete selected object and descendants** removes the subtree as one undo step. Evaluated OBJ contains the resulting frame geometry; it does not retain the hierarchy or animation. Rigs, constraints, modifiers and production rendering remain separate unfinished features.
+Changing parent keeps the local keyframes and can move the object in world space. Missing parents, cycles and chains beyond 64 levels are refused. **Delete selected object and descendants** removes the subtree as one undo step. Evaluated OBJ contains the resulting frame geometry; it does not retain the hierarchy or animation. Linear/Step/Smoothstep interpolation, inherited visibility and editable array/mirror stacks are available in the inspector. Apply `examples/scene-modifiers.json` after the parenting example to add an animated modifier stack. General deformation, rigs, constraints and production rendering remain unfinished.
 
 ## Pocket milling and drilling
 
@@ -52,7 +52,9 @@ Drilling uses an XY point, feeds to each successive depth and retracts verticall
 
 ## Alignments and stationing
 
-In Terrain, set the existing longitudinal-profile endpoints. Under **Horizontal alignments**, enter a name and choose **Create from profile endpoints**. Select the alignment, edit its start station and ordered XY vertices, and **Apply alignment**. Survey edits and surface rebuilds retain alignment definitions. The blue canvas lines show XY alignments on a reference plane at the highest survey elevation; evaluated profiles provide actual TIN elevations.
+In Terrain, set the existing longitudinal-profile endpoints. Under **Horizontal alignments**, enter a name and choose **Create from profile endpoints**. Select the alignment, edit its start station and ordered XY vertices and segment bulges, and **Apply alignment**. Survey edits and surface rebuilds retain alignment definitions. The blue canvas lines show XY alignments on a reference plane at the highest survey elevation; evaluated profiles provide actual TIN elevations.
+
+Deleting an internal vertex replaces its two adjacent segments with a straight join and preserves every unaffected arc. Deleting an endpoint removes only its adjacent segment. Changes remain staged until Apply and can then be undone together.
 
 ```sh
 target/desktop/debug/forge workbench create terrain target/survey.forge.json
@@ -62,7 +64,7 @@ target/desktop/debug/forge workbench export target/road.forge.json target/profil
   --area terrain --alignment 1 --samples 101 --offset 0
 ```
 
-Station increases by horizontal segment length from the authored start station. Offsets are positive to the left and negative to the right. At an internal vertex, `point_at` uses the outgoing segment's normal. Nearest-point queries use the earliest segment to break ties, clamp to endpoints and report the perpendicular offset plus full distance to the alignment. Beyond an endpoint these quantities can differ; no extrapolation is implied. Profiles sample stations uniformly, include both ends and retain blank elevations outside the TIN. The CSV columns are `station,x,y,elevation` in project units. Each alignment supports 2–2,048 vertices; a project supports 100 alignments with 20,000 total vertices. Profiles support 2–10,000 samples. Circular/spiral alignment segments, station equations, corridors and drainage remain unfinished.
+Station increases by true line or circular-arc length from the authored start station. Offsets are positive to the left and negative to the right. At an internal vertex, `point_at` uses the outgoing segment's normal. Nearest-point queries use the earliest segment to break ties, clamp to endpoints and report the perpendicular offset plus full distance to the alignment. Beyond an endpoint these quantities can differ; no extrapolation is implied. Profiles sample stations uniformly, include both ends and retain blank elevations outside the TIN. The CSV columns are `station,x,y,elevation` in project units. Each alignment supports 2–2,048 vertices; a project supports 100 alignments with 20,000 total vertices. Profiles support 2–10,000 samples. Circular segments use one bulge per segment, `tan(signed sweep/4)`; an empty bulge list means straight segments. Positive bulges turn counterclockwise. Offsets that collapse/reverse a circular radius, including its numerical precision limit, are refused. Preview curves are tessellated, but stationing/projection stay analytic. Spiral segments, station equations, corridors and drainage remain unfinished.
 
 ## Cut and fill
 
@@ -79,7 +81,7 @@ Cut is material above the datum to remove; fill is material below it to add. Net
 
 `forge workbench apply INPUT|- OUTPUT --script FILE.json` applies a JSON array of 1–1,000 typed edits, limited to 1 MiB. `-` starts an empty project. The entire script is atomic: a parse, validation or output error leaves input and destination untouched. Edits run in order and validate after each operation, so create referenced objects before assigning parents.
 
-Supported `type` values are `scene_object`, `scene_parent`, `scene_keyframe`, `scene_remove`, `alignment`, `alignment_remove`, `cam_operation`, `cam_remove`, `cam_setup`, `layout` and `building`. Object/operation/alignment edits upsert by ID; layouts upsert by case-insensitive name. Unknown fields, invalid references and unsupported geometries are refused. A `cam_operation` pocket profile may include an `islands` array of closed rectangle, circle or straight-polyline geometries. `cam_setup` accepts a `settings` object containing any of `tool_diameter`, `depth`, `step_down`, `step_over`, `safe_z`, `feed`, `plunge_feed`, `spindle_rpm`, `stock_min` and `stock_max`; omitted settings retain their current values. All unrelated project areas remain intact.
+Supported `type` values are `extrusion`, `extrusion_remove`, `scene_object`, `scene_parent`, `scene_keyframe`, `scene_remove`, `alignment`, `alignment_remove`, `cam_operation`, `cam_remove`, `cam_setup`, `layout` and `building`. Object/operation/alignment edits upsert by ID; layouts upsert by case-insensitive name. Unknown fields, invalid references and unsupported geometries are refused. A `cam_operation` pocket profile may include an `islands` array of closed rectangle, circle or straight-polyline geometries. `cam_setup` accepts a `settings` object containing any of `tool_diameter`, `depth`, `step_down`, `step_over`, `safe_z`, `feed`, `plunge_feed`, `spindle_rpm`, `stock_min` and `stock_max`; omitted settings retain their current values. All unrelated project areas remain intact.
 
 Core and CLI acceptance cases are in `crates/forge-core/tests/remaining_features.rs` and `apps/forge-cli/tests/remaining_cli.rs`. Desktop tests cover reversible edits and rejected changes. Native launch checks cover the seven workbench views; native pointer/keyboard automation primarily exercises drafting. These checks establish the documented cases, not full product or machine compatibility.
 

@@ -36,8 +36,12 @@ def prepare_cases():
             raise RuntimeError(f"Could not create layout fixture: {generated.stderr}")
     cases = [
         {"product": "autocad", "input": str(draft.relative_to(ROOT)), "area": "draft"},
-        {"product": "inventor", "input": "examples/mesh-box.obj", "area": "model"},
     ]
+    model=fixtures / "model.forge.json"
+    generated=subprocess.run([str(CLI),"workbench","apply","-",str(model),"--script","examples/model-parts.json","--overwrite"],cwd=ROOT,capture_output=True,text=True,timeout=30)
+    if generated.returncode!=0:
+        raise RuntimeError(f"Could not create editable extrusion fixture: {generated.stderr}")
+    cases.append({"product":"inventor","input":str(model.relative_to(ROOT)),"area":"model"})
     expected_counts = {"build": "walls", "terrain": "terrain_triangles", "motion": "scene_objects", "make": "cam_profiles", "connect": "review_items"}
     for product, area in [("revit", "build"), ("maya", "motion"), ("civil-3d", "terrain"), ("inventor-cam", "make"), ("autodesk-docs", "connect")]:
         fixture = fixtures / f"{area}.forge.json"
@@ -49,6 +53,10 @@ def prepare_cases():
             edited = subprocess.run([str(CLI), "workbench", "apply", str(fixture), str(fixture), "--script", scripts[area], "--overwrite"], cwd=ROOT, capture_output=True, text=True, timeout=30)
             if edited.returncode != 0:
                 raise RuntimeError(f"Could not author {area} fixture: {edited.stderr}")
+            if area=="motion":
+                modified=subprocess.run([str(CLI),"workbench","apply",str(fixture),str(fixture),"--script","examples/scene-modifiers.json","--overwrite"],cwd=ROOT,capture_output=True,text=True,timeout=30)
+                if modified.returncode!=0:
+                    raise RuntimeError(f"Could not add scene modifiers: {modified.stderr}")
         cases.append({"product": product, "input": str(fixture.relative_to(ROOT)), "area": area})
     for case in cases:
         source = ROOT / case["input"]
@@ -56,22 +64,22 @@ def prepare_cases():
         if inspected.returncode != 0:
             raise RuntimeError(f"Could not inspect {case['input']}: {inspected.stderr}")
         info = json.loads(inspected.stdout)
-        case["content"] = {key: info[key] for key in ["format", "entities", "solids", "meshes", "vertices", "triangles", "units", "workbenches"]}
+        case["content"] = {key: info[key] for key in ["format", "entities", "solids", "extrusions", "meshes", "vertices", "triangles", "units", "workbenches"]}
         case["source_sha256"] = digest(source)
         area = case["area"]
         if area in expected_counts:
             assert info["workbenches"][expected_counts[area]] > 0, f"{area} fixture has no semantic content"
             case["format_version"] = json.loads(source.read_text())["format_version"]
-            assert case["format_version"] == 5
+            assert case["format_version"] == 6
         elif area == "draft":
             assert info["entities"] > 0
             assert info["layouts"] == 1
         else:
-            assert info["meshes"] > 0 and info["triangles"] > 0
+            assert info["extrusions"] == 2
         if area == "terrain":
             assert info["workbenches"]["terrain_alignments"] == 1
         if area == "motion":
-            assert info["workbenches"]["parented_objects"] == 1
+            assert info["workbenches"]["parented_objects"] == 2
         if area == "make":
             assert info["workbenches"]["cam_pockets"] == 3
             assert info["workbenches"]["cam_drills"] == 1

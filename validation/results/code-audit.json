@@ -1,0 +1,161 @@
+{
+  "script": "audit-bad-patterns.sh",
+  "script_sha256": "4912317342ba2fd4978418bde1d7779b5fa6f0cb36ade7a6d5c6f8359021b4d8",
+  "scope": "All workspace Rust source and tests, including embedded test modules; no generated build output or dependency source",
+  "files_scanned": 52,
+  "raw_strict_passed": false,
+  "strict_hits": 2037,
+  "sections": {
+    "A": {
+      "description": "Panicking error handling",
+      "hits": 1986,
+      "patterns_hit": 14,
+      "patterns": 25
+    },
+    "B": {
+      "description": "Silent error swallowing",
+      "hits": 48,
+      "patterns_hit": 4,
+      "patterns": 14
+    },
+    "C": {
+      "description": "Lint suppression",
+      "hits": 1,
+      "patterns_hit": 1,
+      "patterns": 3
+    },
+    "D": {
+      "description": "Panic vectors (index/slice)",
+      "hits": 605,
+      "patterns_hit": 3,
+      "patterns": 6
+    },
+    "E": {
+      "description": "Numeric / unsafe",
+      "hits": 159,
+      "patterns_hit": 9,
+      "patterns": 18
+    },
+    "F": {
+      "description": "Async / blocking",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 8
+    },
+    "G": {
+      "description": "Logging",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 4
+    },
+    "H": {
+      "description": "HTTP layer",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 5
+    },
+    "I": {
+      "description": "Iterator glitches",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 2
+    },
+    "J": {
+      "description": "Style / secrets",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 16
+    },
+    "L": {
+      "description": "Crypto",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 7
+    },
+    "M": {
+      "description": "SQL & command injection",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 7
+    },
+    "N": {
+      "description": "UB / concurrency",
+      "hits": 2,
+      "patterns_hit": 1,
+      "patterns": 9
+    },
+    "O": {
+      "description": "Performance",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 8
+    },
+    "P": {
+      "description": "API hygiene",
+      "hits": 0,
+      "patterns_hit": 0,
+      "patterns": 4
+    }
+  },
+  "interpretation": "Regex hits are overlapping pattern matches, not distinct confirmed defects. Raw strict findings remain and require contextual review; no suppression markers were added.",
+  "source_sha256": {
+    "apps/craft-suite/src/app.rs": "47d497bd72da0229300cb5197667770c6a41c903a91fb83cb7f0033c7653badd",
+    "apps/craft-suite/src/bin/buildcraft.rs": "e22c477b2fc76e6c1a3faede9f8050021b09d9ad423497197009ee7aafd54503",
+    "apps/craft-suite/src/bin/connectcraft.rs": "9797723985b5d6d439177dd902521b4dec1846d195a6300c56d0c00841fae89d",
+    "apps/craft-suite/src/bin/draftcraft.rs": "bda01edfe618874e7aa2a3821dab84556deecd002229803cdd527494787adb56",
+    "apps/craft-suite/src/bin/makecraft.rs": "5b61948169bd1c97db1b45a15469e59255b663773a2ac1cf46b20fd6f0cdff8c",
+    "apps/craft-suite/src/bin/modelcraft.rs": "0bd8826d1528961046363e1286457ea3890df7f27f477574d761cb3fd985878a",
+    "apps/craft-suite/src/bin/motioncraft.rs": "bfb4a959feeeb320157a079fd231d046ea0ba37c46c2ebd39121d7bbfe70b399",
+    "apps/craft-suite/src/bin/terraincraft.rs": "77f077f69c8258f84f62a588f788f9092ecdf7c8dc4b3a6f439eca190c703b3b",
+    "apps/craft-suite/src/building_ui.rs": "2f39ac2b519675b73aab4527fa7171058c21f34e0e004d4664b4fcd87c6ff901",
+    "apps/craft-suite/src/civil_ui.rs": "0e2a969d5a934cc4a1fc07127eefd33f42ebc4d00070bab8c36c9b8fc96a0170",
+    "apps/craft-suite/src/drafting_ui.rs": "e236ab5fece48c735d9240d196b60997193a568526359c317c5588e92223f71b",
+    "apps/craft-suite/src/layout_ui.rs": "9cff0134dc88648de858415d4dfa9ff1a01dfedbc1abd92459180e5f759d8629",
+    "apps/craft-suite/src/lib.rs": "641927a3949fc306ad11b246ea9a33a204865b3764bd0289cc30b6821e18186e",
+    "apps/craft-suite/src/main.rs": "bda01edfe618874e7aa2a3821dab84556deecd002229803cdd527494787adb56",
+    "apps/craft-suite/src/model_ui.rs": "c1060042fe34acf0291a5b4a348afbe942cfe437c1846f44204f120b7b0bea63",
+    "apps/craft-suite/src/review_ui.rs": "cd666510b93b2bc034fe4a40880f6b922f1aa47eed0a9a2d2a3b4bdc22bcc7ed",
+    "apps/craft-suite/src/scene_ui.rs": "70bb559ec321180e098fb539350edf6dd3dcacfc36d78678e8f09024904827c7",
+    "apps/craft-suite/src/session.rs": "9de82173bebe23c9d349057bb874342ea17a9ff32fad08fc0e90b024bc8d9769",
+    "apps/craft-suite/src/terrain_ui.rs": "f482e67b7a69206b7661fdd1fec20f776cc0864761a54fe4d823aef044ac17d4",
+    "apps/craft-suite/src/workbench_ui.rs": "3930696886b453ea84fc17b6180bd45cdc2a65cc2ecabae617f37af9c074e7cd",
+    "apps/forge-cli/src/layout.rs": "41e02f409201b0b3bec6f8a60f630ccdd03730287fe46e01b1af77d0f38fb26d",
+    "apps/forge-cli/src/main.rs": "7863c5d749dd6a0493e1b1dd1fd554eeb221dd899f65912011da15d5f0491527",
+    "apps/forge-cli/src/model.rs": "aaed0af08e86d3b8888824a0f091d5e22b9896c92a0d94c17a3c8a9dd84348b1",
+    "apps/forge-cli/src/workbench.rs": "002db18a832f3479b6c1c37631bdf1890e0aad071385a94bd7806913da946633",
+    "apps/forge-cli/tests/cli.rs": "6b73cba5a06e7682849522e871b3ef41944e75af93e743d69bada006073a8e51",
+    "apps/forge-cli/tests/remaining_cli.rs": "3e6aafaaa9d42e15841fa78cbda6137d816b6b32c9955f24caf479decfcb5062",
+    "crates/forge-core/src/automation.rs": "35933e1e41ca9979c77328e78d816dcd2bfd35fe9d64fea647fa44b8322b3656",
+    "crates/forge-core/src/blocks.rs": "ab9bc47729998194957725e996c7ceefd3e37c313bd48e524e9fb8ebe6888e63",
+    "crates/forge-core/src/building.rs": "bc86f313a6c237249e35d07ba85bb40aef35c3b0b59014103b4ba507de65624b",
+    "crates/forge-core/src/cam.rs": "005d0ded1dbdf93ee8803990808218d0df2b615f0d2e6e0b3a97274f82044146",
+    "crates/forge-core/src/catalog.rs": "a987c13e28693461566c0281343c41783cffb8a23d90108b88862690a0dbf20f",
+    "crates/forge-core/src/civil.rs": "f38a19e103a3e4a78829cb2332673733bfbcff3056e0e8a673a6d9fd1b8d0dd8",
+    "crates/forge-core/src/command.rs": "cd55f4b9eb25628163c510168147fc4809f7cff4ef02cb911a67a66a07c3f5f4",
+    "crates/forge-core/src/dimension.rs": "dffc3e02629d44676e7f55f8d21f8b0bf7ba585c0ea7e08c0cd6b35569d177da",
+    "crates/forge-core/src/drafting.rs": "715f4399fbaeb4a0da65f5f882ebc0c5a4673278b729a2c000dfb0ccfc446cce",
+    "crates/forge-core/src/dxf.rs": "6dfce7b5968fba881ba286dff75341c24a8401a0b26e48251fe67f2ed1f74950",
+    "crates/forge-core/src/edit.rs": "70c237105c37cfbc8c835285105e8ed2acc9850af4ee3e1cf100a187879c0115",
+    "crates/forge-core/src/lib.rs": "adc7efd8158ee379706d4ebbb4897034ccf915c3af00a19d22bbb79262c3fc70",
+    "crates/forge-core/src/mesh.rs": "5a99fc553c0eca4eec65d6444e3d84ca2ec7665ef3aa6d8200b71478a7d88ce3",
+    "crates/forge-core/src/model.rs": "33599b6116b8fbe7e207a905bb404c212d58108c6fd94c1037dcc13028655ccd",
+    "crates/forge-core/src/plot.rs": "41e01fdd35decdcdeb16e700d95e62201061d842e83cfa6b7d38aa343dbeb2d5",
+    "crates/forge-core/src/review.rs": "585566f84af8811958ee42fee2793f8ce4fcf83f545e00705a2d373c5aefb7fd",
+    "crates/forge-core/src/scene.rs": "e472277df03bfa91756956216343f0bbddfb8e8f5a4a22bbb999bcb4b7ce6b34",
+    "crates/forge-core/src/storage.rs": "45da7dfd260b8ad12b5dd303cf5e2ee35b4c636743d01616cd52ef1a8fa19f01",
+    "crates/forge-core/src/terrain.rs": "58e33e092040d74fe050c17ac8199b09cb039cb819986f57bb55e250a289bc55",
+    "crates/forge-core/tests/model_motion_civil.rs": "40aa6c3c4233569dc121b91acfa0b29074012763c4bdc223042b960cfa28632c",
+    "crates/forge-core/tests/remaining_features.rs": "118ad5cdfe17087e942aeb4e7e0250505a9420b8377b2590c3f7f9f0663e97eb",
+    "crates/forge-core/tests/workbenches.rs": "a429142e9dfb108e7669b9893d8671ff59bca7a0dafa46654b42b4f1d52b2362",
+    "crates/forge-dwg/src/lib.rs": "c7a01ef9f4ae6179c3988689b5f508ba21a908928488871339bc9b8d197e2d61",
+    "crates/forge-modeling/src/lib.rs": "ad273e0bb65e7238b89d1b5b6247453c16f7e922160ca42fe631fbe479305b16",
+    "validation/mesh/src/lib.rs": "77f843a197afe60de7d5e83d7908b4d343c7e5b6d14e7be725a9c606047c2b66",
+    "validation/modeling/src/lib.rs": "41f64e9af67b31ff7dc7a0f953a793d904d02d830ccd73c8d6fab34a9c073096"
+  },
+  "fixes_this_round": [
+    "Extrusion creation uses fallible ID allocation; the allocator and numeric command capacity checks include existing extrusion identities",
+    "Unsupported extrusion profiles and model command fallthrough return errors instead of unreachable panics",
+    "Civil station/projection failure paths return explicit errors and propagate CSV formatting errors",
+    "Extrusion cache lookup returns an error and inspector geometry/volume failures are displayed instead of hidden or reported as zero"
+  ]
+}

@@ -46,7 +46,7 @@ impl ForgeApp {
     pub(super) fn civil_controls(&mut self, ui: &mut egui::Ui) {
         ui.separator();
         ui.collapsing("Horizontal alignments", |ui| {
-            ui.label("Polyline stations · positive offsets to the left");
+            ui.label("Line / circular-arc stations · left-positive offsets");
             ui.text_edit_singleline(&mut self.terrain_ui.civil.new_name);
             if ui.button("Create from profile endpoints").clicked() {
                 self.create_alignment();
@@ -76,6 +76,10 @@ impl ForgeApp {
             if let Some(alignment) = &mut self.terrain_ui.civil.edit {
                 ui.text_edit_singleline(&mut alignment.name);
                 ui.add(egui::DragValue::new(&mut alignment.start_station).prefix("Start station "));
+                if alignment.bulges.is_empty() {
+                    alignment.bulges.resize(alignment.vertices.len().saturating_sub(1), 0.0);
+                }
+                ui.label(RichText::new("Segment bulge: 0 = line; tan(sweep/4). Positive arcs turn counterclockwise.").size(9.0).color(MUTED));
                 let mut remove = None;
                 for (index, point) in alignment.vertices.iter_mut().enumerate() {
                     ui.push_id(index, |ui| {
@@ -87,14 +91,20 @@ impl ForgeApp {
                                 remove = Some(index);
                             }
                         });
+                        if let Some(bulge) = alignment.bulges.get_mut(index) {
+                            ui.add(egui::DragValue::new(bulge).speed(0.01).prefix("Arc bulge "));
+                        }
                     });
                 }
                 if let Some(index) = remove {
-                    alignment.vertices.remove(index);
+                    remove_alignment_vertex(alignment, index);
                 }
                 if ui.button("Append vertex").clicked() {
                     let last = alignment.vertices.last().copied().unwrap_or_default();
                     alignment.vertices.push(Point::new(last.x + 10.0, last.y));
+                    if !alignment.bulges.is_empty() {
+                        alignment.bulges.push(0.0);
+                    }
                 }
                 if ui.button("Apply alignment").clicked() {
                     self.apply_alignment();
@@ -248,6 +258,7 @@ impl ForgeApp {
             id,
             name: self.terrain_ui.civil.new_name.clone(),
             start_station: 0.0,
+            bulges: Vec::new(),
             vertices: vec![
                 Point::new(
                     self.terrain_ui.profile_start[0],
@@ -303,9 +314,58 @@ impl ForgeApp {
     }
 }
 
+fn remove_alignment_vertex(alignment: &mut Alignment, index: usize) {
+    let count = alignment.vertices.len();
+    if index >= count {
+        return;
+    }
+    alignment.vertices.remove(index);
+    if alignment.bulges.is_empty() {
+        return;
+    }
+    let removed_segment = index.min(count.saturating_sub(2));
+    if removed_segment < alignment.bulges.len() {
+        alignment.bulges.remove(removed_segment);
+    }
+    // Only the new segment spanning a removed internal vertex becomes straight.
+    // Unaffected segment endpoints and arc parameters keep their identity.
+    if index > 0 && index + 1 < count {
+        if let Some(join) = alignment.bulges.get_mut(index - 1) {
+            *join = 0.0;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn deleting_alignment_vertices_preserves_unaffected_curves() {
+        let alignment = Alignment {
+            id: 1,
+            name: "Curved centerline".into(),
+            start_station: 0.0,
+            vertices: (0..5).map(|i| Point::new(i as f64 * 10.0, 0.0)).collect(),
+            bulges: vec![0.1, 0.2, 0.3, 0.4],
+        };
+        let mut internal = alignment.clone();
+        remove_alignment_vertex(&mut internal, 2);
+        assert_eq!(internal.bulges, [0.1, 0.0, 0.4]);
+        internal.validate().unwrap();
+        assert_eq!(internal.point_at(0.0, 0.0).unwrap(), alignment.vertices[0]);
+        let mut first = alignment.clone();
+        remove_alignment_vertex(&mut first, 0);
+        assert_eq!(first.bulges, [0.2, 0.3, 0.4]);
+        first.validate().unwrap();
+        let mut last = alignment.clone();
+        remove_alignment_vertex(&mut last, 4);
+        assert_eq!(last.bulges, [0.1, 0.2, 0.3]);
+        last.validate().unwrap();
+        while !last.vertices.is_empty() {
+            remove_alignment_vertex(&mut last, 0);
+        }
+        assert!(last.bulges.is_empty());
+    }
     #[test]
     fn alignment_edits_preserve_survey_and_reject_invalid_vertices_without_history_changes() {
         let mut app = ForgeApp::default();

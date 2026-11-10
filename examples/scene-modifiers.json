@@ -1,0 +1,24 @@
+[
+  {
+    "type": "scene_object",
+    "object": {
+      "id": 3,
+      "parent_id": 1,
+      "name": "Mirrored animated array",
+      "shape": "box",
+      "size": [20, 20, 20],
+      "color": [145, 230, 175],
+      "visible": true,
+      "interpolation": "smoothstep",
+      "modifiers": [
+        {"type": "array", "count": 3, "offset": [35, 0, 0]},
+        {"type": "mirror", "axis": "y", "offset": 0, "keep_original": true}
+      ],
+      "keyframes": [
+        {"time": 0, "translation": [0, 70, 10], "rotation_deg": [0, 0, 0], "scale": [1, 1, 1]},
+        {"time": 2.5, "translation": [0, 70, 70], "rotation_deg": [0, 0, 90], "scale": [1.5, 1.5, 1.5]},
+        {"time": 5, "translation": [0, 70, 10], "rotation_deg": [0, 0, 180], "scale": [1, 1, 1]}
+      ]
+    }
+  }
+]

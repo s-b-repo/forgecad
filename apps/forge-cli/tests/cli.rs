@@ -63,7 +63,7 @@ fn workbench_examples_round_trip_native_v5_with_all_semantic_domains() {
     success(run(&["workbench", "create", "all", path(&source)]));
     let source_bytes = fs::read(&source).unwrap();
     let envelope: Value = serde_json::from_slice(&source_bytes).unwrap();
-    assert_eq!(envelope["format_version"], 5);
+    assert_eq!(envelope["format_version"], 6);
     let document = Document::load_json(&source).unwrap();
     assert!(document.has_workbench_data());
     assert!(!document.building.walls.is_empty());

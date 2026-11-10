@@ -13,6 +13,15 @@ use std::io;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ProjectEdit {
+    Extrusion {
+        name: String,
+        profile: crate::Geometry,
+        base_z: f64,
+        height: f64,
+    },
+    ExtrusionRemove {
+        id: u64,
+    },
     SceneObject {
         object: SceneObject,
     },
@@ -86,6 +95,20 @@ pub fn apply_edits(document: &mut Document, edits: &[ProjectEdit]) -> io::Result
 
 fn apply_one(doc: &mut Document, edit: &ProjectEdit) -> io::Result<()> {
     match edit {
+        ProjectEdit::Extrusion {
+            name,
+            profile,
+            base_z,
+            height,
+        } => {
+            doc.add_extrusion(name, profile.clone(), *base_z, *height)?;
+        }
+        ProjectEdit::ExtrusionRemove { id } => {
+            if !doc.extrusions.iter().any(|p| p.id == *id) {
+                return Err(invalid("Extrusion does not exist"));
+            }
+            doc.extrusions.retain(|p| p.id != *id);
+        }
         ProjectEdit::SceneObject { object } => {
             if let Some(saved) = doc.scene.objects.iter_mut().find(|o| o.id == object.id) {
                 *saved = object.clone();

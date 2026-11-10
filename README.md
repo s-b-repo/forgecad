@@ -2,6 +2,8 @@
 
 A native Rust CAD and engineering suite with seven workbenches for drafting, modeling, buildings, terrain, manufacturing, animation and local project review.
 
+[Wiki](https://github.com/s-b-repo/forgecad/wiki) · [All features](docs/features.md) · [Progress](docs/progress.md) · [Roadmap](docs/roadmap.md) · [Documentation](docs/README.md)
+
 An independent, MIT-licensed Rust project pursuing a counterpart for every Autodesk product supplied in the original catalog, including complete features and native format compatibility. The goal is active and unfinished. The repository retains **140 individual product targets**, including AutoCAD, Inventor, Revit, Fusion, Maya, 3ds Max, and Civil 3D. Target status is explicitly prototype or planned.
 
 ## Run the built Linux applications
@@ -35,15 +37,15 @@ Rust 1.95+ and the platform's graphics development libraries are required. The d
 - Precision editing: numeric command bar with history, parallel offsets of analytic entities and straight or tangent-continuous curved polylines, rectangular/polar arrays, and LINE trim/extend against finite LINE boundaries. Desktop controls and batch scripts use the same transactional operations. Invalid operations leave the drawing unchanged.
 - Blocks: reusable definitions from a selection (⌃G), nested INSERT display and picking through expanded geometry, and one-transaction explosion back to ordinary entities.
 - Annotation: semantic horizontal, vertical, aligned and rotated linear dimensions plus radius and diameter dimensions, with extension lines, arrows and measured text derived from the stored references.
-- Modeling: dimension/position editing for box, cylinder and ellipsoid primitives; orbit/pan/zoom; imported triangle meshes; native persistence; tessellated STL/OBJ export with explicit loss/replacement decisions.
+- Modeling: editable rectangle/circle/concave-profile extrusions with retained height/base/profile parameters; dimension/position editing for box, cylinder and ellipsoid primitives; orbit/pan/zoom; imported triangle meshes; native persistence; tessellated STL/OBJ export with explicit loss/replacement decisions.
 - Analytic modeling: checked STEP box and circular/elliptic cylinder authoring, topology inspection and source-preserving exchange through `forge brep`. This is a separate CLI workflow, limited to one closed manifold solid with one shell; STEP assemblies and editable feature histories are not supported.
 - Plotting: physical SVG sheets with page size, margins, fit or explicit scale, monochrome/layer colors, visible nested blocks, dimensions and exact circular arcs. Saved layouts add multiple clipped viewports, individual scales/layer filters/clockwise model-view rotation and paper notes. Use **Saved print layouts**, **Plot to SVG**, `forge layout` or `forge plot --layout NAME`. Text metrics are approximate; DXF paper-space exchange and vendor plot styles remain unfinished.
 - Building: storeys, straight walls, rectangular slabs and hosted door/window openings; opening-aware wall geometry, numeric editing, quantity schedules and derived OBJ export. The building model retains host/storey relationships in native projects.
-- Terrain: editable XYZ surveys, checked TIN triangulation, contours, elevation queries and profiles; persistent polyline alignments, station/offset queries and sampled alignment profiles; exact cut/fill integration against a level datum; CSV reports/survey exchange, OBJ surface and DXF contours.
-- Motion: colored primitive objects, translation/rotation/scale keyframes, parent hierarchies, timeline playback and evaluated-frame OBJ. Local poses inherit ancestor transforms, including nonuniform scale. Cycles and dangling parents are refused; subtree deletion is undoable.
+- Terrain: editable XYZ surveys, checked TIN triangulation, contours, elevation queries and profiles; persistent line/circular-arc alignments with analytic stationing, station/offset queries and sampled alignment profiles; exact cut/fill integration against a level datum; CSV reports/survey exchange, OBJ surface and DXF contours.
+- Motion: colored primitive objects, translation/rotation/scale keyframes, parent hierarchies, linear/step/smoothstep interpolation, inherited visibility, editable array/mirror modifiers and timeline playback and evaluated-frame OBJ. Local poses inherit ancestor transforms, including nonuniform scale. Cycles and dangling parents are refused; subtree deletion is undoable.
 - Manufacturing: stock/tool setup, compensated profiles, rectangular raster/circular concentric/polygon scanline pockets with optional uncut islands, point-based peck drilling, depth passes, motion preview and generic LinuxCNC-style G-code. Pocket step over and cutter footprints are validated; XY positioning follows vertical clearance retracts. Machine-specific posts and stock/collision simulation remain unfinished.
 - Project review: local issue board, title/description/reference editing, search, status/priority filters, resolution lifecycle, undo/redo and CSV export. No cloud account or synchronization is implied.
-- Exchange: a strict ASCII DXF subset including layers, units, basic text, arcs, curved polylines, blocks and INSERT references; ASCII/binary STL; geometry-only OBJ with polygon triangulation; native JSON v5 with v1–v4 migration, saved layouts and separate workbench models.
+- Exchange: a strict ASCII DXF subset including layers, units, basic text, arcs, curved polylines, blocks and INSERT references; ASCII/binary STL; geometry-only OBJ with polygon triangulation; native JSON v6 with v1–v5 migration, saved layouts and separate workbench models.
 - Automation: inspect, convert, transform, primitive creation, native DWG commands, typed transactional project scripts, civil reports, saved-layout commands and individual-product catalog commands. Batch conversions refuse unapproved data loss and existing output replacement.
 
 ```sh
@@ -64,7 +66,7 @@ Rust 1.95+ and the platform's graphics development libraries are required. The d
 ./target/desktop/debug/forge workbench export target/suite.forge.json target/profiles.nc --area make
 ```
 
-See the [drafting and plotting guide](docs/drafting.md) for command syntax, scripts, operation limits and print scales, and the [workbench guide](docs/workbenches.md) for building, terrain, scene and CAM workflows. Output files are protected against replacement unless explicitly authorized. Dedicated workbench exports select one area's derived output; native saves retain all areas together.
+See the [editable modeling guide](docs/modeling.md), [code audit](docs/code-audit.md) and [drafting and plotting guide](docs/drafting.md) for command syntax, scripts, operation limits and print scales, and the [workbench guide](docs/workbenches.md) for building, terrain, scene and CAM workflows. Output files are protected against replacement unless explicitly authorized. Dedicated workbench exports select one area's derived output; native saves retain all areas together.
 
 The [new workflow guide](docs/advanced-workflows.md) includes runnable examples for saved layouts, scene parenting, pocket/drill operations, alignment profiles and earthwork reports. The [completion requirements](docs/requirements.md) continue to track the wider unfinished suite.
 

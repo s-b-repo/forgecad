@@ -1,16 +1,23 @@
 {
-  "generated_at_utc": "2026-11-09T19:57:07.178787+00:00",
+  "generated_at_utc": "2026-11-10T07:12:01.065874+00:00",
   "objective_complete": false,
   "product_targets": 140,
-  "workspace_tests_passed": 245,
+  "workspace_tests_passed": 256,
   "workspace_tests_failed": 0,
-  "native_project_format_version": 5,
+  "native_project_format_version": 6,
   "clippy_status": "passed with style warnings",
+  "code_audit": {
+    "files_scanned": 52,
+    "raw_strict_passed": false,
+    "strict_hits": 2037,
+    "report": "validation/results/code-audit.json"
+  },
   "advanced_workflow_cases": [
     "Saved native two-viewport layout plots and independently renders with paper text, physical scales and a rotated model view",
     "Documented machining script produces rectangular, circular and islanded polygon pockets, peck drilling and a generic G-code program",
-    "Documented civil script retains stationing and generates sampled alignment and exact level-datum earthwork reports",
-    "Documented parented scene evaluates and exports a derived frame while retaining native local keys"
+    "Editable concave and circular extrusion profiles persist natively, derive positive closed volumes and export through explicit parameter-loss authorization",
+    "Documented line/circular-arc civil script retains analytic stationing and generates sampled alignment and exact level-datum earthwork reports",
+    "Parented scene preserves smoothstep animation and array/mirror modifiers while exporting an evaluated frame"
   ],
   "native_startup_cases": [
     {
@@ -21,6 +28,7 @@
         "format": "forge_json",
         "entities": 5,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -42,7 +50,7 @@
           "walls": 0
         }
       },
-      "source_sha256": "982e02559a81eed65f8abaa6750dac8b3e8c0c68d0dcb0af6eade5c55e71592d",
+      "source_sha256": "bce8103e7300bc39a23458e06eb25781653c3b73f2a5484f6d83130ffc1572b8",
       "exit_code": 0,
       "preview": {
         "path": "validation/results/autocad-preview.png",
@@ -53,15 +61,16 @@
     },
     {
       "product": "inventor",
-      "input": "examples/mesh-box.obj",
+      "input": "target/workbench-smoke/model.forge.json",
       "area": "model",
       "content": {
-        "format": "obj_geometry",
+        "format": "forge_json",
         "entities": 0,
         "solids": 0,
-        "meshes": 1,
-        "vertices": 8,
-        "triangles": 12,
+        "extrusions": 2,
+        "meshes": 0,
+        "vertices": 0,
+        "triangles": 0,
         "units": 0,
         "workbenches": {
           "cam_drills": 0,
@@ -80,13 +89,13 @@
           "walls": 0
         }
       },
-      "source_sha256": "e9009d7f4018802745df8a041bb10e6c34f691d7fe76e1bf7683315968abbb4b",
+      "source_sha256": "19d65e112d4af09d556b47d02348b6f05b63657e2b946ebb56b055bdc7031da3",
       "exit_code": 0,
       "preview": {
         "path": "validation/results/inventor-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "f4d30d44333a2d0cf4f2e09c46753c8974525016fdacafbfabd150759d14b519"
+        "sha256": "16f3999119df8cc0c89d7799b711233292646d5e41516ed28a9810293eed1731"
       }
     },
     {
@@ -97,6 +106,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -118,14 +128,14 @@
           "walls": 4
         }
       },
-      "source_sha256": "7f2fe2c989561f087944de2795683d88df48761a21d7a4bf76bc8a6a3c7fef22",
-      "format_version": 5,
+      "source_sha256": "1174ca1965cb331c67c89295273b28d31ca15db945f1a7f90b5080a69d41bec7",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/revit-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "2390509a35607a87319009115795974a5fc81382f0430d62718503880125b299"
+        "sha256": "5d4bd69aaa74f2d4f89e991025f21e22390dc735a12cc83a0dc5a804ceec923b"
       }
     },
     {
@@ -136,6 +146,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -146,9 +157,9 @@
           "cam_pockets": 0,
           "cam_profiles": 0,
           "openings": 0,
-          "parented_objects": 1,
+          "parented_objects": 2,
           "review_items": 0,
-          "scene_objects": 2,
+          "scene_objects": 3,
           "slabs": 0,
           "storeys": 0,
           "survey_points": 0,
@@ -157,14 +168,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "31b72f58ee71acee3fa41f10f0052b22cc43a6d46eb7660e1b9ed87ab027a0b3",
-      "format_version": 5,
+      "source_sha256": "2094268d0516d5c3d18633a85ff524bed100f9ae560861f89800ebe60555b24d",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/maya-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "9d3bed1cc3d167db180aa83d2ab04034a6bdddccaca64be9bfe0beb5bda487e2"
+        "sha256": "aac57dbd0589be9f75ea3c2feaf164c47ec2ed21d9f6d716926f26680273e0fe"
       }
     },
     {
@@ -175,6 +186,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -196,14 +208,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "46e3ae73529acb62c1deae6304422ea84289a2895836bb54981c3d93319edcf6",
-      "format_version": 5,
+      "source_sha256": "133c02b579993c17a5ee2423bd8678029285e97f3332c263c289893b42a86109",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/civil-3d-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "c50443da7ffab07821fea3d7df1807faccc9eacdb64b570526fd517676a7dd98"
+        "sha256": "6c6849737d5ad3c8b3eddb78adfc2e31845b062f500e1c5f256fa30ca7bfff15"
       }
     },
     {
@@ -214,6 +226,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -235,14 +248,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "b0e42d8e24d3a36a47cbeba462563a90faf45a0af615ef0ecc8fcd492391d996",
-      "format_version": 5,
+      "source_sha256": "6a56864e00c15385df7993b4b30c3fe244c5290b9881fa5e75ae9f1201f3b9ea",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/inventor-cam-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "a0a78e24737cb3e718f9c32a0a94b5483dea16285104dd04ac55b2562f3d362c"
+        "sha256": "c84c6f113fad4fe6228d67ae90e10a2e8066ee3c695298f16bea1a50b6dd4d61"
       }
     },
     {
@@ -253,6 +266,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -274,8 +288,8 @@
           "walls": 0
         }
       },
-      "source_sha256": "bbc176f88ab1f70b4e240b53dd1f9baa9d5d01d17617e3b1c845bf6fae379832",
-      "format_version": 5,
+      "source_sha256": "62be5bea26e24bee35562caaa145399f7a9e21cb1d985db67a85a988356152c8",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/autodesk-docs-preview.png",
@@ -299,8 +313,8 @@
   "verification_limits": [
     "Linux build/startup tested; Windows/macOS installers not verified",
     "Building workflows cover storeys, walls, rectangular slabs, door/window openings and quantity schedules; families, coordination, structural/energy analysis and full BIM remain incomplete",
-    "Civil workflows cover bounded surveyed TIN surfaces, elevation interpolation, contours, profiles, polyline alignments/stationing and exact level-datum cut/fill; curved alignments, roads, utility networks, drainage and geospatial/project standards remain incomplete",
-    "Motion workflows cover colored primitive objects, checked parent hierarchies and evaluated transform keyframes; rigs, materials/shaders, dynamics, production rendering and general scene dependency graphs remain incomplete",
+    "Civil workflows cover bounded surveyed TIN surfaces, elevation interpolation, contours, profiles, line/circular-arc alignments/stationing and exact level-datum cut/fill; spiral alignments, roads, utility networks, drainage and geospatial/project standards remain incomplete",
+    "Motion workflows cover colored primitive objects, checked parents, linear/step/smoothstep animation, inherited visibility and array/mirror modifiers; general deformation, rigs, materials/shaders, dynamics, production rendering and general scene dependency graphs remain incomplete",
     "Manufacturing covers bounded 2.5D profiles, cutter compensation, rectangular/circular/polygon pockets with optional uncut islands, peck drilling, stepdowns and generic G-code; adaptive/ramped paths, machine-specific postprocessors, stock/collision simulation, assemblies, FEA and CAM product parity remain incomplete",
     "Connect covers locally saved review issues, descriptions, status/priority and CSV schedules; it has no cloud accounts, messaging, synchronization or vendor service integration",
     "DWG read/write uses an engine-supported subset with R2000/R2018 output; full native fidelity has not been verified in AutoCAD",
@@ -312,12 +326,12 @@
   ],
   "artifacts": {
     "target/desktop/debug/forge-craft": {
-      "sha256": "9a9935939ad00e5e691946bbfcd5f62fb5970468f8bf21edac3f936fd96660c5",
-      "bytes": 256699192
+      "sha256": "01f84bcb5e2f268fba264deab6d3a7a9e7afebf839ba71bbf8744bbc2f4a650a",
+      "bytes": 258910224
     },
     "target/desktop/debug/forge": {
-      "sha256": "3cd095be9b7b49387dbfe3ca92dfa49bead68f5ca2cccad5662ce62e75d48f10",
-      "bytes": 181098184
+      "sha256": "8fc945624a4e0f9d1fbe5fa916e62ff8ceec005b7f1765d0f54da1976e9d4fb8",
+      "bytes": 183126032
     },
     "validation/results/autocad-preview.png": {
       "sha256": "6de0ed132723c0666009d459f39088d087a1172ef5eba3ee36701a7a61f3d413",
@@ -326,32 +340,32 @@
       "height": 1000
     },
     "validation/results/inventor-preview.png": {
-      "sha256": "f4d30d44333a2d0cf4f2e09c46753c8974525016fdacafbfabd150759d14b519",
-      "bytes": 156305,
+      "sha256": "16f3999119df8cc0c89d7799b711233292646d5e41516ed28a9810293eed1731",
+      "bytes": 234271,
       "width": 1600,
       "height": 1000
     },
     "validation/results/revit-preview.png": {
-      "sha256": "2390509a35607a87319009115795974a5fc81382f0430d62718503880125b299",
-      "bytes": 268091,
+      "sha256": "5d4bd69aaa74f2d4f89e991025f21e22390dc735a12cc83a0dc5a804ceec923b",
+      "bytes": 234538,
       "width": 1600,
       "height": 1000
     },
     "validation/results/maya-preview.png": {
-      "sha256": "9d3bed1cc3d167db180aa83d2ab04034a6bdddccaca64be9bfe0beb5bda487e2",
-      "bytes": 261739,
+      "sha256": "aac57dbd0589be9f75ea3c2feaf164c47ec2ed21d9f6d716926f26680273e0fe",
+      "bytes": 242118,
       "width": 1600,
       "height": 1000
     },
     "validation/results/civil-3d-preview.png": {
-      "sha256": "c50443da7ffab07821fea3d7df1807faccc9eacdb64b570526fd517676a7dd98",
-      "bytes": 296108,
+      "sha256": "6c6849737d5ad3c8b3eddb78adfc2e31845b062f500e1c5f256fa30ca7bfff15",
+      "bytes": 293790,
       "width": 1600,
       "height": 1000
     },
     "validation/results/inventor-cam-preview.png": {
-      "sha256": "a0a78e24737cb3e718f9c32a0a94b5483dea16285104dd04ac55b2562f3d362c",
-      "bytes": 383887,
+      "sha256": "c84c6f113fad4fe6228d67ae90e10a2e8066ee3c695298f16bea1a50b6dd4d61",
+      "bytes": 378412,
       "width": 1600,
       "height": 1000
     },
@@ -362,56 +376,76 @@
       "height": 1000
     },
     "target/feature-acceptance/alignment-profile.csv": {
-      "bytes": 6782,
-      "sha256": "f2c0ddfea1dff103520f26320b1120141ccb8796d8b40803e026ac6b0fd6e656"
+      "bytes": 6835,
+      "sha256": "2124b1ba2fd9580332154575d316ac409aee0793766704ee5d155fdbd71427b7"
     },
     "target/feature-acceptance/earthwork.csv": {
       "bytes": 105,
       "sha256": "c3c8c97d2739ed257464bc2cde622cbb8ed4b03d9335d466a4840b6196b6481d"
     },
+    "target/feature-acceptance/extrusions.obj": {
+      "bytes": 12729,
+      "sha256": "8aa2c090fc4f8464bb6893d77af461d4d92ed6a112d735eeeaf895a4e50da4d8"
+    },
     "target/feature-acceptance/machining.forge.json": {
-      "bytes": 3376,
-      "sha256": "fce1c6d1db805320a7825b90363c14fa16e5b2eec3a154eb92c6e17d4ba593c7"
+      "bytes": 3398,
+      "sha256": "7a2a9a711645c8c8c009c985c0f0af69a99d568a096bea4d308b7eff9d281c31"
     },
     "target/feature-acceptance/machining.nc": {
       "bytes": 155975,
       "sha256": "67b343bf1114bef135e34460f41efdb16987336a789eca78a4c1b40ae9b6064f"
     },
+    "target/feature-acceptance/model.forge.json": {
+      "bytes": 2552,
+      "sha256": "19d65e112d4af09d556b47d02348b6f05b63657e2b946ebb56b055bdc7031da3"
+    },
     "target/feature-acceptance/motion.forge.json": {
-      "bytes": 4104,
-      "sha256": "31b72f58ee71acee3fa41f10f0052b22cc43a6d46eb7660e1b9ed87ab027a0b3"
+      "bytes": 6249,
+      "sha256": "2094268d0516d5c3d18633a85ff524bed100f9ae560861f89800ebe60555b24d"
     },
     "target/feature-acceptance/parented-frame.obj": {
-      "bytes": 6163,
-      "sha256": "29a5e3d68f5b8e8ddaa9ed892bf0587c4df2e80b8d134aed8544609db21e43e8"
+      "bytes": 8611,
+      "sha256": "264faeb1da00a21eb3815e193ff3ff1a77d1d3227bfa2b0dd45a91446ccb3575"
     },
     "target/feature-acceptance/plan.forge.json": {
-      "bytes": 6689,
-      "sha256": "3428fc709249f29c5d47b4c918eb3401300553d3eaf31a2ab84e5843c808cff2"
+      "bytes": 6711,
+      "sha256": "5f4747177176c33d0a00c4431f4d02a156aeda4f2d4fcd924c7a794a04ee3ff8"
     },
     "target/feature-acceptance/sheet-preview.png": {
       "bytes": 16493,
       "sha256": "ffc8a687cd1485cd16a5fd0e759e9ba679c4270b8809879669d2fa44c9a1957d"
     },
     "target/feature-acceptance/sheet.forge.json": {
-      "bytes": 8104,
-      "sha256": "feab7f722c7827b44dcf843514c847a4aa44e6d13bdff3ce31e2461d73efc48d"
+      "bytes": 8126,
+      "sha256": "f427d7eeec192ea6793e9290c736e578f4c772e59cf923f8d56040ecd3cadf8d"
     },
     "target/feature-acceptance/sheet.svg": {
       "bytes": 8217,
       "sha256": "bad9017e0ce2734380043dd25329d78f568f23d3ae7459eaaac04f4931090427"
     },
     "target/feature-acceptance/terrain.forge.json": {
-      "bytes": 2611,
-      "sha256": "46e3ae73529acb62c1deae6304422ea84289a2895836bb54981c3d93319edcf6"
+      "bytes": 2717,
+      "sha256": "133c02b579993c17a5ee2423bd8678029285e97f3332c263c289893b42a86109"
+    },
+    "validation/results/code-audit.log": {
+      "sha256": "86dc6b138144ac5f55e6a7f4eccf5bd9060883aad261d7bbed3d95c366c32ee4",
+      "bytes": 2513
+    },
+    "validation/results/code-audit.json": {
+      "sha256": "48ecad2d08af32f92a55c2a36c04096b77d8a5521bdcd0dff59caba05e72099c",
+      "bytes": 8565
+    },
+    "validation/results/code-audit-id-exhaustion.json": {
+      "sha256": "a411aae72f60715fd16fe49059b15db3d46c2c17f250008982b615a49bbb0db8",
+      "bytes": 1502
     }
   },
   "source_sha256": {
     "Cargo.lock": "7a07fa1e082f6a1e2b780440c7c67566b92db3b57f388b268c3608269ff9d6ab",
     "Cargo.toml": "26ff00e9554633d7c66161b0523f13021d95ce40cf864f9912ccd5ee1bc3fb11",
-    "README.md": "00c969dd5681464cdb98c75d80194af5ce5d77a137657e1f7c2aa5b729908fa6",
+    "README.md": "92a5c8e64d6d12372f80db550442683d9d57d1823591b46c176b42267625ffe1",
     "apps/craft-suite/Cargo.toml": "6e2a5ed4173864b57eb835d13b407e55ae74878180ef920610f993e6cd718ddc",
-    "apps/craft-suite/src/app.rs": "f46678b1ec9962bb21e31beeae7dee3e8013f37ff577964b9de80f7a1338ad54",
+    "apps/craft-suite/src/app.rs": "47d497bd72da0229300cb5197667770c6a41c903a91fb83cb7f0033c7653badd",
     "apps/craft-suite/src/bin/buildcraft.rs": "e22c477b2fc76e6c1a3faede9f8050021b09d9ad423497197009ee7aafd54503",
     "apps/craft-suite/src/bin/connectcraft.rs": "9797723985b5d6d439177dd902521b4dec1846d195a6300c56d0c00841fae89d",
     "apps/craft-suite/src/bin/draftcraft.rs": "bda01edfe618874e7aa2a3821dab84556deecd002229803cdd527494787adb56",
@@ -420,70 +454,110 @@
     "apps/craft-suite/src/bin/motioncraft.rs": "bfb4a959feeeb320157a079fd231d046ea0ba37c46c2ebd39121d7bbfe70b399",
     "apps/craft-suite/src/bin/terraincraft.rs": "77f077f69c8258f84f62a588f788f9092ecdf7c8dc4b3a6f439eca190c703b3b",
     "apps/craft-suite/src/building_ui.rs": "2f39ac2b519675b73aab4527fa7171058c21f34e0e004d4664b4fcd87c6ff901",
-    "apps/craft-suite/src/civil_ui.rs": "0896e8b3f4a71356635f6115f784835e591e379fe90b6949d6606c7dcc0c02be",
+    "apps/craft-suite/src/civil_ui.rs": "0e2a969d5a934cc4a1fc07127eefd33f42ebc4d00070bab8c36c9b8fc96a0170",
     "apps/craft-suite/src/drafting_ui.rs": "e236ab5fece48c735d9240d196b60997193a568526359c317c5588e92223f71b",
     "apps/craft-suite/src/layout_ui.rs": "9cff0134dc88648de858415d4dfa9ff1a01dfedbc1abd92459180e5f759d8629",
     "apps/craft-suite/src/lib.rs": "641927a3949fc306ad11b246ea9a33a204865b3764bd0289cc30b6821e18186e",
     "apps/craft-suite/src/main.rs": "bda01edfe618874e7aa2a3821dab84556deecd002229803cdd527494787adb56",
+    "apps/craft-suite/src/model_ui.rs": "c1060042fe34acf0291a5b4a348afbe942cfe437c1846f44204f120b7b0bea63",
     "apps/craft-suite/src/review_ui.rs": "cd666510b93b2bc034fe4a40880f6b922f1aa47eed0a9a2d2a3b4bdc22bcc7ed",
-    "apps/craft-suite/src/scene_ui.rs": "874a5332969bbfa48305310ddd018be2170aa0edeaf43f6aeb3f26c3702684ba",
+    "apps/craft-suite/src/scene_ui.rs": "70bb559ec321180e098fb539350edf6dd3dcacfc36d78678e8f09024904827c7",
     "apps/craft-suite/src/session.rs": "9de82173bebe23c9d349057bb874342ea17a9ff32fad08fc0e90b024bc8d9769",
     "apps/craft-suite/src/terrain_ui.rs": "f482e67b7a69206b7661fdd1fec20f776cc0864761a54fe4d823aef044ac17d4",
-    "apps/craft-suite/src/workbench_ui.rs": "08e93b88652c723226532f8e7986a14bccfde91d52c629ca7a595fcd2a821335",
+    "apps/craft-suite/src/workbench_ui.rs": "3930696886b453ea84fc17b6180bd45cdc2a65cc2ecabae617f37af9c074e7cd",
     "apps/forge-cli/Cargo.toml": "a5fd02c689445eca5d42240a0f41517e0c018d8a019fd5cc21326b7fdba02cf3",
     "apps/forge-cli/src/layout.rs": "41e02f409201b0b3bec6f8a60f630ccdd03730287fe46e01b1af77d0f38fb26d",
-    "apps/forge-cli/src/main.rs": "22152d4d6eb5da616b00318e6c6b8cb3c3c98c0c80f6dc96d9d8f7d47a541f3f",
+    "apps/forge-cli/src/main.rs": "7863c5d749dd6a0493e1b1dd1fd554eeb221dd899f65912011da15d5f0491527",
+    "apps/forge-cli/src/model.rs": "aaed0af08e86d3b8888824a0f091d5e22b9896c92a0d94c17a3c8a9dd84348b1",
     "apps/forge-cli/src/workbench.rs": "002db18a832f3479b6c1c37631bdf1890e0aad071385a94bd7806913da946633",
-    "apps/forge-cli/tests/cli.rs": "c7a8d2a59e058f10eae41e90d5dc5d7009d69e16fb00a3df7afc202b4db0fe01",
-    "apps/forge-cli/tests/remaining_cli.rs": "f5a0b870a0697db5b71285ec5f8cdfdf916d0828ce2aaa8d9df7eeb517a93e15",
+    "apps/forge-cli/tests/cli.rs": "6b73cba5a06e7682849522e871b3ef41944e75af93e743d69bada006073a8e51",
+    "apps/forge-cli/tests/remaining_cli.rs": "3e6aafaaa9d42e15841fa78cbda6137d816b6b32c9955f24caf479decfcb5062",
+    "audit-bad-patterns.sh": "4912317342ba2fd4978418bde1d7779b5fa6f0cb36ade7a6d5c6f8359021b4d8",
     "crates/forge-core/Cargo.toml": "8ac49be2221025d95bbb0b5adaccd9ae8aaf4cade32528854433989a13cbd6b1",
     "crates/forge-core/data/products.json": "cf4beea01184b806d76905a221470bcc81a67a27e66c7a8e969da37262bf3d53",
-    "crates/forge-core/src/automation.rs": "45a22709195d191a5f94c5ffef448e045232b1fde50ee6889dd23500b00d4d87",
+    "crates/forge-core/src/automation.rs": "35933e1e41ca9979c77328e78d816dcd2bfd35fe9d64fea647fa44b8322b3656",
     "crates/forge-core/src/blocks.rs": "ab9bc47729998194957725e996c7ceefd3e37c313bd48e524e9fb8ebe6888e63",
     "crates/forge-core/src/building.rs": "bc86f313a6c237249e35d07ba85bb40aef35c3b0b59014103b4ba507de65624b",
     "crates/forge-core/src/cam.rs": "005d0ded1dbdf93ee8803990808218d0df2b615f0d2e6e0b3a97274f82044146",
     "crates/forge-core/src/catalog.rs": "a987c13e28693461566c0281343c41783cffb8a23d90108b88862690a0dbf20f",
-    "crates/forge-core/src/civil.rs": "81e0af36571bf8aebb6053c3073b40336470eb77d53ed71344203ace38e58b90",
-    "crates/forge-core/src/command.rs": "e7074f88519b28c903f3541104f37a9813c28f40ca7dc209377448fdf1e3d3ef",
+    "crates/forge-core/src/civil.rs": "f38a19e103a3e4a78829cb2332673733bfbcff3056e0e8a673a6d9fd1b8d0dd8",
+    "crates/forge-core/src/command.rs": "cd55f4b9eb25628163c510168147fc4809f7cff4ef02cb911a67a66a07c3f5f4",
     "crates/forge-core/src/dimension.rs": "dffc3e02629d44676e7f55f8d21f8b0bf7ba585c0ea7e08c0cd6b35569d177da",
     "crates/forge-core/src/drafting.rs": "715f4399fbaeb4a0da65f5f882ebc0c5a4673278b729a2c000dfb0ccfc446cce",
-    "crates/forge-core/src/dxf.rs": "68a9ab254412272ff658e18ea7c837bb4e86b53476d2daa41627c34ca45ca320",
+    "crates/forge-core/src/dxf.rs": "6dfce7b5968fba881ba286dff75341c24a8401a0b26e48251fe67f2ed1f74950",
     "crates/forge-core/src/edit.rs": "70c237105c37cfbc8c835285105e8ed2acc9850af4ee3e1cf100a187879c0115",
-    "crates/forge-core/src/lib.rs": "9dd633e00c72e5a5cdfb9ce48c01f3553fe4d197263cf83321ea57a8b47ae83c",
-    "crates/forge-core/src/mesh.rs": "a065f7e51e187dc7f3848e9c189f17e29c17626e2fa372f3ac91ae45c61213d9",
-    "crates/forge-core/src/plot.rs": "640fff83a4e8e8420fb2de6f7f4ace77d6ac43d9b463febb9fc0f73afa0b6a37",
+    "crates/forge-core/src/lib.rs": "adc7efd8158ee379706d4ebbb4897034ccf915c3af00a19d22bbb79262c3fc70",
+    "crates/forge-core/src/mesh.rs": "5a99fc553c0eca4eec65d6444e3d84ca2ec7665ef3aa6d8200b71478a7d88ce3",
+    "crates/forge-core/src/model.rs": "33599b6116b8fbe7e207a905bb404c212d58108c6fd94c1037dcc13028655ccd",
+    "crates/forge-core/src/plot.rs": "41e01fdd35decdcdeb16e700d95e62201061d842e83cfa6b7d38aa343dbeb2d5",
     "crates/forge-core/src/review.rs": "585566f84af8811958ee42fee2793f8ce4fcf83f545e00705a2d373c5aefb7fd",
-    "crates/forge-core/src/scene.rs": "cb8cc279b07268abbccaa1106053de46a5fd2b86a982bc874ab4290bfa75e584",
+    "crates/forge-core/src/scene.rs": "e472277df03bfa91756956216343f0bbddfb8e8f5a4a22bbb999bcb4b7ce6b34",
     "crates/forge-core/src/storage.rs": "45da7dfd260b8ad12b5dd303cf5e2ee35b4c636743d01616cd52ef1a8fa19f01",
     "crates/forge-core/src/terrain.rs": "58e33e092040d74fe050c17ac8199b09cb039cb819986f57bb55e250a289bc55",
     "crates/forge-core/tests/mesh/README.md": "9f45d595370b648bb7a4c953c584d45d5de5334550e807d421d369e39652e33f",
-    "crates/forge-core/tests/remaining_features.rs": "8bd31d62e6440c2ace3bf7195696b1aa5755b5e8211e01a0ceae1a80211a174e",
-    "crates/forge-core/tests/workbenches.rs": "b32f6246ef89c5839c69e4dfd39ce43097381079ac702ebb76be7e8c896ec096",
+    "crates/forge-core/tests/model_motion_civil.rs": "40aa6c3c4233569dc121b91acfa0b29074012763c4bdc223042b960cfa28632c",
+    "crates/forge-core/tests/remaining_features.rs": "118ad5cdfe17087e942aeb4e7e0250505a9420b8377b2590c3f7f9f0663e97eb",
+    "crates/forge-core/tests/workbenches.rs": "a429142e9dfb108e7669b9893d8671ff59bca7a0dafa46654b42b4f1d52b2362",
     "crates/forge-dwg/Cargo.toml": "92c4cc56354dcf7e756450abc6422eaccbe3f24a8324be903ca056c0eae6f78d",
     "crates/forge-dwg/src/lib.rs": "c7a01ef9f4ae6179c3988689b5f508ba21a908928488871339bc9b8d197e2d61",
     "crates/forge-modeling/Cargo.toml": "38616d7b0dc383099b3bda28a442755d4f3754bffa36925a3a7d44be0017881f",
     "crates/forge-modeling/src/lib.rs": "ad273e0bb65e7238b89d1b5b6247453c16f7e922160ca42fe631fbe479305b16",
-    "docs/advanced-workflows.md": "fe30cbf96dce6aed658b3c63ceb714908824d42a8e7b04b9396f9a16c717bb3e",
-    "docs/architecture.md": "481d8e849632ee0e6f774e9d9a637020ba96a883c6be21e63b061a6a8f555fb8",
-    "docs/compatibility.md": "3537c047ad05110fb7790fcb98e95b62c4e20910c1a0b7b03139b022fd796d93",
+    "docs/README.md": "087a8f8cb7737e49bcdd9da6d46c270c33b7bd26b5bdb7fbf0e9f8432dc2c5f0",
+    "docs/advanced-workflows.md": "eb171da3de9a0d6ed9e9d50792c4f1cc069e9fd1d469b11b6b41c27a38ae6599",
+    "docs/architecture.md": "88519925041c56d54c5758604152b12f39c724a9e72e0bd6323c4003aa35b1bc",
+    "docs/code-audit.md": "525053395f557216c873ebd170ddaeb56bcb5a4f12272b8c82d4e2938325a0bf",
+    "docs/compatibility.md": "1eaf6b726e631aa21367ecc850b2ac19c59a831ca7b472dbeb8d974177b5b0bb",
     "docs/drafting.md": "d4dc8af65f291c53bc7de4813ca22656a0893d91ec099f46bb797b966d709140",
-    "docs/product-map.md": "f51e9d59acdc3860d7b7d9840c2f2229f033b0f2de4269a3739f31e19487ae0d",
-    "docs/requirements.md": "972403949ebeff0edd20400c04d4ba602b9a01b3c9e6dcb2468b6f1368417ca1",
-    "docs/workbenches.md": "b213a47a2df58278f2510218f7e24fbc7e406f00313c69e13bb403814677b027",
-    "examples/README.md": "bf88cc6e80eb40f1ce21e20e07c28fc7d8748cc26ffabb74db187d3da387be8b",
-    "examples/civil-alignment.json": "159d527efc7971b40d2ec26bf9a40ea9435007b312375e23b2f12fc6bd68de6b",
+    "docs/feature-status.json": "1e4b9d6d50f3f31192f86e47f462d5c774e71fd621a56c1701484abf61b17377",
+    "docs/features.md": "1c3fd5bf37c004bc5a4e12534016ca634279d5a8ccedd000c2b7e72a9efc4c86",
+    "docs/modeling.md": "3828be266d15b3cb1e86be9a43e204ffeea591ac5d4c4b7f039d33f1ff8b22b1",
+    "docs/product-catalog.md": "497d6ea67af6cba8d7a2d9041ae0756e0b3d60f776e1002802ef6a0ccd01ae51",
+    "docs/product-map.md": "3d5fcfafd4e10554d6afec059f22aa950b0f7779745eefae9266043cb4a15fcb",
+    "docs/progress.md": "13ef2c117c58c8fc2be2ebeb36e77155e6cdfbae76496dc1bd6c0a18ce0a6d46",
+    "docs/requirements.md": "c2f8c660b19790efe8a38815fbf319ee65a191587b89f6b7560ae5487607cfbd",
+    "docs/roadmap.json": "d2782491f1418f2b2b4d089c2e150be27e777d63c24204079ca6033727cee3fb",
+    "docs/roadmap.md": "74dc83173b5dc6655fbdfb271abe40c84a9076beefc48e05417cff9b70bc73ae",
+    "docs/wiki/Advanced-workflows.md": "ae866f8982f6e5ef9d9e6f2a07fe3fdbd2eb9bae3364aa91f59978be5b4ff544",
+    "docs/wiki/Architecture.md": "88519925041c56d54c5758604152b12f39c724a9e72e0bd6323c4003aa35b1bc",
+    "docs/wiki/Building.md": "27bc196abf3349436246ebd825975771c6d86b7154f850be0ad34348ad911d0f",
+    "docs/wiki/Code-audit.md": "0fae010108ea4e67991d166baa8b218b910eae683b988550072636ec56b7fe0a",
+    "docs/wiki/Compatibility.md": "1eaf6b726e631aa21367ecc850b2ac19c59a831ca7b472dbeb8d974177b5b0bb",
+    "docs/wiki/Documentation.md": "f0d40e65a29039003a1e44c153e774bda523ba12e5f1461bd67a180ed2646f2a",
+    "docs/wiki/Drafting.md": "d4dc8af65f291c53bc7de4813ca22656a0893d91ec099f46bb797b966d709140",
+    "docs/wiki/Feature-status.md": "1c3fd5bf37c004bc5a4e12534016ca634279d5a8ccedd000c2b7e72a9efc4c86",
+    "docs/wiki/Getting-started.md": "94b4988b8583c7bb49b30bc8d039ff9961d405322a7705fef6fc2db478f43418",
+    "docs/wiki/Home.md": "fb1ff810a71b5b1dea9ed99d2281cfbcf1ae882350c0a57b582e296e84b59825",
+    "docs/wiki/Manufacturing.md": "73c16b775eac5720c0b1383ed836c14c3cb54f67eaf98d14be155c6dff4e6ceb",
+    "docs/wiki/Modeling.md": "3828be266d15b3cb1e86be9a43e204ffeea591ac5d4c4b7f039d33f1ff8b22b1",
+    "docs/wiki/Motion.md": "6fcd6457620893fcd9ffa1657efa976e7edd9d7daedb905532aa692ce5de8ff7",
+    "docs/wiki/Product-catalog.md": "042036e1788a5c5e655b1d6a8be1bf4e37fb81954cbb5dc5f03a384c50be7aa9",
+    "docs/wiki/Progress.md": "d31f8c972426cab796b92f6f7acd67a4e9315bb22f95f021700139a67554575a",
+    "docs/wiki/Project-review.md": "1fcaf7cd8196a55727ba45cd57db2e3b8aa99e08f5e69c314fee4fe4fe222c66",
+    "docs/wiki/Requirements.md": "e13d296e1bb653e777b48a1a1273d4f24e0c73896e178511c5000e48030d531c",
+    "docs/wiki/Roadmap.md": "74dc83173b5dc6655fbdfb271abe40c84a9076beefc48e05417cff9b70bc73ae",
+    "docs/wiki/Terrain.md": "085bb2d88aa9e57b970a4c44e9e2a904bb460d6359a02274382c8502e2230fe6",
+    "docs/wiki/Workbenches.md": "2f030424c7dfe20de62cd2b69921a18c5446e6eef13ead1a70f89f24368e9cc1",
+    "docs/wiki/_Footer.md": "e71984eddc299d3e87f68ed99f2c3e07b8d943deb8f17fd7d921ba6c1bf653cb",
+    "docs/wiki/_Sidebar.md": "06b579f7b868aac3f615bf81a52064c3f3f121bb6654cc01e5ed87f75934188f",
+    "docs/workbenches.md": "694f79202fe2415e0d30847b98be693fef0370c5b459b9782312d6dad35949a4",
+    "examples/README.md": "8045a6710afa754183c518955af778574dd380013f7fbe063b52eff15283fa8a",
+    "examples/civil-alignment.json": "23c053fe8d3cf42fceb41c9481d2eb270b8fb7709ff02c599d482bd465c03ac8",
     "examples/drafting.forgecmd": "e8c6582c5233fd3727316da9f8f10de80f3543e7453931a98de4fa5d90dc75b7",
     "examples/machining-operations.json": "afa39cf5a00fc67b9efa699b4775198d4a8c2527e42a7ff7b54467e0dfdd4583",
+    "examples/model-parts.json": "19621e511a2c8479301b6b3b6267b942f98f2e1ae0c5bedb9c696cf35d4ac135",
+    "examples/scene-modifiers.json": "5f906768e17db4f0acc37c7eb93e3e794d14771b00b115d9e438706d5062baad",
     "examples/scene-parenting.json": "991654349d131c4d8d5809f216a0a76e18877dda01b051922d8860d308c42e84",
-    "validation/advanced_workflows.py": "efb638f87ba0c405f16420035a906bd4d99c67351279792d11a283e1d3874876",
+    "scripts/generate_docs.py": "d9028ca83d20b899a1fdd4a4c1d090d1c2fd58e324f45e3837611145f99e36c2",
+    "scripts/run_code_audit.py": "93f20f435f4328caf8268eaa5a122e88b3dc467b6af4356d2dc9948d3afcc778",
+    "validation/advanced_workflows.py": "dc82606c82712dd9e8767e3544de55217cfe6d68daed061fc05f06d1be7728d9",
     "validation/cli/Cargo.toml": "be95ad9bbe537a59a2d4947209354cfbeecb1a4c54600c260ed979f5e8700ca7",
     "validation/core/Cargo.toml": "86a8e92c35d2434b0ecd6530d3508767d0f29b0994ba001a5083c10315f187fb",
     "validation/mesh/Cargo.toml": "dd5da4a434322fb538a12fe31b552dbc9add59571d78aa94752567d11a560800",
     "validation/mesh/src/lib.rs": "77f843a197afe60de7d5e83d7908b4d343c7e5b6d14e7be725a9c606047c2b66",
     "validation/modeling/Cargo.toml": "5b7f5e962a0c6b02f95ce8935c123d67b394e833e769d1266de6a032f7315380",
     "validation/modeling/src/lib.rs": "41f64e9af67b31ff7dc7a0f953a793d904d02d830ccd73c8d6fab34a9c073096",
-    "validation/native_interaction.py": "5ddfe6488e448816d9c9e229c174ac8ac04a80a00cbd0e1ea64281da799563d3",
-    "validation/native_smoke.py": "b7efe1d2df7e77a98759720a213591f64480841d10e51fe6099bc4b6e32fddfd",
-    "validation/summarize.py": "2e4b3f0376d46a8dc8549a3eefad38dfec1cca20a7a4860520cf91bcdd323b8f"
+    "validation/native_interaction.py": "24c0b7726464c5d60162e712175b76b67422b2582a530a5c016b83d16d5d6674",
+    "validation/native_smoke.py": "9c62d1c1ba6f3c8c867265a7f7e79b0205d1cd28fcbf5735fbdee80c734ada4c",
+    "validation/summarize.py": "129c4cbbf69f468d117be448c3d112ff4d0cfe3e590498641cc2514f099b22b1"
   }
 }

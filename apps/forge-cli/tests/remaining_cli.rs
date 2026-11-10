@@ -8,6 +8,70 @@ use std::{
 };
 
 static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+#[test]
+fn native_extrusion_cli_edits_parameters_and_requires_loss_authorization_for_meshes() {
+    let files = Files::new();
+    let input = files.file("part.forge.json");
+    let edited = files.file("edited.forge.json");
+    let obj = files.file("part.obj");
+    success(run(&[
+        "model",
+        "extrude",
+        "-",
+        p(&input),
+        "--rectangle",
+        "0",
+        "0",
+        "8",
+        "4",
+        "--height",
+        "3",
+        "--name",
+        "Plate",
+    ]));
+    let doc = Document::load_json(&input).unwrap();
+    let id = doc.extrusions[0].id.to_string();
+    success(run(&[
+        "model",
+        "set",
+        p(&input),
+        p(&edited),
+        "--id",
+        &id,
+        "--height",
+        "5",
+    ]));
+    let info: Value =
+        serde_json::from_slice(&success(run(&["model", "inspect", p(&edited), "--json"])).stdout)
+            .unwrap();
+    near(info["extrusions"][0]["volume"].as_f64().unwrap(), 160.0);
+    assert!(!run(&["convert", p(&edited), p(&obj)]).status.success());
+    assert!(!obj.exists());
+    success(run(&["convert", p(&edited), p(&obj), "--allow-lossy"]));
+    let mesh =
+        forge_core::mesh::TriangleMesh::from_obj(&fs::read_to_string(&obj).unwrap()).unwrap();
+    near(mesh.signed_volume().unwrap(), 160.0);
+    let before = fs::read(&edited).unwrap();
+    assert!(
+        !run(&[
+            "model",
+            "set",
+            p(&input),
+            p(&edited),
+            "--id",
+            &id,
+            "--height",
+            "0",
+            "--overwrite"
+        ])
+        .status
+        .success()
+    );
+    assert_eq!(fs::read(&edited).unwrap(), before);
+    let native = Document::load_json(&input).unwrap();
+    near(native.extrusions[0].height, 3.0);
+}
 struct Files(PathBuf);
 impl Files {
     fn new() -> Self {

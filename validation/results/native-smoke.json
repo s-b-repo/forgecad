@@ -8,6 +8,7 @@
         "format": "forge_json",
         "entities": 5,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -29,7 +30,7 @@
           "walls": 0
         }
       },
-      "source_sha256": "982e02559a81eed65f8abaa6750dac8b3e8c0c68d0dcb0af6eade5c55e71592d",
+      "source_sha256": "bce8103e7300bc39a23458e06eb25781653c3b73f2a5484f6d83130ffc1572b8",
       "exit_code": 0,
       "preview": {
         "path": "validation/results/autocad-preview.png",
@@ -40,15 +41,16 @@
     },
     {
       "product": "inventor",
-      "input": "examples/mesh-box.obj",
+      "input": "target/workbench-smoke/model.forge.json",
       "area": "model",
       "content": {
-        "format": "obj_geometry",
+        "format": "forge_json",
         "entities": 0,
         "solids": 0,
-        "meshes": 1,
-        "vertices": 8,
-        "triangles": 12,
+        "extrusions": 2,
+        "meshes": 0,
+        "vertices": 0,
+        "triangles": 0,
         "units": 0,
         "workbenches": {
           "cam_drills": 0,
@@ -67,13 +69,13 @@
           "walls": 0
         }
       },
-      "source_sha256": "e9009d7f4018802745df8a041bb10e6c34f691d7fe76e1bf7683315968abbb4b",
+      "source_sha256": "19d65e112d4af09d556b47d02348b6f05b63657e2b946ebb56b055bdc7031da3",
       "exit_code": 0,
       "preview": {
         "path": "validation/results/inventor-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "f4d30d44333a2d0cf4f2e09c46753c8974525016fdacafbfabd150759d14b519"
+        "sha256": "16f3999119df8cc0c89d7799b711233292646d5e41516ed28a9810293eed1731"
       }
     },
     {
@@ -84,6 +86,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -105,14 +108,14 @@
           "walls": 4
         }
       },
-      "source_sha256": "7f2fe2c989561f087944de2795683d88df48761a21d7a4bf76bc8a6a3c7fef22",
-      "format_version": 5,
+      "source_sha256": "1174ca1965cb331c67c89295273b28d31ca15db945f1a7f90b5080a69d41bec7",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/revit-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "2390509a35607a87319009115795974a5fc81382f0430d62718503880125b299"
+        "sha256": "5d4bd69aaa74f2d4f89e991025f21e22390dc735a12cc83a0dc5a804ceec923b"
       }
     },
     {
@@ -123,6 +126,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -133,9 +137,9 @@
           "cam_pockets": 0,
           "cam_profiles": 0,
           "openings": 0,
-          "parented_objects": 1,
+          "parented_objects": 2,
           "review_items": 0,
-          "scene_objects": 2,
+          "scene_objects": 3,
           "slabs": 0,
           "storeys": 0,
           "survey_points": 0,
@@ -144,14 +148,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "31b72f58ee71acee3fa41f10f0052b22cc43a6d46eb7660e1b9ed87ab027a0b3",
-      "format_version": 5,
+      "source_sha256": "2094268d0516d5c3d18633a85ff524bed100f9ae560861f89800ebe60555b24d",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/maya-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "9d3bed1cc3d167db180aa83d2ab04034a6bdddccaca64be9bfe0beb5bda487e2"
+        "sha256": "aac57dbd0589be9f75ea3c2feaf164c47ec2ed21d9f6d716926f26680273e0fe"
       }
     },
     {
@@ -162,6 +166,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -183,14 +188,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "46e3ae73529acb62c1deae6304422ea84289a2895836bb54981c3d93319edcf6",
-      "format_version": 5,
+      "source_sha256": "133c02b579993c17a5ee2423bd8678029285e97f3332c263c289893b42a86109",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/civil-3d-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "c50443da7ffab07821fea3d7df1807faccc9eacdb64b570526fd517676a7dd98"
+        "sha256": "6c6849737d5ad3c8b3eddb78adfc2e31845b062f500e1c5f256fa30ca7bfff15"
       }
     },
     {
@@ -201,6 +206,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -222,14 +228,14 @@
           "walls": 0
         }
       },
-      "source_sha256": "b0e42d8e24d3a36a47cbeba462563a90faf45a0af615ef0ecc8fcd492391d996",
-      "format_version": 5,
+      "source_sha256": "6a56864e00c15385df7993b4b30c3fe244c5290b9881fa5e75ae9f1201f3b9ea",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/inventor-cam-preview.png",
         "width": 1600,
         "height": 1000,
-        "sha256": "a0a78e24737cb3e718f9c32a0a94b5483dea16285104dd04ac55b2562f3d362c"
+        "sha256": "c84c6f113fad4fe6228d67ae90e10a2e8066ee3c695298f16bea1a50b6dd4d61"
       }
     },
     {
@@ -240,6 +246,7 @@
         "format": "forge_json",
         "entities": 0,
         "solids": 0,
+        "extrusions": 0,
         "meshes": 0,
         "vertices": 0,
         "triangles": 0,
@@ -261,8 +268,8 @@
           "walls": 0
         }
       },
-      "source_sha256": "bbc176f88ab1f70b4e240b53dd1f9baa9d5d01d17617e3b1c845bf6fae379832",
-      "format_version": 5,
+      "source_sha256": "62be5bea26e24bee35562caaa145399f7a9e21cb1d985db67a85a988356152c8",
+      "format_version": 6,
       "exit_code": 0,
       "preview": {
         "path": "validation/results/autodesk-docs-preview.png",

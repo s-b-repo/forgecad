@@ -5,6 +5,7 @@
       "id": 1,
       "name": "Survey centerline",
       "start_station": 1000,
+      "bulges": [0, 0.41421356237309503],
       "vertices": [ { "x": 0, "y": 50 }, { "x": 100, "y": 50 }, { "x": 200, "y": 150 } ]
     }
   }
