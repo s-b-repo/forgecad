@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 !/examples/**
 !/crates/forge-core/tests/fixtures/**
+!/crates/forge-core/tests/mesh/**

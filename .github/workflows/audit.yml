@@ -32,6 +32,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # scripts/run_code_audit.py shells out to `rg --files` to enumerate the
+      # Rust sources; ubuntu-latest does not ship ripgrep, so install it first.
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
       # Informational: default mode records the findings and exits 0.
       - name: Code audit (record findings)
         run: python3 scripts/run_code_audit.py

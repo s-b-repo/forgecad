@@ -53,15 +53,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Informational (never fails): regressions that introduce unsafe/FFI code show up in the job log.
+      # Both scans below shell out to `rg`, which ubuntu-latest does not ship.
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      # Informational (never fails on a match): regressions that introduce unsafe/FFI
+      # code show up in the job summary. The previous `rg ... || echo 'no unsafe
+      # blocks'` fallback hid a missing `rg` as a clean scan, so the real match
+      # count is now printed and rg errors (exit status > 1) still fail the step.
       - name: Scan for unsafe blocks
         shell: bash
         run: |
-          set -euo pipefail
-          rg -n 'unsafe (impl|fn|extern|\{)' crates apps --type rust || echo 'no unsafe blocks'
+          set -uo pipefail
+          status=0
+          matches="$(rg -n 'unsafe (impl|fn|extern|\{)' crates apps --type rust)" || status=$?
+          if [ "$status" -gt 1 ]; then
+            echo "rg failed with exit status ${status}; unsafe scan did not run"
+            exit 1
+          fi
+          count="$(grep -c . <<<"$matches" || true)"
+          echo "unsafe match count: ${count}"
+          if [ -n "$matches" ]; then
+            printf '%s\n' "$matches"
+          fi
+          exit 0
 
       - name: Scan for raw FFI surface
         shell: bash
         run: |
-          set -euo pipefail
-          rg -n 'transmute|from_raw|into_raw|extern "C"|libc::' crates apps --type rust || echo 'no raw FFI surface'
+          set -uo pipefail
+          status=0
+          matches="$(rg -n 'transmute|from_raw|into_raw|extern "C"|libc::' crates apps --type rust)" || status=$?
+          if [ "$status" -gt 1 ]; then
+            echo "rg failed with exit status ${status}; raw FFI scan did not run"
+            exit 1
+          fi
+          count="$(grep -c . <<<"$matches" || true)"
+          echo "raw FFI match count: ${count}"
+          if [ -n "$matches" ]; then
+            printf '%s\n' "$matches"
+          fi
+          exit 0
