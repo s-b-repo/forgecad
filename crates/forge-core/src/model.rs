@@ -14,6 +14,9 @@ pub struct Extrusion {
     pub name: String,
     /// Profile XY coordinates use the project units; the source remains editable.
     pub profile: Geometry,
+    /// Live top-level drawing profile, or None for an independent copied profile.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_entity: Option<u64>,
     pub base_z: f64,
     pub height: f64,
 }
@@ -37,6 +40,11 @@ impl Extrusion {
         self.mesh().map(|_| ())
     }
     pub fn mesh(&self) -> io::Result<TriangleMesh> {
+        if self.source_entity.is_some() {
+            return Err(invalid(
+                "Linked extrusions must be evaluated through Document::extrusion_mesh",
+            ));
+        }
         self.complexity()?;
         self.profile.validate()?;
         if self.id == 0
@@ -148,6 +156,7 @@ impl Document {
             id,
             name: name.into(),
             profile,
+            source_entity: None,
             base_z,
             height,
         });
@@ -160,7 +169,7 @@ impl Document {
         self.validate()?;
         let mut mesh = tessellate_solids(&self.solids, options)?;
         for part in &self.extrusions {
-            mesh.append(&part.mesh()?)?;
+            mesh.append(&self.extrusion_mesh(part.id)?)?;
         }
         for object in &self.meshes {
             mesh.append(&object.mesh)?;
@@ -170,15 +179,96 @@ impl Document {
     pub fn has_model_geometry(&self) -> bool {
         !self.solids.is_empty() || !self.meshes.is_empty() || !self.extrusions.is_empty()
     }
+    pub fn add_linked_extrusion(
+        &mut self,
+        name: impl Into<String>,
+        entity: u64,
+        base_z: f64,
+        height: f64,
+    ) -> io::Result<u64> {
+        let profile = self
+            .entities
+            .iter()
+            .find(|e| e.id == entity)
+            .ok_or_else(|| invalid("Extrusion source entity does not exist"))?
+            .geometry
+            .clone();
+        let mut candidate = self.clone();
+        let id = candidate.add_extrusion(name, profile, base_z, height)?;
+        candidate.link_extrusion(id, entity)?;
+        *self = candidate;
+        Ok(id)
+    }
+    /// Resolve the current drawing profile. The returned value is independent
+    /// derived data; the stored source reference remains in the document.
+    pub fn resolved_extrusion(&self, id: u64) -> io::Result<Extrusion> {
+        let mut part = self
+            .extrusions
+            .iter()
+            .find(|p| p.id == id)
+            .ok_or_else(|| invalid("Extrusion does not exist"))?
+            .clone();
+        if let Some(source) = part.source_entity {
+            part.profile = self
+                .entities
+                .iter()
+                .find(|e| e.id == source)
+                .ok_or_else(|| {
+                    invalid(format!(
+                        "Linked extrusion #{id} refers to missing source entity #{source}"
+                    ))
+                })?
+                .geometry
+                .clone();
+            part.source_entity = None;
+        }
+        Ok(part)
+    }
+    pub fn extrusion_mesh(&self, id: u64) -> io::Result<TriangleMesh> {
+        self.resolved_extrusion(id)?.mesh()
+    }
+    pub fn link_extrusion(&mut self, id: u64, entity: u64) -> io::Result<()> {
+        let profile = self
+            .entities
+            .iter()
+            .find(|e| e.id == entity)
+            .ok_or_else(|| invalid("Extrusion source entity does not exist"))?
+            .geometry
+            .clone();
+        let mut candidate = self.clone();
+        let part = candidate
+            .extrusions
+            .iter_mut()
+            .find(|p| p.id == id)
+            .ok_or_else(|| invalid("Extrusion does not exist"))?;
+        part.profile = profile;
+        part.source_entity = Some(entity);
+        candidate.validate()?;
+        *self = candidate;
+        Ok(())
+    }
+    pub fn detach_extrusion(&mut self, id: u64) -> io::Result<()> {
+        let resolved = self.resolved_extrusion(id)?;
+        let mut candidate = self.clone();
+        let part = candidate
+            .extrusions
+            .iter_mut()
+            .find(|p| p.id == id)
+            .ok_or_else(|| invalid("Extrusion does not exist"))?;
+        *part = resolved;
+        candidate.validate()?;
+        *self = candidate;
+        Ok(())
+    }
 }
-pub(crate) fn validate_features(extrusions: &[Extrusion]) -> io::Result<()> {
-    if extrusions.len() > 1000 {
+pub(crate) fn validate_features(document: &Document) -> io::Result<()> {
+    if document.extrusions.len() > 1000 {
         return Err(invalid("Model exceeds 1000 extrusion features"));
     }
     let mut work = 0usize;
     let mut vertices = 0usize;
-    for part in extrusions {
-        let n = part.complexity()?;
+    for part in &document.extrusions {
+        let n = document.resolved_extrusion(part.id)?.complexity()?;
         work = work
             .checked_add(n * n * n)
             .ok_or_else(|| invalid("Extrusion work budget overflow"))?;

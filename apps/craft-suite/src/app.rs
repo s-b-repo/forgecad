@@ -24,6 +24,8 @@ const SELECTED: Color32 = Color32::from_rgb(255, 197, 92);
 mod building_ui;
 #[path = "civil_ui.rs"]
 mod civil_ui;
+#[path = "constraints_ui.rs"]
+mod constraints_ui;
 #[path = "drafting_ui.rs"]
 mod drafting_ui;
 #[path = "layout_ui.rs"]
@@ -271,6 +273,7 @@ pub struct ForgeApp {
     selection_scale: f64,
     selection_copy: bool,
     drafting: drafting_ui::DraftingState,
+    constraints_ui: constraints_ui::ConstraintUiState,
     building_ui: building_ui::BuildingUiState,
     terrain_ui: terrain_ui::TerrainUiState,
     scene_ui: scene_ui::SceneUiState,
@@ -334,6 +337,7 @@ impl ForgeApp {
             selection_scale: 1.0,
             selection_copy: false,
             drafting: drafting_ui::DraftingState::default(),
+            constraints_ui: constraints_ui::ConstraintUiState::default(),
             building_ui: building_ui::BuildingUiState::default(),
             terrain_ui: terrain_ui::TerrainUiState::default(),
             scene_ui: scene_ui::SceneUiState::default(),
@@ -1160,6 +1164,7 @@ impl ForgeApp {
         if !self.selected_entities.is_empty() {
             self.selection_controls(ui);
         }
+        self.constraints_controls(ui);
         ui.add_space(17.0);
         ui.separator();
         ui.add_space(9.0);
@@ -1167,10 +1172,22 @@ impl ForgeApp {
             section_header(ui, "LAYERS", "Visibility");
             if ui.small_button("＋").on_hover_text("Add a layer").clicked() {
                 let number = self.document.layers.len();
-                self.record_change();
-                self.document
-                    .add_layer(format!("Layer {}", number), [112, 190, 255]);
-                self.mark_dirty("Layer added");
+                let mut candidate = self.document.clone();
+                match candidate.add_layer(format!("Layer {}", number), [112, 190, 255]) {
+                    Ok(layer) => {
+                        let name = candidate
+                            .layer(layer)
+                            .map(|added| added.name.clone())
+                            .unwrap_or_else(|| format!("Layer {}", number));
+                        self.record_change();
+                        self.document = candidate;
+                        self.mark_dirty(format!("Layer {name} added"));
+                    }
+                    Err(error) => {
+                        self.status = error.to_string();
+                        self.status_is_error = true;
+                    }
+                }
             }
         });
         let layers = self.document.layers.clone();
@@ -2046,8 +2063,19 @@ impl ForgeApp {
             self.status_is_error = true;
             return false;
         }
+        // The ID is allocated on a candidate first: an exhausted ID space must
+        // never leave a history entry for a change that did not happen.
+        let mut candidate = self.document.clone();
+        let id = match candidate.add_geometry(geometry) {
+            Ok(id) => id,
+            Err(error) => {
+                self.status = error.to_string();
+                self.status_is_error = true;
+                return false;
+            }
+        };
         self.record_change();
-        let id = self.document.add_geometry(geometry);
+        self.document = candidate;
         self.selected_entities.clear();
         self.selected_entities.insert(id);
         self.mark_dirty(format!(
@@ -2422,7 +2450,6 @@ impl ForgeApp {
     }
 
     fn add_solid(&mut self, kind: SolidKind) {
-        self.record_change();
         let count = self
             .document
             .solids
@@ -2435,7 +2462,17 @@ impl ForgeApp {
             SolidKind::Cylinder => format!("Cylinder {count}"),
             SolidKind::Sphere => format!("Sphere {count}"),
         };
-        let id = self.document.add_solid(label, kind);
+        let mut candidate = self.document.clone();
+        let id = match candidate.add_solid(label, kind) {
+            Ok(id) => id,
+            Err(error) => {
+                self.status = error.to_string();
+                self.status_is_error = true;
+                return;
+            }
+        };
+        self.record_change();
+        self.document = candidate;
         let ordinal = self.document.solids.len().saturating_sub(1);
         if let Some(solid) = self.document.solids.iter_mut().find(|solid| solid.id == id) {
             solid.center[0] = (ordinal % 5) as f64 * 100.0;
@@ -2952,6 +2989,7 @@ impl ForgeApp {
 
     fn reset_workbench_views(&mut self) {
         self.building_ui = building_ui::BuildingUiState::default();
+        self.constraints_ui = constraints_ui::ConstraintUiState::default();
         self.terrain_ui = terrain_ui::TerrainUiState::default();
         self.scene_ui = scene_ui::SceneUiState::default();
         self.workbench_ui = workbench_ui::WorkbenchUiState::default();
@@ -3564,10 +3602,13 @@ mod application_tests {
     #[test]
     fn selection_edits_have_one_reversible_history_entry() {
         let mut app = ForgeApp::default();
-        let id = app.document.add_geometry(Geometry::Line {
-            start: Point::default(),
-            end: Point::new(10.0, 0.0),
-        });
+        let id = app
+            .document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(10.0, 0.0),
+            })
+            .unwrap();
         app.selected_entities.insert(id);
         app.apply_selection_transform(Transform2d::translation(12.0, 5.0));
         assert_eq!(app.undo_stack.len(), 1);
@@ -3590,10 +3631,13 @@ mod application_tests {
     #[test]
     fn invalid_edit_leaves_document_and_history_unchanged() {
         let mut app = ForgeApp::default();
-        let id = app.document.add_geometry(Geometry::Circle {
-            center: Point::default(),
-            radius: 2.0,
-        });
+        let id = app
+            .document
+            .add_geometry(Geometry::Circle {
+                center: Point::default(),
+                radius: 2.0,
+            })
+            .unwrap();
         app.selected_entities.insert(id);
         let before = app.document.clone();
         app.apply_selection_transform(Transform2d::uniform_scale(0.0, Point::default()));
@@ -3604,9 +3648,11 @@ mod application_tests {
     #[test]
     fn new_action_waits_for_unsaved_decision() {
         let mut app = ForgeApp::default();
-        app.document.add_geometry(Geometry::Point {
-            position: Point::new(7.0, 3.0),
-        });
+        app.document
+            .add_geometry(Geometry::Point {
+                position: Point::new(7.0, 3.0),
+            })
+            .unwrap();
         app.dirty = true;
         app.request_action(PendingAction::New);
         assert!(matches!(app.pending_action, Some(PendingAction::New)));
@@ -3615,10 +3661,12 @@ mod application_tests {
     #[test]
     fn mesh_export_cannot_silently_discard_drawing_or_primitive_history() {
         let mut app = ForgeApp::starting_at(Workspace::Model);
-        app.document.add_solid("Part", SolidKind::Box);
-        app.document.add_geometry(Geometry::Point {
-            position: Point::default(),
-        });
+        app.document.add_solid("Part", SolidKind::Box).unwrap();
+        app.document
+            .add_geometry(Geometry::Point {
+                position: Point::default(),
+            })
+            .unwrap();
         app.file_path = "target/ui-export-tests/unwritten.forge.json".into();
         app.export_current();
         let export = app
@@ -3728,14 +3776,20 @@ mod application_tests {
     #[test]
     fn block_definition_picks_and_explodes_through_expanded_geometry() {
         let mut app = ForgeApp::default();
-        let line = app.document.add_geometry(Geometry::Line {
-            start: Point::new(0.0, 0.0),
-            end: Point::new(20.0, 0.0),
-        });
-        let circle = app.document.add_geometry(Geometry::Circle {
-            center: Point::new(10.0, 10.0),
-            radius: 5.0,
-        });
+        let line = app
+            .document
+            .add_geometry(Geometry::Line {
+                start: Point::new(0.0, 0.0),
+                end: Point::new(20.0, 0.0),
+            })
+            .unwrap();
+        let circle = app
+            .document
+            .add_geometry(Geometry::Circle {
+                center: Point::new(10.0, 10.0),
+                radius: 5.0,
+            })
+            .unwrap();
         app.selected_entities = [line, circle].into_iter().collect();
         app.new_block_name = "Chair".into();
         app.define_block_from_selection();
@@ -3768,18 +3822,24 @@ mod application_tests {
         app.define_block_from_selection();
         assert!(app.status_is_error);
         assert!(app.undo_stack.is_empty());
-        let first = app.document.add_geometry(Geometry::Line {
-            start: Point::default(),
-            end: Point::new(10.0, 0.0),
-        });
+        let first = app
+            .document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(10.0, 0.0),
+            })
+            .unwrap();
         app.selected_entities.insert(first);
         app.new_block_name = "Part".into();
         app.define_block_from_selection();
         assert_eq!(app.document.blocks.len(), 1);
-        let second = app.document.add_geometry(Geometry::Line {
-            start: Point::default(),
-            end: Point::new(0.0, 10.0),
-        });
+        let second = app
+            .document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(0.0, 10.0),
+            })
+            .unwrap();
         app.selected_entities.clear();
         app.selected_entities.insert(second);
         app.define_block_from_selection();

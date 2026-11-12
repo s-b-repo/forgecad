@@ -289,7 +289,7 @@ impl Document {
             .entities
             .iter_mut()
             .find(|entity| entity.id == id)
-            .expect("checked target")
+            .ok_or_else(|| invalid(format!("Entity {id} does not exist")))?
             .geometry = replacement;
         candidate.validate()?;
         *self = candidate;
@@ -459,9 +459,17 @@ fn offset_polyline(
     let mut result = Vec::with_capacity(points.len());
     for (index, point) in points.iter().enumerate() {
         let displacement = if !closed && index == 0 {
-            normal(directions[0], distance)
+            let first = directions
+                .first()
+                .copied()
+                .ok_or_else(|| invalid("Polyline offset requires at least one segment"))?;
+            normal(first, distance)
         } else if !closed && index + 1 == points.len() {
-            normal(*directions.last().expect("nonempty segments"), distance)
+            let last = directions
+                .last()
+                .copied()
+                .ok_or_else(|| invalid("Polyline offset requires at least one segment"))?;
+            normal(last, distance)
         } else {
             let previous = directions[(index + directions.len() - 1) % directions.len()];
             let next = directions[index];
@@ -1020,11 +1028,15 @@ mod tests {
     #[test]
     fn offset_selection_is_atomic_preserves_layers_and_deduplicates_ids() {
         let mut document = Document::default();
-        let layer = document.add_layer("Offsets", [255, 0, 0]);
-        let id = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let unsupported_id = document.add_geometry(Geometry::Point {
-            position: point(0.0, 0.0),
-        });
+        let layer = document.add_layer("Offsets", [255, 0, 0]).unwrap();
+        let id = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let unsupported_id = document
+            .add_geometry(Geometry::Point {
+                position: point(0.0, 0.0),
+            })
+            .unwrap();
         let before = document.clone();
         assert!(
             document
@@ -1046,11 +1058,13 @@ mod tests {
     #[test]
     fn rectangular_arrays_preserve_sources_layers_and_signed_spacing() {
         let mut document = Document::default();
-        let layer = document.add_layer("Array", [2, 3, 4]);
-        let id = document.add_geometry(Geometry::Circle {
-            center: point(2.0, 3.0),
-            radius: 1.0,
-        });
+        let layer = document.add_layer("Array", [2, 3, 4]).unwrap();
+        let id = document
+            .add_geometry(Geometry::Circle {
+                center: point(2.0, 3.0),
+                radius: 1.0,
+            })
+            .unwrap();
         let ids = document
             .rectangular_array_entities(&[id, id], 3, 2, -10.0, 8.0)
             .unwrap();
@@ -1085,10 +1099,12 @@ mod tests {
     #[test]
     fn polar_full_circle_excludes_endpoint_and_partial_sweep_includes_it() {
         let mut document = Document::default();
-        let id = document.add_geometry(Geometry::Circle {
-            center: point(10.0, 0.0),
-            radius: 1.0,
-        });
+        let id = document
+            .add_geometry(Geometry::Circle {
+                center: point(10.0, 0.0),
+                radius: 1.0,
+            })
+            .unwrap();
         document
             .polar_array_entities(&[id], 4, Point::default(), 360.0, true)
             .unwrap();
@@ -1105,9 +1121,11 @@ mod tests {
             }
         }
         let mut document = Document::default();
-        let id = document.add_geometry(Geometry::Point {
-            position: point(10.0, 0.0),
-        });
+        let id = document
+            .add_geometry(Geometry::Point {
+                position: point(10.0, 0.0),
+            })
+            .unwrap();
         document
             .polar_array_entities(&[id], 3, Point::default(), -180.0, true)
             .unwrap();
@@ -1124,8 +1142,12 @@ mod tests {
     #[test]
     fn polar_no_rotation_keeps_whole_selection_shape_and_orientation() {
         let mut document = Document::default();
-        let a = document.add_geometry(line([8.0, 0.0], [12.0, 0.0]));
-        let b = document.add_geometry(line([8.0, 2.0], [12.0, 2.0]));
+        let a = document
+            .add_geometry(line([8.0, 0.0], [12.0, 0.0]))
+            .unwrap();
+        let b = document
+            .add_geometry(line([8.0, 2.0], [12.0, 2.0]))
+            .unwrap();
         document
             .polar_array_entities(&[a, b], 2, Point::default(), 90.0, false)
             .unwrap();
@@ -1144,7 +1166,9 @@ mod tests {
     #[test]
     fn polar_no_rotation_anchors_nested_blocks_to_contents_even_on_hidden_layers() {
         let mut document = Document::default();
-        let source = document.add_geometry(line([100.0, 0.0], [120.0, 0.0]));
+        let source = document
+            .add_geometry(line([100.0, 0.0], [120.0, 0.0]))
+            .unwrap();
         let inner = document
             .define_block_from_selection("Inner", Point::default(), &[source])
             .unwrap();
@@ -1171,10 +1195,12 @@ mod tests {
     #[test]
     fn copies_refuse_translations_too_small_to_represent_and_offset_extent_overflow() {
         let mut document = Document::default();
-        let id = document.add_geometry(Geometry::Circle {
-            center: point(1e20, 1e20),
-            radius: 1e8,
-        });
+        let id = document
+            .add_geometry(Geometry::Circle {
+                center: point(1e20, 1e20),
+                radius: 1e8,
+            })
+            .unwrap();
         let before = document.clone();
         assert!(
             document
@@ -1205,19 +1231,21 @@ mod tests {
     #[test]
     fn arrays_preserve_block_references_and_semantic_dimensions() {
         let mut document = Document::default();
-        let source = document.add_geometry(line([1.0, 0.0], [5.0, 0.0]));
+        let source = document.add_geometry(line([1.0, 0.0], [5.0, 0.0])).unwrap();
         let insert = document
             .define_block_from_selection("Part", point(1.0, 0.0), &[source])
             .unwrap();
-        let dimension = document.add_geometry(Geometry::Dimension {
-            dimension: Dimension::Linear(LinearDimension {
-                kind: LinearDimensionKind::Aligned,
-                a: point(1.0, 0.0),
-                b: point(5.0, 0.0),
-                line_point: point(2.0, 10.0),
-                style: DimensionStyle::default(),
-            }),
-        });
+        let dimension = document
+            .add_geometry(Geometry::Dimension {
+                dimension: Dimension::Linear(LinearDimension {
+                    kind: LinearDimensionKind::Aligned,
+                    a: point(1.0, 0.0),
+                    b: point(5.0, 0.0),
+                    line_point: point(2.0, 10.0),
+                    style: DimensionStyle::default(),
+                }),
+            })
+            .unwrap();
         document
             .polar_array_entities(&[insert, dimension], 2, Point::default(), 90.0, true)
             .unwrap();
@@ -1248,7 +1276,7 @@ mod tests {
     #[test]
     fn array_invalid_parameters_or_missing_sources_leave_document_unchanged() {
         let mut document = Document::default();
-        let id = document.add_geometry(line([1.0, 0.0], [4.0, 0.0]));
+        let id = document.add_geometry(line([1.0, 0.0], [4.0, 0.0])).unwrap();
         let before = document.clone();
         for (columns, rows, dx, dy) in [
             (0, 2, 1.0, 1.0),
@@ -1300,7 +1328,9 @@ mod tests {
     #[test]
     fn drafting_copy_allocation_checks_id_exhaustion_without_panicking() {
         let mut document = Document::default();
-        let id = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
+        let id = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
         document.entities[0].id = u64::MAX - 1;
         let before = document.clone();
         document.validate().unwrap();
@@ -1317,8 +1347,12 @@ mod tests {
     #[test]
     fn trim_uses_chosen_endpoint_retains_boundary_and_can_be_serialized() {
         let mut document = Document::default();
-        let target = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let boundary = document.add_geometry(line([4.0, -3.0], [4.0, 3.0]));
+        let target = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let boundary = document
+            .add_geometry(line([4.0, -3.0], [4.0, 3.0]))
+            .unwrap();
         let original_boundary = document.entities[1].clone();
         document
             .trim_line_to_boundary(target, boundary, point(1.0, 0.0))
@@ -1331,8 +1365,12 @@ mod tests {
             line([4.0, 0.0], [10.0, 0.0])
         );
         let mut document = Document::default();
-        let target = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let boundary = document.add_geometry(line([4.0, -3.0], [4.0, 3.0]));
+        let target = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let boundary = document
+            .add_geometry(line([4.0, -3.0], [4.0, 3.0]))
+            .unwrap();
         document
             .trim_line_to_boundary(target, boundary, point(9.0, 0.0))
             .unwrap();
@@ -1342,9 +1380,15 @@ mod tests {
     #[test]
     fn extend_handles_both_ends_and_oblique_boundaries() {
         let mut document = Document::default();
-        let target = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let right = document.add_geometry(line([12.0, -3.0], [18.0, 3.0]));
-        let left = document.add_geometry(line([-8.0, -3.0], [-2.0, 3.0]));
+        let target = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let right = document
+            .add_geometry(line([12.0, -3.0], [18.0, 3.0]))
+            .unwrap();
+        let left = document
+            .add_geometry(line([-8.0, -3.0], [-2.0, 3.0]))
+            .unwrap();
         document
             .extend_line_to_boundary(target, right, point(9.0, 0.0))
             .unwrap();
@@ -1361,8 +1405,12 @@ mod tests {
     #[test]
     fn trim_picks_side_relative_to_intersection_rather_than_nearest_endpoint() {
         let mut document = Document::default();
-        let target = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let boundary = document.add_geometry(line([9.0, -3.0], [9.0, 3.0]));
+        let target = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let boundary = document
+            .add_geometry(line([9.0, -3.0], [9.0, 3.0]))
+            .unwrap();
         let before = document.clone();
         assert!(
             document
@@ -1375,8 +1423,12 @@ mod tests {
             .unwrap();
         assert_eq!(document.entities[0].geometry, line([9.0, 0.0], [10.0, 0.0]));
         let mut document = Document::default();
-        let target = document.add_geometry(line([10.0, 0.0], [0.0, 0.0]));
-        let boundary = document.add_geometry(line([1.0, -3.0], [1.0, 3.0]));
+        let target = document
+            .add_geometry(line([10.0, 0.0], [0.0, 0.0]))
+            .unwrap();
+        let boundary = document
+            .add_geometry(line([1.0, -3.0], [1.0, 3.0]))
+            .unwrap();
         document
             .trim_line_to_boundary(target, boundary, point(2.0, 0.0))
             .unwrap();
@@ -1386,11 +1438,19 @@ mod tests {
     #[test]
     fn trim_extend_refuse_wrong_sides_parallel_missing_and_finite_boundary_misses() {
         let mut document = Document::default();
-        let target = document.add_geometry(line([0.0, 0.0], [10.0, 0.0]));
-        let inside = document.add_geometry(line([4.0, -3.0], [4.0, 3.0]));
-        let outside = document.add_geometry(line([15.0, -3.0], [15.0, 3.0]));
-        let parallel = document.add_geometry(line([0.0, 1.0], [10.0, 1.0]));
-        let missed = document.add_geometry(line([4.0, 3.0], [4.0, 5.0]));
+        let target = document
+            .add_geometry(line([0.0, 0.0], [10.0, 0.0]))
+            .unwrap();
+        let inside = document
+            .add_geometry(line([4.0, -3.0], [4.0, 3.0]))
+            .unwrap();
+        let outside = document
+            .add_geometry(line([15.0, -3.0], [15.0, 3.0]))
+            .unwrap();
+        let parallel = document
+            .add_geometry(line([0.0, 1.0], [10.0, 1.0]))
+            .unwrap();
+        let missed = document.add_geometry(line([4.0, 3.0], [4.0, 5.0])).unwrap();
         let before = document.clone();
         assert!(
             document

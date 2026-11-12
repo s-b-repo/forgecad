@@ -185,7 +185,7 @@ pub fn parse(source: &str) -> io::Result<ImportReport> {
                     let layer_name = record.value(8).unwrap_or("0").trim();
                     let id = ensure_layer(&mut report.document, layer_name)?;
                     report.document.active_layer_id = id;
-                    report.document.add_geometry(geometry);
+                    report.document.add_geometry(geometry)?;
                 }
             }
             _ => {}
@@ -263,7 +263,7 @@ fn read_layer(record: &Record<'_>, report: &mut ImportReport) -> io::Result<()> 
         .layers
         .iter_mut()
         .find(|layer| layer.id == id)
-        .expect("layer exists");
+        .ok_or_else(|| invalid("Freshly ensured DXF layer is missing"))?;
     layer.color = color;
     layer.visible = visible;
     Ok(())
@@ -279,7 +279,7 @@ fn ensure_layer(document: &mut Document, name: &str) -> io::Result<u64> {
     {
         return Ok(layer.id);
     }
-    Ok(document.add_layer(name, [255, 255, 255]))
+    document.add_layer(name, [255, 255, 255])
 }
 fn common_features(record: &Record<'_>, report: &mut ImportReport) -> io::Result<()> {
     for code in [30, 31, 32, 38, 39] {
@@ -399,7 +399,11 @@ fn read_entity(record: &Record<'_>, report: &mut ImportReport) -> io::Result<Opt
                 rotation_deg: record.optional_number(50, 0.0)?,
             }
         }
-        _ => unreachable!(),
+        other => {
+            return Err(invalid(format!(
+                "Unsupported DXF entity kind reached geometry conversion: {other}"
+            )));
+        }
     }))
 }
 fn read_lwpolyline(record: &Record<'_>, report: &mut ImportReport) -> io::Result<Geometry> {
@@ -553,7 +557,7 @@ fn read_block(records: &[Record<'_>], report: &mut ImportReport) -> io::Result<u
         if let Some(geometry) = geometry {
             geometry.validate()?;
             let layer = ensure_layer(&mut report.document, record.value(8).unwrap_or("0").trim())?;
-            let id = report.document.allocate_id();
+            let id = report.document.try_allocate_id()?;
             entities.push(Entity {
                 id,
                 layer_id: layer,
@@ -805,7 +809,7 @@ fn write_entity(
 ) -> io::Result<()> {
     let layer = &document
         .layer(entity.layer_id)
-        .expect("validated layer")
+        .ok_or_else(|| invalid(format!("Entity {} refers to a missing layer", entity.id)))?
         .name;
     let kind = match entity.geometry {
         Geometry::Line { .. } => "LINE",
@@ -826,7 +830,12 @@ fn write_entity(
     pair(output, 100, "AcDbEntity");
     pair(output, 8, layer);
     match &entity.geometry {
-        Geometry::Dimension { .. } => unreachable!("dimensions rejected above"),
+        Geometry::Dimension { .. } => {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "Semantic DIMENSION DXF export is not implemented; annotation is retained in native projects",
+            ));
+        }
         Geometry::Line { start, end } => {
             pair(output, 100, "AcDbLine");
             write_point(output, *start);
@@ -1145,10 +1154,12 @@ mod tests {
     #[test]
     fn rectangle_exports_as_closed_polyline_without_losing_extents() {
         let mut document = Document::default();
-        document.add_geometry(Geometry::Rectangle {
-            a: Point::new(-3.0, 7.0),
-            b: Point::new(4.0, -2.0),
-        });
+        document
+            .add_geometry(Geometry::Rectangle {
+                a: Point::new(-3.0, 7.0),
+                b: Point::new(4.0, -2.0),
+            })
+            .unwrap();
         let reloaded = parse(&write(&document).unwrap()).unwrap().document;
         assert!(
             matches!(&reloaded.entities[0].geometry,Geometry::Polyline { vertices,closed:true } if vertices.len()==4 && vertices[0].point == Point::new(-3.0,7.0) && vertices[2].point==Point::new(4.0,-2.0))
@@ -1157,7 +1168,7 @@ mod tests {
     #[test]
     fn writer_refuses_to_discard_model_content() {
         let mut document = Document::default();
-        document.add_solid("Box", crate::SolidKind::Box);
+        document.add_solid("Box", crate::SolidKind::Box).unwrap();
         assert_eq!(
             write(&document).unwrap_err().kind(),
             io::ErrorKind::Unsupported

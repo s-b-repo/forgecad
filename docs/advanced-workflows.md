@@ -1,6 +1,6 @@
 # Saved layouts, hierarchies, machining and civil analysis
 
-These workflows extend the existing suite. They do not complete the larger [140-product scope](requirements.md). Native JSON v6 retains layouts, parent references, alignment definitions and machining operation types. V1–v5 files remain readable; a v6 save preserves older content and adds default values for missing fields.
+These workflows extend the existing suite. They do not complete the larger [140-product scope](requirements.md). Native JSON v7 retains layouts, parent references, alignment definitions, machining operation types and sketch relations. V1–v6 files remain readable; a v7 save preserves older content and adds default values for missing fields, so older projects load with an empty constraint list.
 
 Commands below use the built `target/desktop/debug/forge` binary. Run `cargo build --workspace --bins --target-dir target/desktop` to build it, or substitute `cargo run -p forge-cli --`. Each command refuses an existing output unless `--overwrite`/`--force` is supplied.
 
@@ -35,6 +35,25 @@ target/desktop/debug/forge workbench export target/parented.forge.json target/fr
 ```
 
 Changing parent keeps the local keyframes and can move the object in world space. Missing parents, cycles and chains beyond 64 levels are refused. **Delete selected object and descendants** removes the subtree as one undo step. Evaluated OBJ contains the resulting frame geometry; it does not retain the hierarchy or animation. Linear/Step/Smoothstep interpolation, inherited visibility and editable array/mirror stacks are available in the inspector. Apply `examples/scene-modifiers.json` after the parenting example to add an animated modifier stack. General deformation, rigs, constraints and production rendering remain unfinished.
+
+## Sketch constraints
+
+Draft sketch relations are authored with the same transactional drafting language used by scripts and batch edits, then solved, reported or re-solved through `forge constraints`. Each relation is one transaction; a rejected relation leaves the input project and any destination untouched.
+
+```sh
+target/desktop/debug/forge draft - target/sketch.forge.json \
+  --command 'LINE 0 0 100 20' --command 'LINE 20 0 20 40' --command 'CIRCLE 60 60 15'
+target/desktop/debug/forge constraints handles target/sketch.forge.json 2 --json
+target/desktop/debug/forge draft target/sketch.forge.json target/sketch-solving.forge.json \
+  --command 'RELATION HORIZONTAL 2' --command 'RELATION DISTY 2 END 3 END 40' \
+  --command 'RELATION RADIUS 4 12' --command 'CONSTRAINT SOLVE' --overwrite
+target/desktop/debug/forge constraints report target/sketch-solving.forge.json --json
+target/desktop/debug/forge constraints solve target/sketch-solving.forge.json target/sketch-solved.forge.json
+```
+
+The first command authors a sloped line (ID 2), a second line (ID 3) and a circle (ID 4) in a new project. `constraints handles` lists an entity's valid point handles — `start`/`end` on lines, `center` on circles, `position` on points, `cornera`/`cornerb` on rectangles and `vertex n` on straight polylines — with their current coordinates. The second command makes the first line horizontal, sets a 40-unit Y distance between the two line endpoints and sets the circle radius to 12, then re-solves; every relation reports its constraint ID and a `Satisfied`/`Conflict` summary. `report` only reads a project, `solve` writes a solved project and refuses a conflicting sketch without creating the output.
+
+Reports carry the state, constraint/variable/equation/rank counts, remaining degrees of freedom, redundant-equation count, tolerance, maximum error and conflicting constraint IDs. Relations persist only in native Forge projects: neutral DXF, OBJ/STL and DWG exports drop them, and V1–v6 projects load with an empty constraint list. Supported geometry is LINE, RECTANGLE, CIRCLE, POINT and straight polylines of at most 64 vertices, with at most 256 constraints and 128 participating coordinate/radius variables per sketch. Only linear relations are solved: no angular, general length, diameter, symmetry or 3D sketch relations. A referenced entity cannot be erased while a relation or linked extrusion uses it. See [drafting guide](drafting.md) for the full relation syntax and limits.
 
 ## Pocket milling and drilling
 

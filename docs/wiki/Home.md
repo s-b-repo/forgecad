@@ -2,7 +2,7 @@
 
 A native Rust CAD and engineering suite with Draft, Model, Build, Terrain, Make, Motion and Connect workbenches. The complete 140-product acceptance objective remains open.
 
-Recorded verification: **256 tests passed**, seven native workbench views and native drafting interactions. [Detailed progress](Progress).
+Recorded verification: **294 tests passed**, seven native workbench views and native drafting interactions. [Detailed progress](Progress).
 
 - [Getting started](Getting-started)
 - [Complete feature inventory](Feature-status)

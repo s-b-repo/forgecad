@@ -60,7 +60,7 @@ def feature_page(inventory):
 
 
 def roadmap_page(roadmap):
-    out = ["# Progress plan", "", roadmap["completion_rule"], "", "The next implementation priorities are persistent sketch constraints, dependent solid features/booleans, and expanded BIM/civil systems. Milestones below describe acceptance gates; catalog entries or launcher routes do not satisfy them.", ""]
+    out = ["# Progress plan", "", roadmap["completion_rule"], "", "The next implementation priorities are dependent solid features/booleans, and expanded BIM/civil systems. Milestones below describe acceptance gates; catalog entries or launcher routes do not satisfy them.", ""]
     for m in roadmap["milestones"]:
         out += [f"## {m['id']} — {m['title']}", "", f"**Status:** {STATES[m['status']]}", "", m["acceptance"], "", "Tracked features: " + ", ".join(f"`{f}`" for f in m["features"]) + ".", ""]
     out += ["## Updating this plan", "", "Add or update feature evidence and limits in `feature-status.json`. Move a milestone to verified only after its acceptance cases pass and the current source/build hashes are recorded. Keep incomplete capabilities and external verification requirements explicit. Generate this page and the wiki with `python3 scripts/generate_docs.py`.", ""]

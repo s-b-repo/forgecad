@@ -17,17 +17,19 @@ fn suite() -> Document {
     document.scene = Scene::example();
     document.manufacturing = CamJob::example();
     document.review = forge_core::review::ProjectReview::example();
-    document.add_geometry(Geometry::Line {
-        start: Point::new(1.0, 2.0),
-        end: Point::new(3.0, 4.0),
-    });
+    document
+        .add_geometry(Geometry::Line {
+            start: Point::new(1.0, 2.0),
+            end: Point::new(3.0, 4.0),
+        })
+        .unwrap();
     document
 }
 
 #[test]
-fn native_v6_preserves_all_semantic_models_and_derived_results() {
+fn native_v7_preserves_all_semantic_models_and_derived_results() {
     let original = suite();
-    assert_eq!(PROJECT_FORMAT_VERSION, 6);
+    assert_eq!(PROJECT_FORMAT_VERSION, 7);
     let source = original.to_json().unwrap();
     let restored = Document::from_json(&source).unwrap();
     assert_eq!(restored, original);
@@ -57,10 +59,12 @@ fn native_v6_preserves_all_semantic_models_and_derived_results() {
 #[test]
 fn v3_drawing_migration_supplies_empty_semantic_defaults_without_geometry_changes() {
     let mut document = Document::new("Legacy drawing");
-    document.add_geometry(Geometry::Circle {
-        center: Point::new(8.0, 9.0),
-        radius: 5.0,
-    });
+    document
+        .add_geometry(Geometry::Circle {
+            center: Point::new(8.0, 9.0),
+            radius: 5.0,
+        })
+        .unwrap();
     let mut old: Value = serde_json::from_str(&document.to_json().unwrap()).unwrap();
     old["format_version"] = Value::from(3);
     let fields = old["document"].as_object_mut().unwrap();

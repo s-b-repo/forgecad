@@ -95,7 +95,7 @@
       "area": "Draft",
       "name": "Numeric commands and batch scripts",
       "status": "implemented",
-      "coverage": "Shared transactional desktop command bar and CLI scripts",
+      "coverage": "Shared transactional desktop command bar, CLI scripts and sketch relation commands",
       "limits": "Not AutoLISP, ObjectARX or vendor script compatibility",
       "evidence": [
         "crates/forge-core/src/command.rs"
@@ -116,10 +116,16 @@
       "id": "draft-constraints",
       "area": "Draft",
       "name": "Sketch constraints",
-      "status": "planned",
-      "coverage": "Required geometric/dimensional solver and editable references",
-      "limits": "No constraint solver is implemented",
-      "evidence": []
+      "status": "implemented",
+      "coverage": "Persistent sketch relations with a least-squares linear solver: horizontal/vertical lines, coincident/fixed points, X/Y distances, equal and absolute radii on lines, rectangles, circles, points and straight polylines (≤64 vertices)",
+      "limits": "Linear relations only — no angular, general length/diameter dimensions, spline/arc/bulge relations or 3D sketch constraints; solves linear systems only",
+      "evidence": [
+        "crates/forge-core/src/constraints.rs",
+        "crates/forge-core/src/command.rs",
+        "crates/forge-core/tests/constraints.rs",
+        "apps/craft-suite/src/constraints_ui.rs",
+        "apps/forge-cli/src/constraints.rs"
+      ]
     },
     {
       "id": "draft-toolsets",
@@ -471,7 +477,7 @@
       "area": "Exchange",
       "name": "Native JSON persistence",
       "status": "implemented",
-      "coverage": "Version 6, validated atomic writes and v1-v5 migration",
+      "coverage": "Version 7, validated atomic writes and v1-v6 migration",
       "limits": "Project-specific format; no Autodesk native compatibility implied",
       "evidence": [
         "crates/forge-core/src/lib.rs",
@@ -578,8 +584,8 @@
       "area": "Quality",
       "name": "Supplied Rust pattern audit",
       "status": "partial",
-      "coverage": "All workspace Rust files scanned; focused new-code remediation and recorded hashes/findings",
-      "limits": "Raw strict gate remains non-clean; legacy primitive ID exhaustion can panic and other matches require contextual review",
+      "coverage": "All workspace Rust files scanned; focused new-code remediation: fallible authoring APIs (add_geometry/add_solid/add_layer/add_mesh/add_block/duplicate_entities), reachable panic hardening and recorded hashes/findings",
+      "limits": "Raw strict gate remains non-clean (test assertions and legacy invariants); the confirmed object-ID exhaustion panic is fixed and covered by tests",
       "evidence": [
         "audit-bad-patterns.sh",
         "scripts/run_code_audit.py",

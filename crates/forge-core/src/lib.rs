@@ -15,6 +15,7 @@ pub mod cam;
 pub mod catalog;
 pub mod civil;
 pub mod command;
+pub mod constraints;
 pub mod dimension;
 pub mod drafting;
 pub mod dxf;
@@ -27,7 +28,7 @@ pub mod scene;
 pub mod storage;
 pub mod terrain;
 
-pub const PROJECT_FORMAT_VERSION: u32 = 6;
+pub const PROJECT_FORMAT_VERSION: u32 = 7;
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Point {
@@ -379,6 +380,8 @@ pub struct MeshObject {
 pub struct Document {
     pub name: String,
     pub entities: Vec<Entity>,
+    #[serde(default)]
+    pub constraints: Vec<constraints::SketchConstraint>,
     pub solids: Vec<Solid>,
     #[serde(default)]
     pub extrusions: Vec<model::Extrusion>,
@@ -419,6 +422,7 @@ impl Document {
         Self {
             name: name.into(),
             entities: Vec::new(),
+            constraints: Vec::new(),
             solids: Vec::new(),
             extrusions: Vec::new(),
             meshes: Vec::new(),
@@ -440,17 +444,17 @@ impl Document {
             next_id: 2,
         }
     }
-    pub fn add_geometry(&mut self, geometry: Geometry) -> u64 {
-        let id = self.allocate_id();
+    pub fn add_geometry(&mut self, geometry: Geometry) -> io::Result<u64> {
+        let id = self.try_allocate_id()?;
         self.entities.push(Entity {
             id,
             layer_id: self.active_layer_id,
             geometry,
         });
-        id
+        Ok(id)
     }
-    pub fn add_solid(&mut self, name: impl Into<String>, kind: SolidKind) -> u64 {
-        let id = self.allocate_id();
+    pub fn add_solid(&mut self, name: impl Into<String>, kind: SolidKind) -> io::Result<u64> {
+        let id = self.try_allocate_id()?;
         let size = match kind {
             SolidKind::Box => [80.0, 60.0, 48.0],
             SolidKind::Cylinder => [52.0, 52.0, 64.0],
@@ -463,7 +467,7 @@ impl Document {
             center: [0.0, 0.0, 0.0],
             size,
         });
-        id
+        Ok(id)
     }
     pub fn add_mesh(
         &mut self,
@@ -471,7 +475,7 @@ impl Document {
         mesh: mesh::TriangleMesh,
     ) -> io::Result<u64> {
         mesh.validate()?;
-        let id = self.allocate_id();
+        let id = self.try_allocate_id()?;
         self.meshes.push(MeshObject {
             id,
             name: name.into(),
@@ -479,8 +483,8 @@ impl Document {
         });
         Ok(id)
     }
-    pub fn add_layer(&mut self, name: impl Into<String>, color: [u8; 3]) -> u64 {
-        let id = self.allocate_id();
+    pub fn add_layer(&mut self, name: impl Into<String>, color: [u8; 3]) -> io::Result<u64> {
+        let id = self.try_allocate_id()?;
         self.layers.push(Layer {
             id,
             name: name.into(),
@@ -488,12 +492,15 @@ impl Document {
             visible: true,
         });
         self.active_layer_id = id;
-        id
+        Ok(id)
     }
     pub fn layer(&self, id: u64) -> Option<&Layer> {
         self.layers.iter().find(|layer| layer.id == id)
     }
     pub fn remove_entity(&mut self, id: u64) -> bool {
+        if self.entity_has_dependents(id) {
+            return false;
+        }
         let before = self.entities.len();
         self.entities.retain(|entity| entity.id != id);
         before != self.entities.len()
@@ -506,7 +513,8 @@ impl Document {
     }
 
     pub fn validate(&self) -> io::Result<()> {
-        model::validate_features(&self.extrusions)?;
+        model::validate_features(self)?;
+        constraints::validate(self)?;
         self.building.validate()?;
         self.terrain.validate()?;
         self.scene.validate()?;
@@ -578,7 +586,7 @@ impl Document {
             if part.id == 0 || !ids.insert(part.id) {
                 return Err(invalid("Object IDs must be unique and nonzero"));
             }
-            part.validate()?;
+            self.extrusion_mesh(part.id)?;
         }
         for object in &self.meshes {
             if object.id == 0 || !ids.insert(object.id) {
@@ -730,9 +738,6 @@ impl Document {
         write_atomic(path.as_ref(), output.as_bytes())?;
         Ok(triangle_count)
     }
-    fn allocate_id(&mut self) -> u64 {
-        self.try_allocate_id().expect("Object ID space exhausted")
-    }
     fn try_allocate_id(&mut self) -> io::Result<u64> {
         // Public vectors may have been edited directly; never issue an existing ID.
         let highest = self
@@ -871,13 +876,15 @@ mod native_tests {
     }
     fn sample() -> Document {
         let mut document = Document::new("Roundtrip ±");
-        document.add_geometry(Geometry::Arc {
-            center: Point::new(2.0, 3.0),
-            radius: 4.0,
-            start_angle_deg: 350.0,
-            end_angle_deg: 40.0,
-        });
-        document.add_solid("Box", SolidKind::Box);
+        document
+            .add_geometry(Geometry::Arc {
+                center: Point::new(2.0, 3.0),
+                radius: 4.0,
+                start_angle_deg: 350.0,
+                end_angle_deg: 40.0,
+            })
+            .unwrap();
+        document.add_solid("Box", SolidKind::Box).unwrap();
         document
             .add_mesh(
                 "Triangle",
@@ -898,9 +905,11 @@ mod native_tests {
     #[test]
     fn old_v1_projects_get_default_units_and_meshes_and_repair_stale_ids() {
         let mut document = Document::default();
-        document.add_geometry(Geometry::Point {
-            position: Point::new(3.0, 4.0),
-        });
+        document
+            .add_geometry(Geometry::Point {
+                position: Point::new(3.0, 4.0),
+            })
+            .unwrap();
         let mut value: serde_json::Value =
             serde_json::from_str(&document.to_json().unwrap()).unwrap();
         value["format_version"] = serde_json::json!(1);
@@ -911,28 +920,34 @@ mod native_tests {
         let mut loaded = Document::from_json(&value.to_string()).unwrap();
         assert_eq!(loaded.units, 0);
         assert!(loaded.meshes.is_empty());
-        let id = loaded.add_geometry(Geometry::Point {
-            position: Point::default(),
-        });
+        let id = loaded
+            .add_geometry(Geometry::Point {
+                position: Point::default(),
+            })
+            .unwrap();
         assert!(id > 2);
         loaded.validate().unwrap();
     }
     #[test]
     fn invalid_ids_missing_layers_geometry_and_versions_are_rejected() {
         let mut duplicate = Document::default();
-        duplicate.add_geometry(Geometry::Point {
-            position: Point::default(),
-        });
+        duplicate
+            .add_geometry(Geometry::Point {
+                position: Point::default(),
+            })
+            .unwrap();
         duplicate.entities[0].id = 1;
         assert!(duplicate.to_json().is_err());
         let mut missing = Document::default();
         missing.active_layer_id = 99;
         assert!(missing.validate().is_err());
         let mut invalid = Document::default();
-        invalid.add_geometry(Geometry::Circle {
-            center: Point::default(),
-            radius: -1.0,
-        });
+        invalid
+            .add_geometry(Geometry::Circle {
+                center: Point::default(),
+                radius: -1.0,
+            })
+            .unwrap();
         assert!(invalid.to_json().is_err());
         let mut value: serde_json::Value =
             serde_json::from_str(&Document::default().to_json().unwrap()).unwrap();
@@ -941,6 +956,95 @@ mod native_tests {
         value["format_version"] = serde_json::json!(1);
         value["document"]["unrecognized_object"] = serde_json::json!({"x":1});
         assert!(Document::from_json(&value.to_string()).is_err());
+    }
+    /// A loaded project whose object IDs reach the limit must reject further
+    /// authoring with an error instead of panicking, leaving the document intact.
+    #[test]
+    fn authoring_apis_refuse_to_panic_at_the_object_id_limit() {
+        fn exhausted(result: io::Result<u64>) -> String {
+            match result {
+                Ok(_) => panic!("authoring at the object ID limit must fail"),
+                Err(error) => error.to_string(),
+            }
+        }
+        let mut document = Document::default();
+        document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(4.0, 0.0),
+            })
+            .unwrap();
+        document
+            .add_geometry(Geometry::Line {
+                start: Point::new(0.0, 2.0),
+                end: Point::new(4.0, 2.0),
+            })
+            .unwrap();
+        let mut value: serde_json::Value =
+            serde_json::from_str(&document.to_json().unwrap()).unwrap();
+        let limit = u64::MAX - 1;
+        value["document"]["layers"][0]["id"] = serde_json::json!(limit);
+        value["document"]["active_layer_id"] = serde_json::json!(limit);
+        for (index, entity) in value["document"]["entities"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .enumerate()
+        {
+            entity["id"] = serde_json::json!(limit - 1 - index as u64);
+            entity["layer_id"] = serde_json::json!(limit);
+        }
+        value["document"]["next_id"] = serde_json::json!(1);
+        let mut loaded = Document::from_json(&value.to_string()).unwrap();
+        // `from_json` recomputes the allocator from the highest existing ID.
+        assert_eq!(loaded.next_id, u64::MAX);
+        loaded.validate().unwrap();
+        let before = loaded.to_json().unwrap();
+        assert_eq!(
+            exhausted(loaded.add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(1.0, 1.0),
+            })),
+            "Object ID space exhausted"
+        );
+        assert_eq!(
+            exhausted(loaded.add_solid("Box", SolidKind::Box)),
+            "Object ID space exhausted"
+        );
+        assert_eq!(
+            exhausted(loaded.add_layer("Extra", [1, 2, 3])),
+            "Object ID space exhausted"
+        );
+        assert_eq!(
+            exhausted(loaded.add_mesh(
+                "Triangle",
+                mesh::TriangleMesh {
+                    vertices: vec![[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+                    triangles: vec![[0, 1, 2]],
+                },
+            )),
+            "Object ID space exhausted"
+        );
+        assert_eq!(loaded.to_json().unwrap(), before);
+        // A repacked project with two remaining IDs authorizes exactly two more
+        // objects and then refuses, without panicking.
+        loaded.layers[0].id = 1;
+        loaded.active_layer_id = 1;
+        for entity in &mut loaded.entities {
+            entity.layer_id = 1;
+        }
+        loaded.entities[0].id = 2;
+        loaded.entities[1].id = 3;
+        loaded.next_id = limit - 1;
+        let first = loaded
+            .add_geometry(Geometry::Point {
+                position: Point::default(),
+            })
+            .unwrap();
+        assert_eq!(first, limit - 1);
+        assert!(loaded.add_solid("Box", SolidKind::Box).unwrap() > first);
+        assert!(loaded.add_layer("Extra", [1, 2, 3]).is_err());
+        loaded.validate().unwrap();
     }
     #[test]
     fn invalid_save_preserves_existing_file_and_successful_save_replaces_it() {

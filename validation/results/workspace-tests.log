@@ -1,361 +1,405 @@
-   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
    Compiling forge-craft v0.1.0 (/home/kali/Downloads/autocad/apps/craft-suite)
+   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
    Compiling forge-cli v0.1.0 (/home/kali/Downloads/autocad/apps/forge-cli)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.39s
-     Running unittests src/main.rs (target/desktop/debug/deps/forge-6461616ac409ec0e)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.93s
+     Running unittests src/main.rs (target/debug/deps/forge-6461616ac409ec0e)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests/cli.rs (target/desktop/debug/deps/cli-2f3133eabd64c302)
+     Running tests/cli.rs (target/debug/deps/cli-2f3133eabd64c302)
 
 running 23 tests
 test all_individual_product_targets_are_available_to_automation ... ok
+test destination_and_original_data_survive_failed_or_unapproved_operations ... ok
+test invalid_plot_settings_or_3d_input_preserve_existing_output ... ok
+test draft_failure_never_writes_partial_batches_or_replaces_unapproved_files ... ok
 test drawing_edit_and_exchange_workflow_preserves_units_layers_and_coordinates ... ok
 test drafting_script_preserves_command_order_selection_and_editable_exchange ... ok
-test destination_and_original_data_survive_failed_or_unapproved_operations ... ok
-test motion_frame_exports_evaluate_animation_in_actual_mesh_vertices ... ok
 test manufacturing_program_retracts_before_xy_and_reaches_final_stepdown_depth ... ok
-test draft_failure_never_writes_partial_batches_or_replaces_unapproved_files ... ok
-test connect_review_lifecycle_and_csv_exchange_preserve_exact_native_records ... ok
 test obj_metadata_requires_explicit_loss_authorization ... ok
-test invalid_plot_settings_or_3d_input_preserve_existing_output ... ok
-test analytic_step_box_is_inspectable_and_default_exchange_preserves_source_bytes ... ok
-test plotting_produces_physical_svg_sheets_with_visible_layers_and_escaped_annotation ... ok
-test unsupported_native_formats_and_mixed_scene_transforms_are_refused ... ok
-test survey_csv_import_interpolates_elevations_and_reimports_derived_points ... ok
 test native_commands_refuse_unreadable_input_and_unapproved_destinations ... ok
-test workbench_examples_round_trip_native_v5_with_all_semantic_domains ... ok
-test workbench_exports_derive_geometry_quantities_and_contours_without_changing_source ... ok
+test analytic_step_box_is_inspectable_and_default_exchange_preserves_source_bytes ... ok
+test motion_frame_exports_evaluate_animation_in_actual_mesh_vertices ... ok
+test unsupported_native_formats_and_mixed_scene_transforms_are_refused ... ok
+test connect_review_lifecycle_and_csv_exchange_preserve_exact_native_records ... ok
+test plotting_produces_physical_svg_sheets_with_visible_layers_and_escaped_annotation ... ok
+test survey_csv_import_interpolates_elevations_and_reimports_derived_points ... ok
 test step_commands_reject_unsupported_formats_open_shells_and_invalid_parameters ... ok
-test step_output_is_never_replaced_without_authorization_or_after_failed_validation ... ok
 test native_dwg_round_trip_and_translation_preserve_the_drawing_inventory ... ok
+test workbench_examples_round_trip_native_v7_with_all_semantic_domains ... ok
+test step_output_is_never_replaced_without_authorization_or_after_failed_validation ... ok
 test semantic_export_failures_do_not_write_or_replace_files_and_loss_is_explicit ... ok
+test workbench_exports_derive_geometry_quantities_and_contours_without_changing_source ... ok
 test analytic_step_cylinder_keeps_curves_and_requires_regeneration_loss_authorization ... ok
 test native_solids_export_and_import_as_real_mesh_geometry ... ok
 
-test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
 
-     Running tests/remaining_cli.rs (target/desktop/debug/deps/remaining_cli-b768a77df9ca9a9d)
+     Running tests/remaining_cli.rs (target/debug/deps/remaining_cli-b768a77df9ca9a9d)
 
-running 5 tests
+running 10 tests
 test invalid_project_script_is_atomic_even_with_overwrite_authorization ... ok
+test scripted_relations_author_solve_and_persist_as_a_native_project ... ok
+test constraints_handles_list_point_handles_for_lines_and_circles ... ok
+test constraints_report_text_and_json_modes_and_inspect_expose_the_same_state ... ok
+test constraints_failures_are_rejected_before_any_output_is_written ... ok
+test constraints_solve_writes_a_solved_project_and_a_conflict_writes_nothing ... ok
 test native_extrusion_cli_edits_parameters_and_requires_loss_authorization_for_meshes ... ok
 test civil_queries_and_csv_reports_keep_units_stationing_and_exact_quantities ... ok
 test layout_authoring_plotting_and_explicit_exchange_loss_work_end_to_end ... ok
 test project_scripts_author_parented_animation_pockets_and_drilling_without_modifying_source ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
 
-     Running unittests src/lib.rs (target/desktop/debug/deps/forge_core-ba195ecd8bbca9c7)
+     Running unittests src/lib.rs (target/debug/deps/forge_core-ba195ecd8bbca9c7)
 
-running 150 tests
-test building::tests::names_are_csv_escaped_and_spreadsheet_formulas_are_inert ... ok
+running 164 tests
 test building::tests::malformed_or_unrepresentable_geometry_is_refused ... ok
-test blocks::tests::explicit_child_layers_and_hidden_insert_chains_are_retained ... ok
-test building::tests::opening_edges_must_remain_distinct_in_world_coordinates ... ok
-test blocks::tests::definition_and_explode_operations_are_transactional ... ok
 test building::tests::plain_wall_is_closed_outward_and_placed_at_storey_elevation ... ok
+test blocks::tests::explicit_child_layers_and_hidden_insert_chains_are_retained ... ok
 test building::tests::references_and_ids_are_checked_across_all_element_types ... ok
-test cam::tests::centered_polygons_validate_without_arbitrary_offset_probe ... ok
 test building::tests::opening_bounds_overlap_and_door_sills_are_checked ... ok
-test cam::tests::decimal_stepdown_has_no_duplicate_final_depth_pass ... ok
 test building::tests::doors_and_windows_remove_actual_geometry_and_net_volume ... ok
-test cam::tests::invalid_jobs_and_collapsed_compensation_are_refused ... ok
-test cam::tests::cam_settings_and_profiles_round_trip_semantically ... ok
-test cam::tests::subresolution_profiles_and_unrepresentable_depths_are_refused ... ok
+test building::tests::names_are_csv_escaped_and_spreadsheet_formulas_are_inert ... ok
+test blocks::tests::definition_and_explode_operations_are_transactional ... ok
+test building::tests::opening_edges_must_remain_distinct_in_world_coordinates ... ok
 test building::tests::example_retains_semantics_and_generates_valid_meshes ... ok
+test blocks::tests::block_authoring_and_explosion_refuse_to_panic_at_the_id_limit ... ok
+test cam::tests::cam_settings_and_profiles_round_trip_semantically ... ok
+test cam::tests::centered_polygons_validate_without_arbitrary_offset_probe ... ok
+test cam::tests::decimal_stepdown_has_no_duplicate_final_depth_pass ... ok
 test building::tests::rotated_wall_and_slab_volume_match_quantities ... ok
-test cam::tests::posting_preserves_small_positive_values_and_never_uses_exponents ... ok
-test cam::tests::excessive_paths_fail_preflight_before_polygon_geometry_work ... ok
+test cam::tests::invalid_jobs_and_collapsed_compensation_are_refused ... ok
 test blocks::tests::nested_transforms_honor_base_points_layers_and_outer_selection_id ... ok
+test cam::tests::excessive_paths_fail_preflight_before_polygon_geometry_work ... ok
+test cam::tests::subresolution_profiles_and_unrepresentable_depths_are_refused ... ok
+test cam::tests::posting_preserves_small_positive_values_and_never_uses_exponents ... ok
 test cam::tests::stepdowns_clamp_final_depth_and_positioning_retracts_first ... ok
-test cam::tests::tool_compensation_changes_actual_path ... ok
-test catalog::tests::lifecycle_information_is_retained ... ok
-test catalog::tests::distinct_major_products_are_retained ... ok
 test command::tests::block_explosion_preflights_all_fresh_leaf_ids ... ok
-test command::tests::selecting_an_existing_layer_uses_the_document_case_rules ... ok
-test command::tests::exhausted_allocator_allows_reading_editing_and_true_noops ... ok
+test blocks::tests::missing_cyclic_deep_and_explosive_references_are_rejected ... ok
+test catalog::tests::distinct_major_products_are_retained ... ok
+test cam::tests::tool_compensation_changes_actual_path ... ok
+test command::tests::constraint_report_and_solve_describe_free_and_joined_geometry ... ok
 test catalog::tests::every_supplied_target_has_unique_identity ... ok
+test catalog::tests::lifecycle_information_is_retained ... ok
+test command::tests::help_lists_the_new_constraint_command_syntax ... ok
 test command::tests::errors_preserve_document_and_ids_even_after_partial_operation ... ok
-test dimension::tests::exactly_perpendicular_rotated_dimensions_are_zero_length ... ok
+test command::tests::dimensions_blocks_mirror_and_explode_keep_semantics ... ok
+test command::tests::conflicting_relations_are_rejected_and_leave_identical_bytes ... ok
+test command::tests::exhausted_ids_fail_creation_without_panicking_or_partial_changes ... ok
+test command::tests::exact_authoring_selection_and_offsets_form_a_reopenable_drawing ... ok
+test command::tests::constraint_ids_auto_increment_without_colliding_after_removal ... ok
+test command::tests::exhausted_allocator_allows_reading_editing_and_true_noops ... ok
+test command::tests::selecting_an_existing_layer_uses_the_document_case_rules ... ok
+test command::tests::relation_fixpoint_pins_a_handle_with_vertex_indexes ... ok
+test command::tests::relation_horizontal_solves_a_sloped_line_and_persists ... ok
 test command::tests::malformed_multiline_degenerate_and_overflowed_commands_are_atomic ... ok
+test command::tests::selection_measurements_and_noops_do_not_dirty_document ... ok
+test command::tests::relation_radius_and_equal_radius_commands_solve_circles ... ok
+test command::tests::relation_remove_and_clear_manage_the_constraint_set ... ok
+test dimension::tests::exactly_perpendicular_rotated_dimensions_are_zero_length ... ok
 test dimension::tests::dimension_placement_changes_annotation_but_never_measurement ... ok
 test dimension::tests::extensions_follow_negative_dimline_placement_with_style_gap ... ok
-test command::tests::dimensions_blocks_mirror_and_explode_keep_semantics ... ok
+test dimension::tests::horizontal_vertical_and_aligned_measure_distinct_quantities ... ok
 test dimension::tests::invalid_styles_are_rejected_before_annotation ... ok
+test command::tests::relation_distance_commands_solve_numeric_cases ... ok
 test dimension::tests::large_coordinates_keep_small_dimline_offsets ... ok
-test command::tests::exhausted_ids_fail_creation_without_panicking_or_partial_changes ... ok
 test dimension::tests::layout_moves_short_dimension_arrows_outside_and_never_emits_nested_dimensions ... ok
-test dimension::tests::radial_and_diameter_dimensions_measure_original_circle ... ok
 test dimension::tests::overrides_update_with_measurement_and_blank_suppresses_text ... ok
-test blocks::tests::missing_cyclic_deep_and_explosive_references_are_rejected ... ok
-test command::tests::selection_measurements_and_noops_do_not_dirty_document ... ok
+test dimension::tests::radial_and_diameter_dimensions_measure_original_circle ... ok
 test dimension::tests::radial_text_position_is_preserved_and_annotation_remains_valid ... ok
+test dimension::tests::radial_transforms_scale_true_radius_and_explicit_text_placement ... ok
 test command::tests::units_metadata_round_trips_without_rescaling_geometry ... ok
 test dimension::tests::reversed_aligned_dimensions_keep_text_upright ... ok
 test dimension::tests::reversed_reference_order_keeps_positive_measurement_and_correct_arrows ... ok
-test dimension::tests::rotated_dimension_projects_onto_requested_axis ... ok
-test dimension::tests::horizontal_vertical_and_aligned_measure_distinct_quantities ... ok
-test dimension::tests::radial_transforms_scale_true_radius_and_explicit_text_placement ... ok
 test dimension::tests::references_and_style_round_trip_semantically_without_flattening ... ok
-test dimension::tests::semantic_json_rejects_unrecognized_dimension_fields ... ok
+test dimension::tests::rotated_dimension_projects_onto_requested_axis ... ok
 test dimension::tests::tiny_aligned_dimensions_do_not_overflow_direction_normalization ... ok
-test dimension::tests::zero_and_nonfinite_measurements_are_rejected ... ok
 test dimension::tests::transforms_update_measurement_direction_and_style ... ok
+test dimension::tests::semantic_json_rejects_unrecognized_dimension_fields ... ok
+test dimension::tests::zero_and_nonfinite_measurements_are_rejected ... ok
 test drafting::tests::analytic_offsets_use_documented_direction_and_preserve_arc_angles ... ok
-test command::tests::exact_authoring_selection_and_offsets_form_a_reopenable_drawing ... ok
-test drafting::tests::offsets_refuse_collapses_crossings_and_unrepresentable_distances ... ok
-test drafting::tests::drafting_copy_allocation_checks_id_exhaustion_without_panicking ... ok
 test drafting::tests::array_invalid_parameters_or_missing_sources_leave_document_unchanged ... ok
-test drafting::tests::extend_handles_both_ends_and_oblique_boundaries ... ok
-test drafting::tests::offset_selection_is_atomic_preserves_layers_and_deduplicates_ids ... ok
 test drafting::tests::copies_refuse_translations_too_small_to_represent_and_offset_extent_overflow ... ok
-test drafting::tests::polar_full_circle_excludes_endpoint_and_partial_sweep_includes_it ... ok
+test drafting::tests::extend_handles_both_ends_and_oblique_boundaries ... ok
+test drafting::tests::offsets_refuse_collapses_crossings_and_unrepresentable_distances ... ok
 test drafting::tests::curved_polyline_offsets_keep_arcs_and_respect_closed_orientation ... ok
+test drafting::tests::offset_selection_is_atomic_preserves_layers_and_deduplicates_ids ... ok
 test drafting::tests::polar_no_rotation_keeps_whole_selection_shape_and_orientation ... ok
-test drafting::tests::straight_polyline_offsets_miter_corners_and_preserve_outward_direction ... ok
+test drafting::tests::polar_full_circle_excludes_endpoint_and_partial_sweep_includes_it ... ok
 test drafting::tests::rectangular_arrays_preserve_sources_layers_and_signed_spacing ... ok
-test drafting::tests::polar_no_rotation_anchors_nested_blocks_to_contents_even_on_hidden_layers ... ok
 test drafting::tests::trim_picks_side_relative_to_intersection_rather_than_nearest_endpoint ... ok
+test drafting::tests::polar_no_rotation_anchors_nested_blocks_to_contents_even_on_hidden_layers ... ok
 test drafting::tests::trim_extend_refuse_wrong_sides_parallel_missing_and_finite_boundary_misses ... ok
-test dxf::block_tests::nonuniform_arrays_attributes_zscale_and_xrefs_are_explicit_diagnostics ... ok
-test drafting::tests::trim_uses_chosen_endpoint_retains_boundary_and_can_be_serialized ... ok
+test drafting::tests::drafting_copy_allocation_checks_id_exhaustion_without_panicking ... ok
+test drafting::tests::straight_polyline_offsets_miter_corners_and_preserve_outward_direction ... ok
 test drafting::tests::arrays_preserve_block_references_and_semantic_dimensions ... ok
-test dxf::block_tests::missing_definition_cycle_and_truncated_block_are_rejected ... ok
-test dxf::tests::legacy_vertices_preserve_closure_and_signed_bulge ... ok
+test drafting::tests::trim_uses_chosen_endpoint_retains_boundary_and_can_be_serialized ... ok
+test dxf::block_tests::nonuniform_arrays_attributes_zscale_and_xrefs_are_explicit_diagnostics ... ok
 test dxf::block_tests::all_output_handles_are_unique_and_owner_references_resolve ... ok
+test dxf::block_tests::missing_definition_cycle_and_truncated_block_are_rejected ... ok
+test dxf::tests::sections_prevent_block_definition_geometry_being_imported_as_instances ... ok
+test dxf::block_tests::independently_authored_nested_blocks_preserve_definitions_and_instances ... ok
+test command::tests::scripted_constraint_flow_reports_and_reopens_a_valid_drawing ... ok
+test dxf::tests::unsupported_entities_and_nonplanar_attributes_are_reported ... ok
+test command::tests::invalid_relation_input_leaves_document_and_constraints_unchanged ... ok
+test dxf::tests::legacy_vertices_preserve_closure_and_signed_bulge ... ok
+test dxf::tests::text_alignment_and_polyline_widths_are_reported ... ok
+test dxf::tests::writer_refuses_to_discard_model_content ... ok
 test dxf::tests::malformed_pair_coordinates_counts_and_numbers_are_errors ... ok
 test dxf::tests::independent_fixture_reads_units_layers_geometry_and_text_spacing ... ok
-test dxf::tests::sections_prevent_block_definition_geometry_being_imported_as_instances ... ok
-test dxf::tests::rectangle_exports_as_closed_polyline_without_losing_extents ... ok
-test dxf::tests::text_alignment_and_polyline_widths_are_reported ... ok
-test dxf::tests::unsupported_entities_and_nonplanar_attributes_are_reported ... ok
-test dxf::tests::writer_refuses_to_discard_model_content ... ok
 test edit::tests::arc_bounds_cross_zero_degrees ... ok
-test edit::tests::bulged_polyline_length_bounds_and_midpoint ... ok
-test edit::tests::hidden_entities_do_not_snap_or_affect_visible_bounds ... ok
-test edit::tests::copy_preserves_layer_and_allocates_distinct_ids ... ok
-test edit::tests::mirror_reverses_arc_angles_and_polyline_bulges ... ok
-test edit::tests::mirrored_text_is_rejected_without_mutation ... ok
+test dxf::tests::rectangle_exports_as_closed_polyline_without_losing_extents ... ok
 test edit::tests::rotated_rectangle_preserves_all_corners_and_length ... ok
-test dxf::tests::writer_roundtrips_supported_geometry_and_exact_layer_rgb ... ok
-test edit::tests::rotation_about_pivot_and_composition ... ok
 test edit::tests::tiny_rotated_rectangle_keeps_its_orientation ... ok
+test edit::tests::bulged_polyline_length_bounds_and_midpoint ... ok
+test dxf::tests::writer_roundtrips_supported_geometry_and_exact_layer_rgb ... ok
+test edit::tests::mirror_reverses_arc_angles_and_polyline_bulges ... ok
+test edit::tests::copy_preserves_layer_and_allocates_distinct_ids ... ok
+test edit::tests::rotation_about_pivot_and_composition ... ok
+test edit::tests::hidden_entities_do_not_snap_or_affect_visible_bounds ... ok
+test edit::tests::mirrored_text_is_rejected_without_mutation ... ok
 test edit::tests::unsupported_transform_is_transactional ... ok
 test edit::tests::very_large_shear_cannot_pass_similarity_validation_by_overflow ... ok
-test dxf::block_tests::independently_authored_nested_blocks_preserve_definitions_and_instances ... ok
 test mesh::tests::binary_stl_rejects_float32_overflow ... ok
+test edit::tests::duplication_refuses_to_panic_at_the_object_id_limit ... ok
 test mesh::tests::binary_stl_rejects_float32_triangle_collapse ... ok
 test mesh::tests::binary_solid_header_is_not_misidentified ... ok
 test mesh::tests::box_bounds_dimensions_and_exact_volume ... ok
 test mesh::tests::clockwise_and_collinear_obj_boundaries_preserve_area ... ok
-test mesh::tests::independently_authored_stl_fixtures_are_read ... ok
 test mesh::tests::invalid_obj_indices_and_polygons_fail ... ok
+test mesh::tests::independently_authored_stl_fixtures_are_read ... ok
 test mesh::tests::concave_polygon_area_is_preserved ... ok
-test mesh::tests::invalid_solids_and_options_fail ... ok
-test mesh::tests::leading_whitespace_in_ascii_stl_is_accepted ... ok
 test mesh::tests::mesh_append_rebases_indices ... ok
 test mesh::tests::obj_homogeneous_vertices_and_continuations ... ok
 test mesh::tests::oversized_tessellation_is_rejected_before_allocation ... ok
 test mesh::tests::obj_quad_negative_indices_and_attributes ... ok
 test native_tests::curved_polyline_sampling_and_arc_wraparound_pick_the_correct_curve ... ok
 test mesh::tests::truncated_stl_and_nonfinite_coordinates_fail ... ok
-test plot::tests::analytic_arcs_circles_and_signed_bulges_are_not_tessellated ... ok
-test plot::tests::empty_and_single_point_drawings_have_finite_plot_transforms ... ok
-test native_tests::native_roundtrip_retains_all_supported_document_types ... ok
-test plot::tests::fixed_scale_centres_geometry_and_reverses_only_the_world_y_axis ... ok
+test mesh::tests::invalid_solids_and_options_fail ... ok
+test mesh::tests::leading_whitespace_in_ascii_stl_is_accepted ... ok
 test native_tests::old_v1_projects_get_default_units_and_meshes_and_repair_stale_ids ... ok
 test native_tests::invalid_ids_missing_layers_geometry_and_versions_are_rejected ... ok
 test plot::tests::dimension_annotation_is_exported_without_changing_semantics ... ok
+test plot::tests::empty_and_single_point_drawings_have_finite_plot_transforms ... ok
+test native_tests::authoring_apis_refuse_to_panic_at_the_object_id_limit ... ok
+test plot::tests::analytic_arcs_circles_and_signed_bulges_are_not_tessellated ... ok
+test plot::tests::fixed_scale_centres_geometry_and_reverses_only_the_world_y_axis ... ok
 test plot::tests::invalid_pages_scales_and_silently_dropped_3d_are_refused ... ok
-test plot::tests::text_is_upright_rotated_and_xml_is_escaped ... ok
+test native_tests::native_roundtrip_retains_all_supported_document_types ... ok
 test plot::tests::layers_and_visibility_resolve_through_block_instances ... ok
+test native_tests::strict_dxf_import_refuses_unsupported_objects_and_attributes ... ok
 test review::tests::csv_preserves_structure_and_neutralizes_spreadsheet_formulas ... ok
-test plot::tests::viewport_rotation_matrix_rotates_the_model_inside_an_axis_aligned_frame ... ok
+test plot::tests::text_is_upright_rotated_and_xml_is_escaped ... ok
 test scene::tests::frame_sampling_is_bounded_and_includes_exact_final_pose ... ok
+test scene::tests::keyframes_interpolate_channels_shortest_angles_and_clamp_endpoints ... ok
 test review::tests::lifecycle_and_exact_native_text_round_trip ... ok
+test plot::tests::viewport_rotation_matrix_rotates_the_model_inside_an_axis_aligned_frame ... ok
 test scene::tests::mesh_vertices_obey_local_scale_xyz_rotation_then_world_translation ... ok
 test scene::tests::scene_rejects_duplicate_ids_unsorted_keys_and_out_of_duration_keys ... ok
-test scene::tests::keyframes_interpolate_channels_shortest_angles_and_clamp_endpoints ... ok
-test scene::tests::overflowing_transforms_fail_without_mutating_scene ... ok
 test scene::tests::serde_preserves_animation_and_rejects_unknown_scene_fields ... ok
-test scene::tests::sorted_keyframe_upsert_is_atomic_on_invalid_data ... ok
 test scene::tests::evaluated_meshes_move_over_time_and_keep_object_identity_color_and_shape ... ok
-test native_tests::strict_dxf_import_refuses_unsupported_objects_and_attributes ... ok
+test scene::tests::sorted_keyframe_upsert_is_atomic_on_invalid_data ... ok
 test terrain::tests::contours_interpolate_exact_levels_without_duplicate_flat_edges ... ok
+test scene::tests::overflowing_transforms_fail_without_mutating_scene ... ok
 test terrain::tests::elevation_queries_follow_the_survey_plane_and_preserve_outside_gaps ... ok
 test terrain::tests::contour_elevations_survive_dxf_roundtrip_in_layer_names ... ok
-test review::tests::invalid_ids_text_and_resource_limits_are_refused ... ok
 test terrain::tests::malformed_surveys_and_tins_are_refused ... ok
-test terrain::tests::example_survey_is_nonflat_and_round_trips_geometry_exchange ... ok
+test review::tests::invalid_ids_text_and_resource_limits_are_refused ... ok
 test terrain::tests::resource_and_numeric_limits_are_checked ... ok
+test terrain::tests::example_survey_is_nonflat_and_round_trips_geometry_exchange ... ok
 test terrain::tests::triangulation_uses_every_survey_point_with_upward_faces ... ok
+test native_tests::failed_atomic_rename_cleans_up_only_its_temporary_file ... ok
 test storage::tests::dangling_symlink_is_not_followed_or_overwritten_implicitly ... ok
 test mesh::tests::ascii_and_binary_stl_round_trip_all_primitives ... ok
-test native_tests::failed_atomic_rename_cleans_up_only_its_temporary_file ... ok
+test mesh::tests::primitives_are_closed_and_have_outward_winding ... ok
 test native_tests::invalid_save_preserves_existing_file_and_successful_save_replaces_it ... ok
 test storage::tests::publication_failure_does_not_leave_staged_files ... ok
-test mesh::tests::primitives_are_closed_and_have_outward_winding ... ok
-test storage::tests::existing_output_is_preserved_until_overwrite_is_explicit ... ok
 test command::tests::large_polyline_parses_all_vertices_in_order_with_a_bounded_limit ... ok
+test storage::tests::existing_output_is_preserved_until_overwrite_is_explicit ... ok
 test terrain::tests::dense_seeded_survey_obeys_empty_circumcircles_and_exact_planar_queries ... ok
 
-test result: ok. 150 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 164 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
-     Running tests/model_motion_civil.rs (target/desktop/debug/deps/model_motion_civil-bf5d1e685bfad93b)
+     Running tests/constraints.rs (target/debug/deps/constraints-792c0f582df185f1)
+
+running 12 tests
+test relation_descriptions_are_stable_one_liners ... ok
+test constraint_json_rejects_unknown_fields_and_relation_tags ... ok
+test duplicate_relations_are_redundant_rather_than_conflicting ... ok
+test unsupported_geometry_and_handles_are_rejected ... ok
+test underconstrained_sketches_stay_satisfied_and_move_minimally ... ok
+test dimensional_relations_solve_to_their_expected_values ... ok
+test unbounded_values_are_refused ... ok
+test geometric_relations_solve_to_their_expected_geometry ... ok
+test constrained_entities_are_protected_until_their_relations_are_cleared ... ok
+test contradictory_systems_report_conflicts_and_leave_the_document_unchanged ... ok
+test constraints_round_trip_through_project_files ... ok
+test constraint_limits_are_enforced ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/model_motion_civil.rs (target/debug/deps/model_motion_civil-bf5d1e685bfad93b)
 
 running 8 tests
-test circular_alignment_stationing_offsets_and_projection_use_true_arc_length ... ok
 test interpolation_modes_hold_keys_or_ease_all_channels_without_changing_endpoints ... ok
-test major_arcs_and_terrain_profiles_keep_analytic_stationing ... ok
+test circular_alignment_stationing_offsets_and_projection_use_true_arc_length ... ok
 test array_and_mirror_modifiers_preserve_outward_volume_and_obey_parent_visibility ... ok
+test major_arcs_and_terrain_profiles_keep_analytic_stationing ... ok
 test concave_extrusions_close_caps_and_walls_with_outward_winding_and_exact_volume ... ok
-test extrusion_parameters_round_trip_and_mesh_exchange_refuses_silent_parameter_loss ... ok
 test v5_projects_receive_empty_extrusions_linear_visible_unmodified_objects_and_straight_alignments ... ok
+test extrusion_parameters_round_trip_and_mesh_exchange_refuses_silent_parameter_loss ... ok
 test circular_extrusion_retains_analytic_profile_and_has_documented_chord_approximation ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
-     Running tests/remaining_features.rs (target/desktop/debug/deps/remaining_features-9c208320ccce02b5)
+     Running tests/remaining_features.rs (target/debug/deps/remaining_features-9c208320ccce02b5)
 
 running 14 tests
-test nested_scene_animation_composes_parent_rotation_nonuniform_scale_and_child_translation ... ok
-test alignment_profiles_keep_stations_offsets_and_surface_gaps ... ok
-test peck_drilling_uses_fixed_xy_incremental_depths_and_clearance_between_pecks ... ok
-test earthwork_splits_mixed_triangles_and_conserves_signed_prism_volume ... ok
 test alignment_station_offset_vertex_rules_and_outside_projection_are_deterministic ... ok
+test peck_drilling_uses_fixed_xy_incremental_depths_and_clearance_between_pecks ... ok
 test unsupported_or_excessive_machining_is_rejected_before_output ... ok
+test nested_scene_animation_composes_parent_rotation_nonuniform_scale_and_child_translation ... ok
+test hierarchy_rejects_dangling_parents_cycles_and_excessive_depth_atomically ... ok
+test earthwork_splits_mixed_triangles_and_conserves_signed_prism_volume ... ok
+test alignment_profiles_keep_stations_offsets_and_surface_gaps ... ok
 test machining_islands_round_trip_and_old_profiles_default_to_none ... ok
 test layouts_preserve_multiple_clipped_scales_paper_notes_and_viewport_layer_filters ... ok
-test hierarchy_rejects_dangling_parents_cycles_and_excessive_depth_atomically ... ok
 test pocket_island_validation_rejects_invalid_topology_and_unsupported_shapes ... ok
 test polygon_pockets_raster_clear_concave_interiors_and_finish_walls ... ok
 test project_edits_are_atomic_and_v4_files_receive_compatible_defaults ... ok
 test pockets_with_islands_leave_islands_uncut_and_clear_remaining_material ... ok
 test pocket_paths_clear_interior_keep_tool_inside_boundary_and_retract_vertically ... ok
 
-test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running tests/workbenches.rs (target/desktop/debug/deps/workbenches-f4e4886b3c783b02)
+     Running tests/workbenches.rs (target/debug/deps/workbenches-f4e4886b3c783b02)
 
 running 5 tests
 test v3_drawing_migration_supplies_empty_semantic_defaults_without_geometry_changes ... ok
 test local_review_lifecycle_round_trips_and_duplicate_ids_are_rejected ... ok
 test generic_derived_exports_refuse_silent_semantic_data_loss ... ok
 test persisted_validation_checks_domain_references_and_numeric_parameters ... ok
-test native_v6_preserves_all_semantic_models_and_derived_results ... ok
+test native_v7_preserves_all_semantic_models_and_derived_results ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
 
-     Running unittests src/lib.rs (target/desktop/debug/deps/forge_craft-8b57d75275b694b4)
+     Running unittests src/lib.rs (target/debug/deps/forge_craft-8b57d75275b694b4)
 
-running 43 tests
-test app::application_tests::changing_tools_cancels_uncommitted_construction ... ok
-test app::application_tests::degenerate_dimension_references_are_refused_without_history ... ok
+running 50 tests
 test app::application_tests::dimension_kind_selects_the_measured_projection ... ok
-test app::application_tests::arc_authoring_uses_center_radius_and_counterclockwise_end_angle ... ok
-test app::application_tests::linear_dimension_authoring_records_the_semantic_measurement ... ok
 test app::application_tests::invalid_edit_leaves_document_and_history_unchanged ... ok
-test app::application_tests::model_projection_places_positive_z_up_and_nearer_the_viewer ... ok
+test app::application_tests::changing_tools_cancels_uncommitted_construction ... ok
 test app::application_tests::new_action_waits_for_unsaved_decision ... ok
+test app::application_tests::arc_authoring_uses_center_radius_and_counterclockwise_end_angle ... ok
+test app::application_tests::block_definition_picks_and_explodes_through_expanded_geometry ... ok
+test app::application_tests::linear_dimension_authoring_records_the_semantic_measurement ... ok
+test app::application_tests::model_projection_places_positive_z_up_and_nearer_the_viewer ... ok
+test app::application_tests::individual_named_targets_keep_distinct_identity_and_routing ... ok
 test app::application_tests::polyline_authoring_is_a_single_undoable_geometry_operation ... ok
 test app::application_tests::radial_dimension_authoring_measures_radius_and_diameter ... ok
 test app::application_tests::invalid_block_definitions_leave_the_document_and_history_unchanged ... ok
+test app::application_tests::degenerate_dimension_references_are_refused_without_history ... ok
 test app::application_tests::text_and_point_authoring_validate_before_adding_history ... ok
-test app::application_tests::selection_edits_have_one_reversible_history_entry ... ok
-test app::building_ui::tests::deleting_storey_cascades_hosted_elements_in_one_history_entry ... ok
 test app::application_tests::mesh_export_cannot_silently_discard_drawing_or_primitive_history ... ok
-test app::building_ui::tests::invalid_wall_edits_leave_applied_building_and_history_unchanged ... ok
+test app::building_ui::tests::deleting_storey_cascades_hosted_elements_in_one_history_entry ... ok
 test app::civil_ui::tests::deleting_alignment_vertices_preserves_unaffected_curves ... ok
-test app::application_tests::block_definition_picks_and_explodes_through_expanded_geometry ... ok
-test app::drafting_ui::tests::plot_exports_are_nonmutating_and_report_3d_content ... ok
-test app::application_tests::individual_named_targets_keep_distinct_identity_and_routing ... ok
+test app::application_tests::selection_edits_have_one_reversible_history_entry ... ok
+test app::constraints_ui::tests::an_invalid_object_id_leaves_history_untouched ... ok
+test app::building_ui::tests::invalid_wall_edits_leave_applied_building_and_history_unchanged ... ok
 test app::building_ui::tests::building_authoring_creates_valid_references_and_undoable_openings ... ok
-test app::drafting_ui::tests::commands_respect_selection_and_errors_leave_history_untouched ... ok
-test app::review_ui::tests::board_filters_match_status_and_all_issue_text ... ok
+test app::constraints_ui::tests::horizontal_relation_from_the_panel_moves_the_line_with_one_undo_entry ... ok
+test app::constraints_ui::tests::conflicting_relations_are_refused_without_touching_history ... ok
+test app::constraints_ui::tests::deleting_a_constrained_entity_is_refused_until_relations_are_cleared ... ok
 test app::civil_ui::tests::alignment_edits_preserve_survey_and_reject_invalid_vertices_without_history_changes ... ok
+test app::constraints_ui::tests::the_shared_command_bar_solves_desktop_relations ... ok
+test app::drafting_ui::tests::plot_exports_are_nonmutating_and_report_3d_content ... ok
+test app::drafting_ui::tests::commands_respect_selection_and_errors_leave_history_untouched ... ok
+test app::constraints_ui::tests::remove_and_clear_relations_are_transactional ... ok
 test app::drafting_ui::tests::selection_pivots_use_block_contents_instead_of_insertion_points ... ok
-test app::review_ui::tests::invalid_issue_edits_and_exhausted_ids_preserve_history ... ok
+test app::model_ui::tests::extrusion_edits_are_reversible_and_invalid_profiles_preserve_history ... ok
 test app::drafting_ui::tests::numeric_edits_and_arrays_each_have_one_reversible_history_entry ... ok
 test app::scene_ui::tests::invalid_keyframe_and_last_key_removal_preserve_document_and_history ... ok
-test app::scene_ui::tests::scene_authoring_uses_one_undo_entry_per_keyframe_and_preserves_other_workbenches ... ok
-test app::scene_ui::hierarchy_tests::parenting_and_subtree_delete_use_one_undo_step_and_cycles_keep_history_unchanged ... ok
-test app::model_ui::tests::extrusion_edits_are_reversible_and_invalid_profiles_preserve_history ... ok
 test app::terrain_ui::tests::duplicate_and_degenerate_survey_edits_leave_document_and_history_unchanged ... ok
-test app::workbench_ui::tests::drafting_profiles_convert_to_mm_without_relabeling_source_units ... ok
 test app::terrain_ui::tests::survey_edits_rebuild_and_undo_preserve_derived_surface ... ok
+test app::layout_ui::tests::layout_creation_and_edits_are_undoable_and_invalid_frames_preserve_history ... ok
+test app::review_ui::tests::invalid_issue_edits_and_exhausted_ids_preserve_history ... ok
+test app::review_ui::tests::board_filters_match_status_and_all_issue_text ... ok
+test app::scene_ui::hierarchy_tests::parenting_and_subtree_delete_use_one_undo_step_and_cycles_keep_history_unchanged ... ok
+test app::workbench_ui::tests::drafting_profiles_convert_to_mm_without_relabeling_source_units ... ok
+test session::tests::unsupported_and_empty_native_destinations_are_rejected ... ok
+test app::review_ui::tests::issue_lifecycle_uses_undo_and_preserves_other_workbenches ... ok
 test session::tests::imported_exchange_file_is_never_native_save_destination ... ok
 test session::tests::native_paths_and_export_stems_are_preserved ... ok
-test session::tests::unsupported_and_empty_native_destinations_are_rejected ... ok
-test app::layout_ui::tests::layout_creation_and_edits_are_undoable_and_invalid_frames_preserve_history ... ok
-test app::review_ui::tests::issue_lifecycle_uses_undo_and_preserves_other_workbenches ... ok
+test app::scene_ui::tests::scene_authoring_uses_one_undo_entry_per_keyframe_and_preserves_other_workbenches ... ok
 test app::workbench_ui::tests::view_cache_reuses_static_geometry_and_evaluates_changed_scene_times ... ok
-test app::workbench_ui::tests::exporting_one_workbench_keeps_other_domains_intact ... ok
 test app::workbench_ui::tests::semantic_workbench_changes_share_undo_and_native_persistence ... ok
+test app::workbench_ui::tests::exporting_one_workbench_keeps_other_domains_intact ... ok
 test app::workbench_ui::tests::open_routes_between_drawing_model_and_semantic_workbenches ... ok
+test app::constraints_ui::tests::the_panel_renders_every_form_state ... ok
 
-test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.68s
 
-     Running unittests src/bin/buildcraft.rs (target/desktop/debug/deps/buildcraft-90c9309e2056ef38)
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
-     Running unittests src/bin/connectcraft.rs (target/desktop/debug/deps/connectcraft-f5c1ff40bee9adb4)
+     Running unittests src/bin/buildcraft.rs (target/debug/deps/buildcraft-90c9309e2056ef38)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/draftcraft.rs (target/desktop/debug/deps/draftcraft-aa48b91aec849963)
+     Running unittests src/bin/connectcraft.rs (target/debug/deps/connectcraft-f5c1ff40bee9adb4)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/main.rs (target/desktop/debug/deps/forge_craft-e544bb309ce601e9)
+     Running unittests src/bin/draftcraft.rs (target/debug/deps/draftcraft-aa48b91aec849963)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/makecraft.rs (target/desktop/debug/deps/makecraft-12d3f6f0410ed65f)
+     Running unittests src/main.rs (target/debug/deps/forge_craft-e544bb309ce601e9)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/modelcraft.rs (target/desktop/debug/deps/modelcraft-8437c08af19c3acb)
+     Running unittests src/bin/makecraft.rs (target/debug/deps/makecraft-12d3f6f0410ed65f)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/motioncraft.rs (target/desktop/debug/deps/motioncraft-85a9ab5a8531ad14)
+     Running unittests src/bin/modelcraft.rs (target/debug/deps/modelcraft-8437c08af19c3acb)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/terraincraft.rs (target/desktop/debug/deps/terraincraft-f4f578f74273c6d6)
+     Running unittests src/bin/motioncraft.rs (target/debug/deps/motioncraft-85a9ab5a8531ad14)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/lib.rs (target/desktop/debug/deps/forge_dwg-5f12a315bab0a204)
+     Running unittests src/bin/terraincraft.rs (target/debug/deps/terraincraft-f4f578f74273c6d6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/forge_dwg-5f12a315bab0a204)
 
 running 3 tests
 test tests::malformed_native_files_return_errors ... ok
 test tests::native_edit_preserves_unselected_geometry_and_rejects_partial_transactions ... ok
 test tests::native_dwg_2000_and_2018_roundtrip_preserves_primitives ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
-     Running unittests src/lib.rs (target/desktop/debug/deps/forge_modeling-e56ad1dc9cdc9f6a)
+     Running unittests src/lib.rs (target/debug/deps/forge_modeling-e56ad1dc9cdc9f6a)
 
 running 5 tests
 test tests::invalid_primitive_parameters_fail ... ok
@@ -364,5 +408,29 @@ test tests::box_is_analytic_and_round_trips_without_topology_loss ... ok
 test tests::corrupted_missing_geometry_and_open_shells_are_rejected ... ok
 test tests::elliptic_cylinder_retains_rational_curves_and_surfaces ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+   Doc-tests forge_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests forge_craft
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests forge_dwg
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests forge_modeling
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 

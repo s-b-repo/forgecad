@@ -570,9 +570,11 @@ mod tests {
     #[test]
     fn scene_authoring_uses_one_undo_entry_per_keyframe_and_preserves_other_workbenches() {
         let mut app = ForgeApp::default();
-        app.document.add_geometry(Geometry::Point {
-            position: Point::new(5.0, 6.0),
-        });
+        app.document
+            .add_geometry(Geometry::Point {
+                position: Point::new(5.0, 6.0),
+            })
+            .unwrap();
         app.scene_add_shape(SolidKind::Box);
         app.scene_ui.time = 2.0;
         app.scene_synchronize_editor();

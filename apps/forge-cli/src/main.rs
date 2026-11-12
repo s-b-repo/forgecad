@@ -9,6 +9,7 @@ use forge_modeling::BrepModel;
 use serde_json::json;
 use std::{collections::BTreeMap, env, fs, io, path::Path};
 
+mod constraints;
 mod layout;
 mod model;
 mod workbench;
@@ -33,6 +34,9 @@ Usage:
   forge native convert INPUT OUTPUT [--version r2000|r2018] [--overwrite]
   forge native transform INPUT OUTPUT --handle H --translate DX DY DZ [--overwrite]
   forge products [QUERY] [--json]
+  forge constraints report INPUT [--json]
+  forge constraints solve INPUT|- OUTPUT [--overwrite]
+  forge constraints handles INPUT ENTITY-ID [--json]
 
 Transforms (applied in the order supplied):
   --translate DX DY     --rotate DEGREES     --scale FACTOR
@@ -49,6 +53,8 @@ Options:
 
 Supported exchange: validated .forge.json projects, a documented 2D ASCII DXF
 subset, geometry-only Wavefront OBJ, ASCII/binary STL triangle surfaces.
+The constraints commands report, solve and list the point handles of persistent
+sketch relations; authoring goes through forge draft --command \"RELATION HORIZONTAL 3\".
 The brep commands create or inspect analytic STEP solids; run forge brep --help
 for checked-reader limits. STEP exchange is separate from Forge project files.
 The native commands read and write DWG through the acadrust engine; RVT, IPT,
@@ -146,6 +152,7 @@ fn run(values: &[String]) -> io::Result<()> {
         "plot" => plot_command(&mut args)?,
         "primitive" => primitive_command(&mut args)?,
         "products" => products_command(&mut args)?,
+        "constraints" => constraints::run(&mut args)?,
         "native" => native_command(&mut args)?,
         "brep" => brep_command(&mut args)?,
         "workbench" => workbench::run(&mut args)?,
@@ -410,6 +417,10 @@ fn inspect_command(args: &mut Arguments<'_>) -> io::Result<()> {
     let bounds = doc
         .drawing_bounds(false)
         .map(|bounds| json!({"min":[bounds.min.x,bounds.min.y],"max":[bounds.max.x,bounds.max.y]}));
+    let degrees_of_freedom = doc
+        .constraint_report()
+        .ok()
+        .map(|report| report.degrees_of_freedom);
     if as_json {
         println!(
             "{}",
@@ -417,7 +428,7 @@ fn inspect_command(args: &mut Arguments<'_>) -> io::Result<()> {
                 "format":loaded.format.name(),"name":doc.name,"entities":doc.entities.len(),
                 "solids":doc.solids.len(),"extrusions":doc.extrusions.len(),"meshes":doc.meshes.len(),"vertices":vertices,"triangles":triangles,
                 "layers":doc.layers,"layouts":doc.layouts.len(),"units":doc.units,"drawing_bounds":bounds,"conversion_losses":loaded.losses,
-                "workbenches":{"storeys":doc.building.storeys.len(),"walls":doc.building.walls.len(),"slabs":doc.building.slabs.len(),"openings":doc.building.openings.len(),"survey_points":doc.terrain.points.len(),"terrain_triangles":doc.terrain.triangles.len(),"terrain_alignments":doc.terrain.alignments.len(),"scene_objects":doc.scene.objects.len(),"parented_objects":doc.scene.objects.iter().filter(|o| o.parent_id.is_some()).count(),"cam_profiles":doc.manufacturing.profiles.len(),"cam_pockets":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Pocket).count(),"cam_drills":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Drill).count(),"cam_islands":doc.manufacturing.profiles.iter().map(|p| p.islands.len()).sum::<usize>(),"review_items":doc.review.items.len()},
+                "workbenches":{"storeys":doc.building.storeys.len(),"walls":doc.building.walls.len(),"slabs":doc.building.slabs.len(),"openings":doc.building.openings.len(),"survey_points":doc.terrain.points.len(),"terrain_triangles":doc.terrain.triangles.len(),"terrain_alignments":doc.terrain.alignments.len(),"scene_objects":doc.scene.objects.len(),"parented_objects":doc.scene.objects.iter().filter(|o| o.parent_id.is_some()).count(),"cam_profiles":doc.manufacturing.profiles.len(),"cam_pockets":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Pocket).count(),"cam_drills":doc.manufacturing.profiles.iter().filter(|p| p.operation==forge_core::cam::Operation::Drill).count(),"cam_islands":doc.manufacturing.profiles.iter().map(|p| p.islands.len()).sum::<usize>(),"review_items":doc.review.items.len(),"sketch_constraints":{"count":doc.constraints.len(),"degrees_of_freedom":degrees_of_freedom}},
             }))?
         );
     } else {
@@ -843,12 +854,12 @@ fn primitive_command(args: &mut Arguments<'_>) -> io::Result<()> {
         }
     }
     let mut document = Document::new(&name);
-    let id = document.add_solid(&name, kind);
+    let id = document.add_solid(&name, kind)?;
     let solid = document
         .solids
         .iter_mut()
         .find(|solid| solid.id == id)
-        .unwrap();
+        .ok_or_else(|| input(format!("solid {name} could not be created")))?;
     solid.size = size;
     solid.center = center;
     document.units = units;

@@ -1,0 +1,67 @@
+name: Security
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  supply-chain:
+    name: supply-chain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # Catches known-vulnerable dependencies via the RustSec advisory DB (Cargo.lock).
+      - name: Cargo audit (advisories)
+        uses: actions-rust-lang/audit@v1
+
+      # cargo deny also enforces licenses, bans and crate sources on top of the advisory scan.
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+
+      - name: Cargo deny check
+        run: cargo deny check
+
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    # Only meaningful against a PR diff: flags newly introduced dependencies with
+    # moderate+ advisories or disallowed licenses.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+
+  unsafe-and-ffi-scan:
+    name: unsafe-and-ffi-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Informational (never fails): regressions that introduce unsafe/FFI code show up in the job log.
+      - name: Scan for unsafe blocks
+        shell: bash
+        run: |
+          set -euo pipefail
+          rg -n 'unsafe (impl|fn|extern|\{)' crates apps --type rust || echo 'no unsafe blocks'
+
+      - name: Scan for raw FFI surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          rg -n 'transmute|from_raw|into_raw|extern "C"|libc::' crates apps --type rust || echo 'no raw FFI surface'

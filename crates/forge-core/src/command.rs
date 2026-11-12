@@ -1,7 +1,11 @@
 //! Numeric drafting commands shared by the desktop and automation clients.
 //! Commands execute as one transaction. A parse or geometry error leaves the
 //! document (including its ID allocator) unchanged.
-use crate::{Document, Geometry, Point, PolylineVertex, edit::Transform2d};
+use crate::{
+    Document, Geometry, Point, PolylineVertex,
+    constraints::{PointHandle, PointRef, Relation, SketchConstraint},
+    edit::Transform2d,
+};
 use std::{
     collections::{BTreeSet, VecDeque},
     io,
@@ -15,6 +19,11 @@ SCALE factor [px py] · MIRROR x1 y1 x2 y2 [COPY] · OFFSET distance\n\
 ARRAYRECT columns rows dx dy · ARRAYPOLAR count cx cy sweep [NOROTATE]\n\
 TRIM target-id boundary-id pick-x pick-y · EXTEND target-id boundary-id pick-x pick-y\n\
 ERASE · BLOCK name · EXPLODE · LAYER name · UNITS code · LENGTH · DIST x1 y1 x2 y2\n\
+RELATION HORIZONTAL|VERTICAL id · COINCIDENT id handle id handle\n\
+RELATION FIXPOINT id handle x y · DISTX|DISTY id handle id handle value\n\
+RELATION RADIUS id value · EQUALRAD id id · REMOVE constraint-id · CLEAR\n\
+CONSTRAINT REPORT|SOLVE · handles START END CENTER POSITION CORNERA\n\
+CORNERB VERTEX n (case-insensitive); each relation solves as one transaction.\n\
 Offsets: left for lines/open polylines, outward for closed shapes.\n\
 Arrays include the originals in their counts. TRIM/EXTEND support LINE entities.";
 
@@ -183,7 +192,6 @@ pub fn execute(
             };
             let copy = name == "COPY" || (name == "MIRROR" && args.flag("COPY"));
             if copy {
-                require_id_capacity(&candidate, selected.len())?;
                 selected = candidate.duplicate_entities(&selected, transform)?;
             } else {
                 candidate.transform_entities(&selected, transform)?;
@@ -231,21 +239,114 @@ pub fn execute(
         }
         "ERASE" | "DELETE" => {
             require_selection(&candidate, &selected)?;
-            candidate
-                .entities
-                .retain(|entity| !selected.contains(&entity.id));
+            candidate.delete_entities(&selected)?;
             selected.clear();
+        }
+        "RELATION" => {
+            let kind = args.take("relation kind")?.to_ascii_uppercase();
+            match kind.as_str() {
+                "HORIZONTAL" => {
+                    let relation = Relation::Horizontal { entity: args.id()? };
+                    message = apply_relation(&mut candidate, relation)?;
+                }
+                "VERTICAL" => {
+                    let relation = Relation::Vertical { entity: args.id()? };
+                    message = apply_relation(&mut candidate, relation)?;
+                }
+                "COINCIDENT" => {
+                    let a = args.point_ref()?;
+                    let b = args.point_ref()?;
+                    message = apply_relation(&mut candidate, Relation::Coincident { a, b })?;
+                }
+                "FIXPOINT" => {
+                    let point = args.point_ref()?;
+                    let position = args.point()?;
+                    message =
+                        apply_relation(&mut candidate, Relation::FixPoint { point, position })?;
+                }
+                "DISTX" => {
+                    let a = args.point_ref()?;
+                    let b = args.point_ref()?;
+                    let value = args.number()?;
+                    message = apply_relation(&mut candidate, Relation::DistanceX { a, b, value })?;
+                }
+                "DISTY" => {
+                    let a = args.point_ref()?;
+                    let b = args.point_ref()?;
+                    let value = args.number()?;
+                    message = apply_relation(&mut candidate, Relation::DistanceY { a, b, value })?;
+                }
+                "RADIUS" => {
+                    let entity = args.id()?;
+                    let value = args.number()?;
+                    message = apply_relation(&mut candidate, Relation::Radius { entity, value })?;
+                }
+                "EQUALRAD" => {
+                    let first = args.id()?;
+                    let second = args.id()?;
+                    message =
+                        apply_relation(&mut candidate, Relation::EqualRadius { first, second })?;
+                }
+                "REMOVE" => {
+                    let id = args.constraint_id()?;
+                    let removed = candidate
+                        .constraints
+                        .iter()
+                        .find(|constraint| constraint.id == id)
+                        .map(|constraint| constraint.relation.describe())
+                        .ok_or_else(|| invalid(format!("Constraint #{id} does not exist")))?;
+                    let kept: Vec<_> = candidate
+                        .constraints
+                        .iter()
+                        .filter(|constraint| constraint.id != id)
+                        .cloned()
+                        .collect();
+                    let report = candidate.set_constraints(kept)?;
+                    if !report.solved() {
+                        return Err(invalid(format!(
+                            "Removing constraint #{id} rejected: {}",
+                            report.summary()
+                        )));
+                    }
+                    message = format!("Removed relation #{id} {removed} · {}", report.summary());
+                }
+                "CLEAR" => {
+                    let report = candidate.set_constraints(Vec::new())?;
+                    if !report.solved() {
+                        return Err(invalid(format!(
+                            "Clearing constraints rejected: {}",
+                            report.summary()
+                        )));
+                    }
+                    message = format!("Constraints cleared · {}", report.summary());
+                }
+                _ => {
+                    return Err(invalid(format!(
+                        "Unknown relation {kind}; enter HELP for command syntax"
+                    )));
+                }
+            }
+        }
+        "CONSTRAINT" => {
+            let action = args.take("constraint action")?.to_ascii_uppercase();
+            match action.as_str() {
+                "REPORT" => {
+                    changed = false;
+                    message = candidate.constraint_report()?.summary();
+                }
+                "SOLVE" => {
+                    message = candidate.solve_constraints()?.summary();
+                }
+                _ => {
+                    return Err(invalid(format!(
+                        "Unknown constraint action {action}; enter HELP for command syntax"
+                    )));
+                }
+            }
         }
         "BLOCK" => {
             require_selection(&candidate, &selected)?;
             let block_name = args.remaining_name()?;
-            require_id_capacity(
-                &candidate,
-                selected
-                    .len()
-                    .checked_add(1)
-                    .ok_or_else(|| invalid("Block entity count overflow"))?,
-            )?;
             selected = vec![candidate.define_block_from_selection(
                 block_name,
                 Point::default(),
@@ -254,12 +355,7 @@ pub fn execute(
         }
         "EXPLODE" => {
             require_selection(&candidate, &selected)?;
-            let expanded = candidate.expanded_entities()?;
-            let copies = expanded
-                .iter()
-                .filter(|entity| selected.contains(&entity.source_id))
-                .count();
-            require_id_capacity(&candidate, copies)?;
+            candidate.expanded_entities()?;
             let mut created = Vec::new();
             for id in selected {
                 created.extend(candidate.explode_insert(id)?);
@@ -276,8 +372,7 @@ pub fn execute(
             candidate.active_layer_id = if let Some(layer) = layer {
                 layer
             } else {
-                require_id_capacity(&candidate, 1)?;
-                candidate.add_layer(layer_name, [215, 222, 234])
+                candidate.add_layer(layer_name, [215, 222, 234])?
             };
         }
         "LENGTH" => {
@@ -325,8 +420,7 @@ pub fn execute(
     args.finish()?;
     if let Some(geometry) = geometry {
         validate_authored_geometry(&geometry)?;
-        require_id_capacity(&candidate, 1)?;
-        selected = vec![candidate.add_geometry(geometry)];
+        selected = vec![candidate.add_geometry(geometry)?];
     }
     candidate.validate()?;
     // Commands that create a one-item array or select the current layer are no-ops.
@@ -339,38 +433,6 @@ pub fn execute(
         changed,
         message,
     })
-}
-
-/// The legacy allocation helpers are infallible and panic on exhaustion. Check
-/// their full transaction budget before calling them, including the fresh IDs
-/// assigned to block definitions and to exploded leaves. Read-only operations
-/// need no allocator capacity, even when next_id is already exhausted.
-fn require_id_capacity(document: &Document, count: usize) -> io::Result<()> {
-    if count == 0 {
-        return Ok(());
-    }
-    let highest = document
-        .layers
-        .iter()
-        .map(|item| item.id)
-        .chain(document.entities.iter().map(|item| item.id))
-        .chain(
-            document
-                .blocks
-                .iter()
-                .flat_map(|block| block.entities.iter().map(|entity| entity.id)),
-        )
-        .chain(document.solids.iter().map(|item| item.id))
-        .chain(document.extrusions.iter().map(|item| item.id))
-        .chain(document.meshes.iter().map(|item| item.id))
-        .max()
-        .unwrap_or(0);
-    let first = document.next_id.max(highest.saturating_add(1)).max(1);
-    let count = u64::try_from(count).map_err(|_| invalid("Object ID space is exhausted"))?;
-    first
-        .checked_add(count)
-        .ok_or_else(|| invalid("Object ID space is exhausted"))?;
-    Ok(())
 }
 
 /// Authoring commands reject empty curves and geometry that cannot be measured
@@ -427,6 +489,18 @@ fn validate_authored_geometry(geometry: &Geometry) -> io::Result<()> {
     Ok(())
 }
 
+/// Sketches are changed on a cloned candidate: a rejected or conflicting
+/// relation leaves the real document and its constraint set untouched.
+fn apply_relation(candidate: &mut Document, relation: Relation) -> io::Result<String> {
+    let id = candidate.next_constraint_id();
+    let described = relation.describe();
+    let report = candidate.set_constraint(SketchConstraint { id, relation })?;
+    if !report.solved() {
+        return Err(invalid(format!("Relation rejected: {}", report.summary())));
+    }
+    Ok(format!("Relation #{id} {described} · {}", report.summary()))
+}
+
 fn require_selection(document: &Document, ids: &[u64]) -> io::Result<()> {
     if ids.is_empty() {
         return Err(invalid("Select objects first (SELECT ALL or SELECT id…)"));
@@ -442,13 +516,9 @@ fn require_selection(document: &Document, ids: &[u64]) -> io::Result<()> {
 struct Args<'a>(VecDeque<&'a str>);
 impl<'a> Args<'a> {
     fn take(&mut self, label: &str) -> io::Result<&'a str> {
-        if self.0.is_empty() {
-            Err(invalid(format!(
-                "Missing {label}; enter HELP for command syntax"
-            )))
-        } else {
-            Ok(self.0.pop_front().expect("checked argument"))
-        }
+        self.0
+            .pop_front()
+            .ok_or_else(|| invalid(format!("Missing {label}; enter HELP for command syntax")))
     }
     fn number(&mut self) -> io::Result<f64> {
         let raw = self.take("numeric coordinate or value")?;
@@ -468,6 +538,38 @@ impl<'a> Args<'a> {
         self.take("entity ID")?
             .parse()
             .map_err(|_| invalid("Entity IDs must be positive integers"))
+    }
+    fn constraint_id(&mut self) -> io::Result<u64> {
+        self.take("constraint ID")?
+            .parse()
+            .map_err(|_| invalid("Constraint IDs must be positive integers"))
+    }
+    fn handle(&mut self) -> io::Result<PointHandle> {
+        let raw = self.take("point handle")?;
+        match raw.to_ascii_uppercase().as_str() {
+            "START" => Ok(PointHandle::Start),
+            "END" => Ok(PointHandle::End),
+            "CENTER" => Ok(PointHandle::Center),
+            "POSITION" => Ok(PointHandle::Position),
+            "CORNERA" => Ok(PointHandle::CornerA),
+            "CORNERB" => Ok(PointHandle::CornerB),
+            "VERTEX" => {
+                let index = self
+                    .take("vertex index")?
+                    .parse::<usize>()
+                    .map_err(|_| invalid("VERTEX requires a nonnegative integer index"))?;
+                Ok(PointHandle::Vertex(index))
+            }
+            _ => Err(invalid(format!(
+                "Point handle must be START, END, CENTER, POSITION, CORNERA, CORNERB or VERTEX n; got {raw}"
+            ))),
+        }
+    }
+    fn point_ref(&mut self) -> io::Result<PointRef> {
+        Ok(PointRef {
+            entity: self.id()?,
+            handle: self.handle()?,
+        })
     }
     fn count(&mut self) -> io::Result<usize> {
         self.take("item count")?
@@ -735,5 +837,573 @@ mod tests {
                 .iter()
                 .all(|entity| matches!(entity.geometry, Geometry::Dimension { .. }))
         );
+    }
+
+    fn near(a: f64, b: f64) {
+        assert!((a - b).abs() < 1e-9, "{a} != {b}");
+    }
+    fn author(document: &mut Document, command: &str) -> u64 {
+        execute(document, &[], command).unwrap().selection[0]
+    }
+    fn line_of(document: &Document, id: u64) -> (Point, Point) {
+        match &document
+            .entities
+            .iter()
+            .find(|entity| entity.id == id)
+            .unwrap()
+            .geometry
+        {
+            Geometry::Line { start, end } => (*start, *end),
+            other => panic!("entity #{id} is not a line: {other:?}"),
+        }
+    }
+    fn circle_of(document: &Document, id: u64) -> (Point, f64) {
+        match &document
+            .entities
+            .iter()
+            .find(|entity| entity.id == id)
+            .unwrap()
+            .geometry
+        {
+            Geometry::Circle { center, radius } => (*center, *radius),
+            other => panic!("entity #{id} is not a circle: {other:?}"),
+        }
+    }
+    fn constraint_ids(document: &Document) -> Vec<u64> {
+        document
+            .constraints
+            .iter()
+            .map(|constraint| constraint.id)
+            .collect()
+    }
+
+    #[test]
+    fn help_lists_the_new_constraint_command_syntax() {
+        let mut doc = Document::default();
+        let result = execute(&mut doc, &[], "HELP").unwrap();
+        assert!(!result.changed);
+        assert_eq!(result.message, HELP);
+        for syntax in [
+            "RELATION HORIZONTAL|VERTICAL id",
+            "COINCIDENT id handle id handle",
+            "RELATION FIXPOINT id handle x y",
+            "DISTX|DISTY id handle id handle value",
+            "RELATION RADIUS id value",
+            "EQUALRAD id id",
+            "REMOVE constraint-id · CLEAR",
+            "CONSTRAINT REPORT|SOLVE",
+            "VERTEX n",
+        ] {
+            assert!(HELP.contains(syntax), "{syntax}");
+        }
+        // The desktop help window and the CLI print these lines verbatim.
+        for line in HELP.lines() {
+            assert!(line.chars().count() <= 100, "{line}");
+        }
+    }
+
+    #[test]
+    fn relation_horizontal_solves_a_sloped_line_and_persists() {
+        let mut doc = Document::default();
+        let line = author(&mut doc, "LINE 0 0 100 20");
+        let before = doc.to_json().unwrap();
+        // Lowercase spellings, kinds and handles are all accepted.
+        let result = execute(&mut doc, &[line], &format!("relation horizontal {line}")).unwrap();
+        assert!(result.changed);
+        assert_eq!(result.selection, [line]);
+        assert!(result.message.starts_with("Relation #1 Horizontal #2 · "));
+        assert!(result.message.contains(
+            "Satisfied: 1 constraints, 3 remaining degrees of freedom, maximum error 0.000000; conflicting IDs []"
+        ));
+        let (start, end) = line_of(&doc, line);
+        near(start.x, 0.0);
+        near(end.x, 100.0);
+        near(start.y, 10.0);
+        near(end.y, 10.0);
+        // Minimum displacement shares the correction between both handles.
+        assert_eq!(doc.constraints[0].id, 1);
+        assert_eq!(
+            doc.constraints[0].relation,
+            Relation::Horizontal { entity: line }
+        );
+        let loaded = Document::from_json(&doc.to_json().unwrap()).unwrap();
+        assert_eq!(loaded, doc);
+        assert_eq!(loaded.constraints.len(), 1);
+        assert_eq!(line_of(&loaded, line), (start, end));
+        loaded.validate().unwrap();
+        assert_ne!(loaded.to_json().unwrap(), before);
+        // Re-solving sharpens the shared coordinate to its exact midpoint.
+        assert!(execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap().changed);
+        let (start, end) = line_of(&doc, line);
+        assert_eq!(start.y, 10.0);
+        assert_eq!(end.y, 10.0);
+        // A converged sketch re-solves as a verified no-op.
+        let solved = execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap();
+        assert!(!solved.changed);
+        assert!(solved.message.contains("Satisfied: 1 constraints"));
+    }
+
+    #[test]
+    fn constraint_report_and_solve_describe_free_and_joined_geometry() {
+        let mut doc = Document::default();
+        let selected = [2u64];
+        let report = execute(&mut doc, &selected, "CONSTRAINT REPORT").unwrap();
+        assert!(!report.changed);
+        assert_eq!(report.selection, selected);
+        assert_eq!(
+            report.message,
+            "Satisfied: 0 constraints, 0 remaining degrees of freedom, maximum error 0.000000; conflicting IDs []"
+        );
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 10 5 20 5");
+        // Unconstrained geometry is not counted as a participating variable.
+        assert_eq!(
+            execute(&mut doc, &[], "CONSTRAINT REPORT").unwrap().message,
+            "Satisfied: 0 constraints, 0 remaining degrees of freedom, maximum error 0.000000; conflicting IDs []"
+        );
+        let joined = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION COINCIDENT {first} eNd {second} START"),
+        )
+        .unwrap();
+        assert!(joined.changed);
+        assert!(
+            joined
+                .message
+                .starts_with("Relation #1 Coincident #2.end→#3.start · ")
+        );
+        let (_, first_end) = line_of(&doc, first);
+        let (second_start, _) = line_of(&doc, second);
+        near(first_end.x, 10.0);
+        near(first_end.y, 2.5);
+        near(second_start.x, 10.0);
+        near(second_start.y, 2.5);
+        let report = execute(&mut doc, &[], "CONSTRAINT REPORT").unwrap();
+        assert_eq!(
+            report.message,
+            "Satisfied: 1 constraints, 6 remaining degrees of freedom, maximum error 0.000000; conflicting IDs []"
+        );
+        // One more pass lands both handles on the exact join point.
+        assert!(execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap().changed);
+        let (_, first_end) = line_of(&doc, first);
+        let (second_start, _) = line_of(&doc, second);
+        assert_eq!(first_end.y, 2.5);
+        assert_eq!(second_start.y, 2.5);
+        assert_eq!(first_end, second_start);
+        let solved = execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap();
+        assert!(!solved.changed);
+        assert_eq!(solved.message, report.message);
+        let (start, end) = line_of(&doc, first);
+        near(start.y, 0.0);
+        near(end.y, 2.5);
+        doc.validate().unwrap();
+    }
+
+    #[test]
+    fn relation_radius_and_equal_radius_commands_solve_circles() {
+        let mut doc = Document::default();
+        let circle = author(&mut doc, "CIRCLE 5 6 10");
+        let result = execute(&mut doc, &[], &format!("RELATION RADIUS {circle} 25")).unwrap();
+        assert!(result.message.starts_with("Relation #1 Radius 25 #2 · "));
+        let (center, radius) = circle_of(&doc, circle);
+        near(radius, 25.0);
+        assert_eq!(center, Point::new(5.0, 6.0));
+
+        let mut doc = Document::default();
+        let first = author(&mut doc, "CIRCLE 0 0 5");
+        let second = author(&mut doc, "CIRCLE 20 0 10");
+        let result = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION EQUALRAD {first} {second}"),
+        )
+        .unwrap();
+        assert!(
+            result
+                .message
+                .starts_with("Relation #1 EqualRadius #2=#3 · ")
+        );
+        assert!(result.message.contains("5 remaining degrees of freedom"));
+        let (first_center, first_radius) = circle_of(&doc, first);
+        let (second_center, second_radius) = circle_of(&doc, second);
+        near(first_radius, 7.5);
+        near(second_radius, 7.5);
+        assert_eq!(first_center, Point::new(0.0, 0.0));
+        assert_eq!(second_center, Point::new(20.0, 0.0));
+        // A converged equality re-solves as a verified no-op.
+        assert!(!execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap().changed);
+        // Two radii for one circle contradict each other, so the second is refused.
+        execute(&mut doc, &[], &format!("RELATION RADIUS {first} 7.5")).unwrap();
+        let before = doc.to_json().unwrap();
+        let error = execute(&mut doc, &[], &format!("RELATION RADIUS {first} 30")).unwrap_err();
+        assert!(error.to_string().contains("Conflict:"), "{error}");
+        // The conflicting set includes the equality tying the two circles together.
+        assert!(
+            error.to_string().contains("conflicting IDs [1, 2, 3]"),
+            "{error}"
+        );
+        assert_eq!(doc.to_json().unwrap(), before);
+        assert_eq!(constraint_ids(&doc), [1, 2]);
+        // Clearing the contradictions reopens the sketch.
+        assert!(execute(&mut doc, &[], "RELATION CLEAR").unwrap().changed);
+        assert!(doc.constraints.is_empty());
+    }
+
+    #[test]
+    fn relation_fixpoint_pins_a_handle_with_vertex_indexes() {
+        let mut doc = Document::default();
+        let line = author(&mut doc, "LINE 0 0 10 20");
+        let result = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION FIXPOINT {line} END 30 40"),
+        )
+        .unwrap();
+        assert!(
+            result
+                .message
+                .starts_with("Relation #1 FixPoint #2.end@(30,40) · ")
+        );
+        let (start, end) = line_of(&doc, line);
+        assert_eq!(start, Point::new(0.0, 0.0));
+        assert_eq!(end, Point::new(30.0, 40.0));
+
+        let mut doc = Document::default();
+        let pline = author(&mut doc, "PLINE 0 0 10 0 10 10");
+        execute(
+            &mut doc,
+            &[],
+            &format!("RELATION FIXPOINT {pline} VERTEX 2 5 5"),
+        )
+        .unwrap();
+        match &doc.entities[0].geometry {
+            Geometry::Polyline { vertices, .. } => {
+                assert_eq!(vertices[0].point, Point::new(0.0, 0.0));
+                assert_eq!(vertices[1].point, Point::new(10.0, 0.0));
+                assert_eq!(vertices[2].point, Point::new(5.0, 5.0));
+            }
+            other => panic!("expected a polyline: {other:?}"),
+        }
+        let before = doc.to_json().unwrap();
+        assert!(
+            execute(
+                &mut doc,
+                &[],
+                &format!("RELATION FIXPOINT {pline} VERTEX 9 0 0")
+            )
+            .is_err()
+        );
+        assert!(
+            execute(
+                &mut doc,
+                &[],
+                &format!("RELATION FIXPOINT {pline} START 0 0")
+            )
+            .is_err()
+        );
+        assert_eq!(doc.to_json().unwrap(), before);
+    }
+
+    #[test]
+    fn relation_distance_commands_solve_numeric_cases() {
+        let mut doc = Document::default();
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 20 0 30 0");
+        let result = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTX {first} start {second} START 50"),
+        )
+        .unwrap();
+        assert!(
+            result
+                .message
+                .starts_with("Relation #1 DistanceX 50 #2.start→#3.start · ")
+        );
+        let (first_start, _) = line_of(&doc, first);
+        let (second_start, _) = line_of(&doc, second);
+        near(first_start.x, -15.0);
+        near(second_start.x, 35.0);
+        near(second_start.x - first_start.x, 50.0);
+
+        let mut doc = Document::default();
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 20 10 30 10");
+        execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTY {first} START {second} START 30"),
+        )
+        .unwrap();
+        let (first_start, _) = line_of(&doc, first);
+        let (second_start, _) = line_of(&doc, second);
+        near(first_start.y, -10.0);
+        near(second_start.y, 20.0);
+        near(second_start.y - first_start.y, 30.0);
+
+        let mut doc = Document::default();
+        let rect = author(&mut doc, "RECTANGLE 0 0 40 20");
+        execute(
+            &mut doc,
+            &[],
+            &format!("RELATION FIXPOINT {rect} CORNERA 0 0"),
+        )
+        .unwrap();
+        let result = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTX {rect} cornera {rect} CORNERB 40"),
+        )
+        .unwrap();
+        assert!(
+            result
+                .message
+                .starts_with("Relation #2 DistanceX 40 #2.cornera→#2.cornerb · ")
+        );
+        match &doc.entities[0].geometry {
+            Geometry::Rectangle { a, b } => {
+                assert_eq!(*a, Point::new(0.0, 0.0));
+                assert_eq!(*b, Point::new(40.0, 20.0));
+            }
+            other => panic!("expected a rectangle: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn relation_remove_and_clear_manage_the_constraint_set() {
+        let mut doc = Document::default();
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 20 0 30 0");
+        let before = doc.to_json().unwrap();
+        for input in [
+            "RELATION REMOVE 1",
+            "RELATION REMOVE 9",
+            "RELATION REMOVE zero",
+        ] {
+            let error = execute(&mut doc, &[], input).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidInput, "{input}");
+            assert_eq!(doc.to_json().unwrap(), before, "{input}");
+        }
+        execute(&mut doc, &[], &format!("RELATION HORIZONTAL {first}")).unwrap();
+        execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTX {first} START {second} START 50"),
+        )
+        .unwrap();
+        assert_eq!(constraint_ids(&doc), [1, 2]);
+        let removed = execute(&mut doc, &[], "RELATION REMOVE 1").unwrap();
+        assert!(removed.changed);
+        assert!(
+            removed
+                .message
+                .starts_with("Removed relation #1 Horizontal #2 · ")
+        );
+        assert!(removed.selection.is_empty());
+        assert_eq!(constraint_ids(&doc), [2]);
+        doc.validate().unwrap();
+        let (first_start, _) = line_of(&doc, first);
+        let (second_start, _) = line_of(&doc, second);
+        near(second_start.x - first_start.x, 50.0);
+        let cleared = execute(&mut doc, &[], "RELATION CLEAR").unwrap();
+        assert!(cleared.changed);
+        assert!(cleared.message.starts_with("Constraints cleared · "));
+        assert!(doc.constraints.is_empty());
+        assert_eq!(doc.entities.len(), 2);
+        assert!(!execute(&mut doc, &[], "RELATION CLEAR").unwrap().changed);
+        assert!(doc.constraints.is_empty());
+        // Removing from an empty set is still a clear error.
+        assert!(execute(&mut doc, &[], "RELATION REMOVE 1").is_err());
+        doc.validate().unwrap();
+    }
+
+    #[test]
+    fn conflicting_relations_are_rejected_and_leave_identical_bytes() {
+        let mut doc = Document::default();
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 20 0 30 0");
+        execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTX {first} START {second} START 50"),
+        )
+        .unwrap();
+        let before = doc.to_json().unwrap();
+        let error = execute(
+            &mut doc,
+            &[],
+            &format!("RELATION DISTX {first} START {second} START 70"),
+        )
+        .unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        assert!(error.to_string().contains("Conflict:"), "{error}");
+        assert!(
+            error.to_string().contains("conflicting IDs [1, 2]"),
+            "{error}"
+        );
+        assert_eq!(doc.to_json().unwrap(), before);
+        assert_eq!(constraint_ids(&doc), [1]);
+        // Releasing one side of the contradiction lets the new value commit.
+        execute(&mut doc, &[], "RELATION REMOVE 1").unwrap();
+        assert!(
+            execute(
+                &mut doc,
+                &[],
+                &format!("RELATION DISTX {first} START {second} START 70")
+            )
+            .unwrap()
+            .changed
+        );
+        assert_eq!(doc.constraints[0].relation.value(), Some(70.0));
+    }
+
+    #[test]
+    fn invalid_relation_input_leaves_document_and_constraints_unchanged() {
+        let mut doc = Document::default();
+        let line = author(&mut doc, "LINE 0 0 10 0");
+        let before = doc.to_json().unwrap();
+        for input in [
+            "RELATION HORIZONTAL 999".to_owned(),
+            format!("RELATION COINCIDENT {line} BOGUS {line} END"),
+            format!("RELATION RADIUS {line}"),
+            "RELATION 2".to_owned(),
+            "CONSTRAINT BOGUS".to_owned(),
+            "RELATION VERTICAL".to_owned(),
+            "CONSTRAINT".to_owned(),
+            format!("RELATION DISTX {line} START {line} END"),
+            format!("RELATION EQUALRAD {line}"),
+            format!("RELATION HORIZONTAL {line} EXTRA"),
+            format!("RELATION COINCIDENT {line} START {line}"),
+            format!("RELATION COINCIDENT {line} END {line} VERTEX"),
+            "RELATION DISTX 1 NOPE 1 END 5".to_owned(),
+        ] {
+            let error = execute(&mut doc, &[], &input).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidInput, "{input}");
+            assert!(!doc.constraints.iter().any(|c| c.id == 0), "{input}");
+            assert_eq!(doc.to_json().unwrap(), before, "{input}");
+            assert!(doc.constraints.is_empty(), "{input}");
+            assert_eq!(doc, Document::from_json(&before).unwrap(), "{input}");
+        }
+        assert!(
+            execute(&mut doc, &[], "CONSTRAINT REPORT")
+                .unwrap()
+                .message
+                .contains("0 constraints")
+        );
+    }
+
+    #[test]
+    fn constraint_ids_auto_increment_without_colliding_after_removal() {
+        let mut doc = Document::default();
+        let first = author(&mut doc, "LINE 0 0 10 0");
+        let second = author(&mut doc, "LINE 20 0 30 0");
+        let third = author(&mut doc, "LINE 0 9 10 9");
+        // Constraint IDs are their own namespace, independent of drawing IDs.
+        execute(&mut doc, &[], &format!("RELATION HORIZONTAL {first}")).unwrap();
+        execute(&mut doc, &[], &format!("RELATION HORIZONTAL {second}")).unwrap();
+        assert_eq!(constraint_ids(&doc), [1, 2]);
+        assert_eq!(doc.next_constraint_id(), 3);
+        execute(&mut doc, &[], "RELATION REMOVE 1").unwrap();
+        assert_eq!(constraint_ids(&doc), [2]);
+        // The allocator never rewinds over a live ID.
+        assert_eq!(doc.next_constraint_id(), 3);
+        let added = execute(&mut doc, &[], &format!("RELATION HORIZONTAL {third}")).unwrap();
+        assert!(added.message.starts_with("Relation #3 Horizontal #4 · "));
+        assert_eq!(constraint_ids(&doc), [2, 3]);
+        // Freeing the highest ID reuses exactly that number, deterministically.
+        execute(&mut doc, &[], "RELATION REMOVE 3").unwrap();
+        assert_eq!(doc.next_constraint_id(), 3);
+        execute(&mut doc, &[], &format!("RELATION HORIZONTAL {third}")).unwrap();
+        assert_eq!(constraint_ids(&doc), [2, 3]);
+        assert_eq!(
+            doc.constraints[1].relation,
+            Relation::Horizontal { entity: third }
+        );
+    }
+
+    #[test]
+    fn scripted_constraint_flow_reports_and_reopens_a_valid_drawing() {
+        let mut doc = Document::new("Constraint script");
+        execute(&mut doc, &[], "LAYER Sketch").unwrap();
+        let first = author(&mut doc, "LINE 0 0 40 15");
+        let second = author(&mut doc, "LINE 40 15 80 0");
+        let circle = author(&mut doc, "CIRCLE 40 -10 5");
+        let script = [
+            format!("RELATION COINCIDENT {first} END {second} START"),
+            format!("RELATION HORIZONTAL {first}"),
+            format!("RELATION HORIZONTAL {second}"),
+            format!("RELATION RADIUS {circle} 8"),
+        ];
+        let selection = [first, circle];
+        for command in &script {
+            let result = execute(&mut doc, &selection, command).unwrap();
+            assert!(result.changed, "{command}");
+            // Relation commands never touch the selection.
+            assert_eq!(result.selection, selection, "{command}");
+        }
+        doc.validate().unwrap();
+        let (first_start, first_end) = line_of(&doc, first);
+        let (second_start, second_end) = line_of(&doc, second);
+        near(first_start.y, 7.5);
+        near(first_end.y, 7.5);
+        near(second_start.y, 7.5);
+        near(second_end.y, 7.5);
+        near(first_end.x, 40.0);
+        near(second_start.x, 40.0);
+        near(second_end.x, 80.0);
+        near(circle_of(&doc, circle).1, 8.0);
+        let report = execute(&mut doc, &[], "CONSTRAINT REPORT").unwrap();
+        assert!(
+            report
+                .message
+                .starts_with("Satisfied: 4 constraints, 6 remaining degrees of freedom"),
+            "{}",
+            report.message
+        );
+        let solved = execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap();
+        // One refinement pass sharpens the shared coordinates…
+        assert!(solved.changed);
+        near(first_end.x, 40.0);
+        near(second_start.x, 40.0);
+        near(first_start.y, 7.5);
+        near(first_end.y, 7.5);
+        near(second_start.y, 7.5);
+        near(second_end.y, 7.5);
+        near(circle_of(&doc, circle).1, 8.0);
+        // …leaving the converged sketch a verified no-op.
+        let again = execute(&mut doc, &[], "CONSTRAINT SOLVE").unwrap();
+        assert!(!again.changed);
+        assert_eq!(again.message, solved.message);
+        let (first_start, first_end) = line_of(&doc, first);
+        let (second_start, second_end) = line_of(&doc, second);
+        near(first_start.y, 7.5);
+        near(second_end.y, 7.5);
+        let reopened = Document::from_json(&doc.to_json().unwrap()).unwrap();
+        assert_eq!(reopened.constraints.len(), 4);
+        reopened.validate().unwrap();
+        assert_eq!(line_of(&reopened, first), (first_start, first_end));
+        assert_eq!(line_of(&reopened, second), (second_start, second_end));
+        assert_eq!(circle_of(&reopened, circle), circle_of(&doc, circle));
+        // The whole script replays deterministically on a fresh document.
+        let mut replay = vec![
+            "LAYER Sketch".to_owned(),
+            "LINE 0 0 40 15".to_owned(),
+            "LINE 40 15 80 0".to_owned(),
+            "CIRCLE 40 -10 5".to_owned(),
+        ];
+        replay.extend(script.iter().cloned());
+        let mut replayed = Document::new("Constraint script");
+        let mut authored = Vec::new();
+        for command in &replay {
+            let result = execute(&mut replayed, &[], command).unwrap();
+            if !result.selection.is_empty() {
+                authored.push(result.selection[0]);
+            }
+        }
+        assert_eq!(authored, [first, second, circle]);
+        execute(&mut replayed, &[], "CONSTRAINT SOLVE").unwrap();
+        replayed.validate().unwrap();
+        assert_eq!(replayed.to_json().unwrap(), doc.to_json().unwrap());
     }
 }

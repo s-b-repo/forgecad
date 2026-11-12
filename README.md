@@ -33,7 +33,7 @@ Rust 1.95+ and the platform's graphics development libraries are required. The d
 
 ## Implemented workflows
 
-- Drafting: lines, rectangles, circles, polylines, center/start/end-angle arcs, text and points; grid/object snapping; multi-selection; layer visibility/assignment; move/copy/rotate/uniform-scale/mirror; undo/redo; fit/pan/zoom; native save/open and unsaved-change decisions.
+- Drafting: lines, rectangles, circles, polylines, center/start/end-angle arcs, text and points; grid/object snapping; multi-selection; layer visibility/assignment; move/copy/rotate/uniform-scale/mirror; undo/redo; fit/pan/zoom; native save/open and unsaved-change decisions; persistent sketch relations (horizontal/vertical, coincident, fixed point, X/Y distance, radius, equal radius) with a linear solver and conflict reporting.
 - Precision editing: numeric command bar with history, parallel offsets of analytic entities and straight or tangent-continuous curved polylines, rectangular/polar arrays, and LINE trim/extend against finite LINE boundaries. Desktop controls and batch scripts use the same transactional operations. Invalid operations leave the drawing unchanged.
 - Blocks: reusable definitions from a selection (⌃G), nested INSERT display and picking through expanded geometry, and one-transaction explosion back to ordinary entities.
 - Annotation: semantic horizontal, vertical, aligned and rotated linear dimensions plus radius and diameter dimensions, with extension lines, arrows and measured text derived from the stored references.
@@ -45,7 +45,7 @@ Rust 1.95+ and the platform's graphics development libraries are required. The d
 - Motion: colored primitive objects, translation/rotation/scale keyframes, parent hierarchies, linear/step/smoothstep interpolation, inherited visibility, editable array/mirror modifiers and timeline playback and evaluated-frame OBJ. Local poses inherit ancestor transforms, including nonuniform scale. Cycles and dangling parents are refused; subtree deletion is undoable.
 - Manufacturing: stock/tool setup, compensated profiles, rectangular raster/circular concentric/polygon scanline pockets with optional uncut islands, point-based peck drilling, depth passes, motion preview and generic LinuxCNC-style G-code. Pocket step over and cutter footprints are validated; XY positioning follows vertical clearance retracts. Machine-specific posts and stock/collision simulation remain unfinished.
 - Project review: local issue board, title/description/reference editing, search, status/priority filters, resolution lifecycle, undo/redo and CSV export. No cloud account or synchronization is implied.
-- Exchange: a strict ASCII DXF subset including layers, units, basic text, arcs, curved polylines, blocks and INSERT references; ASCII/binary STL; geometry-only OBJ with polygon triangulation; native JSON v6 with v1–v5 migration, saved layouts and separate workbench models.
+- Exchange: a strict ASCII DXF subset including layers, units, basic text, arcs, curved polylines, blocks and INSERT references; ASCII/binary STL; geometry-only OBJ with polygon triangulation; native JSON v7 with v1–v6 migration, saved layouts, sketch relations and separate workbench models.
 - Automation: inspect, convert, transform, primitive creation, native DWG commands, typed transactional project scripts, civil reports, saved-layout commands and individual-product catalog commands. Batch conversions refuse unapproved data loss and existing output replacement.
 
 ```sh
@@ -68,13 +68,13 @@ Rust 1.95+ and the platform's graphics development libraries are required. The d
 
 See the [editable modeling guide](docs/modeling.md), [code audit](docs/code-audit.md) and [drafting and plotting guide](docs/drafting.md) for command syntax, scripts, operation limits and print scales, and the [workbench guide](docs/workbenches.md) for building, terrain, scene and CAM workflows. Output files are protected against replacement unless explicitly authorized. Dedicated workbench exports select one area's derived output; native saves retain all areas together.
 
-The [new workflow guide](docs/advanced-workflows.md) includes runnable examples for saved layouts, scene parenting, pocket/drill operations, alignment profiles and earthwork reports. The [completion requirements](docs/requirements.md) continue to track the wider unfinished suite.
+The [new workflow guide](docs/advanced-workflows.md) includes runnable examples for saved layouts, scene parenting, sketch constraints, pocket/drill operations, alignment profiles and earthwork reports. The [completion requirements](docs/requirements.md) continue to track the wider unfinished suite.
 
 DWG drawings are read and written through the unmodified acadrust engine by the `native` commands, with a documented entity subset, R2000/R2018 write targets, and saves refused when the engine reports unsupported or unrecovered content. The RVT/RFA, IPT/IAM, F3D/F3Z, MAX, MA/MB and FBX formats are **not implemented**. The current exchange support does not establish native compatibility or full product parity. Detailed requirements and remaining format gaps are in [requirements](docs/requirements.md), [compatibility](docs/compatibility.md) and [product mapping](docs/product-map.md).
 
 ## Verification and artifacts
 
-All source, test harnesses, build output, logs and screenshots are kept in this workspace. Test/build logs are in `validation/results`; the native startup runner is `validation/native_smoke.py`. It launches representative targets on an owned Xvfb display and captures all seven populated workbench views. This proves startup/import/render paths only. It does not prove every user workflow or Autodesk parity.
+All source, test harnesses, build output, logs and screenshots are kept in this workspace. Test/build logs are in `validation/results`; the native startup runner is `validation/native_smoke.py`. It launches representative targets on an owned Xvfb display and captures all seven populated workbench views. This proves startup/import/render paths only. It does not prove every user workflow or Autodesk parity. Builds, tests, clippy, audits and security scanning also run on every push and pull request through the GitHub Actions workflows in `.github/`.
 
 ```sh
 python3 validation/native_smoke.py

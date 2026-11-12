@@ -239,7 +239,9 @@ impl CamJob {
                 Operation::Pocket => self.pocket_paths(profile)?,
                 Operation::Drill => {
                     let Geometry::Point { position } = profile.geometry else {
-                        unreachable!("operation preflight")
+                        return Err(invalid(
+                            "CAM drill profiles require a point at the hole location",
+                        ));
                     };
                     check_point(position)?;
                     vec![vec![position]]
@@ -344,7 +346,11 @@ impl CamJob {
                     )
                 })
                 .collect(),
-            _ => unreachable!("profile types checked"),
+            other => {
+                return Err(invalid(format!(
+                    "Unsupported compensated CAM profile geometry: {other:?}"
+                )));
+            }
         };
         points.push(points[0]);
         if points
@@ -456,7 +462,11 @@ impl CamJob {
                 }
                 ((*radius - tool_radius) / self.step_over).ceil().max(1.0) * 97.0 + 1.0
             }
-            _ => unreachable!("optimized pocket preflight"),
+            other => {
+                return Err(invalid(format!(
+                    "Unsupported optimized CAM pocket geometry: {other:?}"
+                )));
+            }
         };
         if !count.is_finite() || count > 500_000.0 {
             return Err(invalid(
@@ -523,7 +533,11 @@ impl CamJob {
                     }
                 }
             }
-            _ => unreachable!("pocket preflight"),
+            other => {
+                return Err(invalid(format!(
+                    "Unsupported CAM pocket geometry: {other:?}"
+                )));
+            }
         }
         Ok(points)
     }

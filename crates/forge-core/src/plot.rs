@@ -239,7 +239,9 @@ pub fn export_layout_svg(document: &Document, name: &str) -> io::Result<String> 
             if v.hidden_layer_ids.contains(&primitive.layer_id) {
                 continue;
             }
-            let layer = document.layer(primitive.layer_id).expect("validated layer");
+            let layer = document
+                .layer(primitive.layer_id)
+                .ok_or_else(|| invalid("Plotted primitive refers to a missing layer"))?;
             let [r, g, b] = if layout.options.monochrome {
                 [17, 17, 17]
             } else {
@@ -449,7 +451,9 @@ pub fn export_svg(document: &Document, options: SvgOptions) -> io::Result<String
         n(scale), n(-scale), n(tx), n(ty), n(STROKE_MM / scale),
     ).unwrap();
     for primitive in &primitives {
-        let layer = document.layer(primitive.layer_id).expect("validated layer");
+        let layer = document
+            .layer(primitive.layer_id)
+            .ok_or_else(|| invalid("Plotted primitive refers to a missing layer"))?;
         let [r, g, b] = if options.monochrome {
             [17, 17, 17]
         } else {
@@ -593,7 +597,10 @@ fn append_geometry(
             .unwrap();
         }
         Geometry::Polyline { vertices, closed } => {
-            let start = vertices.first().expect("validated polyline").point;
+            let start = vertices
+                .first()
+                .ok_or_else(|| invalid("Polyline plot output requires a first vertex"))?
+                .point;
             write!(output, "<path d=\"M {} {}", n(start.x), n(start.y)).unwrap();
             for index in 0..vertices.len() - usize::from(!closed) {
                 let a = vertices[index];
@@ -766,10 +773,12 @@ mod tests {
     #[test]
     fn fixed_scale_centres_geometry_and_reverses_only_the_world_y_axis() {
         let mut document = Document::new("Scale test");
-        document.add_geometry(Geometry::Line {
-            start: Point::new(0.0, 0.0),
-            end: Point::new(100.0, 50.0),
-        });
+        document
+            .add_geometry(Geometry::Line {
+                start: Point::new(0.0, 0.0),
+                end: Point::new(100.0, 50.0),
+            })
+            .unwrap();
         let output = export_svg(
             &document,
             SvgOptions {
@@ -797,26 +806,32 @@ mod tests {
     #[test]
     fn analytic_arcs_circles_and_signed_bulges_are_not_tessellated() {
         let mut document = Document::default();
-        document.add_geometry(Geometry::Circle {
-            center: Point::new(3.0, 4.0),
-            radius: 2.0,
-        });
-        document.add_geometry(Geometry::Arc {
-            center: Point::default(),
-            radius: 10.0,
-            start_angle_deg: 0.0,
-            end_angle_deg: 270.0,
-        });
-        document.add_geometry(Geometry::Polyline {
-            vertices: vec![
-                PolylineVertex {
-                    point: Point::new(0.0, 0.0),
-                    bulge: -1.0,
-                },
-                PolylineVertex::new(Point::new(10.0, 0.0)),
-            ],
-            closed: false,
-        });
+        document
+            .add_geometry(Geometry::Circle {
+                center: Point::new(3.0, 4.0),
+                radius: 2.0,
+            })
+            .unwrap();
+        document
+            .add_geometry(Geometry::Arc {
+                center: Point::default(),
+                radius: 10.0,
+                start_angle_deg: 0.0,
+                end_angle_deg: 270.0,
+            })
+            .unwrap();
+        document
+            .add_geometry(Geometry::Polyline {
+                vertices: vec![
+                    PolylineVertex {
+                        point: Point::new(0.0, 0.0),
+                        bulge: -1.0,
+                    },
+                    PolylineVertex::new(Point::new(10.0, 0.0)),
+                ],
+                closed: false,
+            })
+            .unwrap();
         let output = plot(&document);
         assert!(output.contains("<circle cx=\"3\" cy=\"4\" r=\"2\"/>"));
         assert!(output.contains("A 10 10 0 1 1"));
@@ -826,7 +841,9 @@ mod tests {
     #[test]
     fn layers_and_visibility_resolve_through_block_instances() {
         let mut document = Document::default();
-        let red = document.add_layer("Red & \"visible\"", [230, 10, 20]);
+        let red = document
+            .add_layer("Red & \"visible\"", [230, 10, 20])
+            .unwrap();
         document
             .add_block(
                 "Part",
@@ -841,12 +858,14 @@ mod tests {
                 }],
             )
             .unwrap();
-        let source = document.add_geometry(Geometry::Insert {
-            block_name: "Part".into(),
-            position: Point::new(20.0, 30.0),
-            scale: 3.0,
-            rotation_deg: 45.0,
-        });
+        let source = document
+            .add_geometry(Geometry::Insert {
+                block_name: "Part".into(),
+                position: Point::new(20.0, 30.0),
+                scale: 3.0,
+                rotation_deg: 45.0,
+            })
+            .unwrap();
         let output = export_svg(
             &document,
             SvgOptions {
@@ -873,15 +892,17 @@ mod tests {
     #[test]
     fn dimension_annotation_is_exported_without_changing_semantics() {
         let mut document = Document::default();
-        document.add_geometry(Geometry::Dimension {
-            dimension: Dimension::Linear(LinearDimension {
-                kind: LinearDimensionKind::Horizontal,
-                a: Point::default(),
-                b: Point::new(100.0, 0.0),
-                line_point: Point::new(0.0, 15.0),
-                style: Default::default(),
-            }),
-        });
+        document
+            .add_geometry(Geometry::Dimension {
+                dimension: Dimension::Linear(LinearDimension {
+                    kind: LinearDimensionKind::Horizontal,
+                    a: Point::default(),
+                    b: Point::new(100.0, 0.0),
+                    line_point: Point::new(0.0, 15.0),
+                    style: Default::default(),
+                }),
+            })
+            .unwrap();
         let before = document.clone();
         let output = plot(&document);
         assert!(output.contains("100.00</text>"));
@@ -892,12 +913,14 @@ mod tests {
     #[test]
     fn text_is_upright_rotated_and_xml_is_escaped() {
         let mut document = Document::new("Drawing <script> & \"quotes\"\u{1}");
-        document.add_geometry(Geometry::Text {
-            position: Point::new(3.0, 4.0),
-            text: "<script> & 'quoted' \"test\"".into(),
-            height: 2.5,
-            rotation_deg: 30.0,
-        });
+        document
+            .add_geometry(Geometry::Text {
+                position: Point::new(3.0, 4.0),
+                text: "<script> & 'quoted' \"test\"".into(),
+                height: 2.5,
+                rotation_deg: 30.0,
+            })
+            .unwrap();
         let output = plot(&document);
         assert!(!output.contains("<script>"));
         assert!(!output.contains('\u{1}'));
@@ -952,7 +975,7 @@ mod tests {
             assert!(export_svg(&document, options).is_err());
         }
         let mut mixed = document;
-        mixed.add_solid("Box", SolidKind::Box);
+        mixed.add_solid("Box", SolidKind::Box).unwrap();
         assert_eq!(
             export_svg(&mixed, Default::default()).unwrap_err().kind(),
             io::ErrorKind::Unsupported
@@ -963,9 +986,11 @@ mod tests {
     fn empty_and_single_point_drawings_have_finite_plot_transforms() {
         let mut document = Document::default();
         assert!(plot(&document).contains("matrix(1 0 0 -1 148.5 105)"));
-        document.add_geometry(Geometry::Point {
-            position: Point::new(-500.0, 600.0),
-        });
+        document
+            .add_geometry(Geometry::Point {
+                position: Point::new(-500.0, 600.0),
+            })
+            .unwrap();
         let output = plot(&document);
         assert!(output.contains("matrix(1 0 0 -1 648.5 705)"));
         assert!(output.contains("r=\"0.5\""));

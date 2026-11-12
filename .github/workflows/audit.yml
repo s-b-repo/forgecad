@@ -1,0 +1,72 @@
+name: Audit
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-audit:
+    name: cargo-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # RustSec advisory DB scan against the committed Cargo.lock.
+      - name: Cargo audit (RustSec advisories)
+        uses: actions-rust-lang/audit@v1
+
+  pattern-audit:
+    name: pattern-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Informational: default mode records the findings and exits 0.
+      - name: Code audit (record findings)
+        run: python3 scripts/run_code_audit.py
+
+      # The raw strict gate is known not-clean (docs/code-audit.md): hits include test
+      # assertions and legacy invariants. Run it, but never fail the job on it.
+      - name: Code audit (strict gate, non-blocking)
+        run: python3 scripts/run_code_audit.py --strict || true
+
+      - name: Upload code audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-audit-log
+          path: validation/results/code-audit.log
+          if-no-files-found: warn
+
+  miri:
+    name: miri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nightly Rust with Miri
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+          components: miri
+
+      - name: Miri setup
+        run: cargo miri setup
+
+      # Experimental UB detector for the geometry/serde core. The isolation flag lets tests
+      # use their real target/ temp directories; the desktop crate needs a display and is out of scope.
+      - name: Miri test forge-core
+        run: MIRIFLAGS="-Zmiri-disable-isolation" cargo miri test -p forge-core --lib
+        timeout-minutes: 60
+        continue-on-error: true

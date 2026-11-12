@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (${{ matrix.rust }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy, rustfmt
+
+      - name: Cache cargo builds
+        uses: Swatinem/rust-cache@v2
+
+      # The eframe/egui desktop crate (craft-suite) links x11/wayland + glow, so the
+      # Linux build needs the X/Wayland dev headers and the GL shim. macOS/Windows need none.
+      - name: Install Linux system dependencies (eframe x11/wayland)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbcommon-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev pkg-config build-essential
+
+      - name: Formatting
+        run: cargo fmt --all -- --check
+
+      # Report only (NOT -D warnings): the workspace carries pre-existing style warnings.
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets
+
+      - name: Tests
+        run: cargo test --workspace --no-fail-fast
+
+      - name: Build binaries
+        run: cargo build --workspace --bins
+
+  standalone-manifests:
+    name: standalone-manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo builds
+        uses: Swatinem/rust-cache@v2
+
+      # These compile the real crate/CLI sources inside dependency-light standalone packages.
+      # The repo-root `cargo test` skips forge-cli because default-members points at the desktop app.
+      - name: Test forge-core (validation/core)
+        run: cargo test --manifest-path validation/core/Cargo.toml
+
+      - name: Test mesh harness (validation/mesh)
+        run: cargo test --manifest-path validation/mesh/Cargo.toml
+
+      - name: Test forge-cli (validation/cli)
+        run: cargo test --manifest-path validation/cli/Cargo.toml
+
+  docs-check:
+    name: docs-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Keeps docs/features.md, roadmap.md, progress.md, product-catalog.md and docs/wiki in
+      # sync with docs/feature-status.json; validates feature IDs, evidence paths and milestone coverage.
+      - name: Verify generated docs are current
+        run: python3 scripts/generate_docs.py --check

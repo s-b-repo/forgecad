@@ -51,7 +51,7 @@ impl Document {
             entities,
         };
         for entity in &mut definition.entities {
-            entity.id = candidate.allocate_id();
+            entity.id = candidate.try_allocate_id()?;
         }
         candidate.blocks.push(definition);
         candidate.validate()?;
@@ -90,7 +90,7 @@ impl Document {
             position: base_point,
             scale: 1.0,
             rotation_deg: 0.0,
-        });
+        })?;
         candidate.validate()?;
         *self = candidate;
         Ok(id)
@@ -119,7 +119,7 @@ impl Document {
         for leaf in leaves {
             let old_layer = candidate.active_layer_id;
             candidate.active_layer_id = leaf.layer_id;
-            inserted.push(candidate.add_geometry(leaf.geometry));
+            inserted.push(candidate.add_geometry(leaf.geometry)?);
             candidate.active_layer_id = old_layer;
         }
         candidate.validate()?;
@@ -383,7 +383,7 @@ mod tests {
     #[test]
     fn nested_transforms_honor_base_points_layers_and_outer_selection_id() {
         let mut document = Document::default();
-        let layer = document.add_layer("Instance", [1, 2, 3]);
+        let layer = document.add_layer("Instance", [1, 2, 3]).unwrap();
         document
             .add_block(
                 "Leaf",
@@ -398,12 +398,14 @@ mod tests {
                 vec![insert(0, 1, "leaf", Point::new(5.0, 0.0), 2.0, 90.0)],
             )
             .unwrap();
-        let id = document.add_geometry(Geometry::Insert {
-            block_name: "Nested".into(),
-            position: Point::new(10.0, 20.0),
-            scale: 3.0,
-            rotation_deg: 90.0,
-        });
+        let id = document
+            .add_geometry(Geometry::Insert {
+                block_name: "Nested".into(),
+                position: Point::new(10.0, 20.0),
+                scale: 3.0,
+                rotation_deg: 90.0,
+            })
+            .unwrap();
         let leaves = document.expanded_entities().unwrap();
         assert_eq!(leaves.len(), 1);
         assert_eq!(leaves[0].source_id, id);
@@ -420,8 +422,8 @@ mod tests {
     #[test]
     fn explicit_child_layers_and_hidden_insert_chains_are_retained() {
         let mut document = Document::default();
-        let explicit = document.add_layer("Explicit", [5, 6, 7]);
-        let insertion = document.add_layer("Insertion", [1, 2, 3]);
+        let explicit = document.add_layer("Explicit", [5, 6, 7]).unwrap();
+        let insertion = document.add_layer("Insertion", [1, 2, 3]).unwrap();
         document
             .add_block(
                 "Pair",
@@ -432,12 +434,14 @@ mod tests {
                 ],
             )
             .unwrap();
-        document.add_geometry(Geometry::Insert {
-            block_name: "Pair".into(),
-            position: Point::default(),
-            scale: 1.0,
-            rotation_deg: 0.0,
-        });
+        document
+            .add_geometry(Geometry::Insert {
+                block_name: "Pair".into(),
+                position: Point::default(),
+                scale: 1.0,
+                rotation_deg: 0.0,
+            })
+            .unwrap();
         let leaves = document.expanded_entities().unwrap();
         assert_eq!(leaves[0].layer_id, insertion);
         assert_eq!(leaves[1].layer_id, explicit);
@@ -458,12 +462,14 @@ mod tests {
     #[test]
     fn missing_cyclic_deep_and_explosive_references_are_rejected() {
         let mut missing = Document::default();
-        missing.add_geometry(Geometry::Insert {
-            block_name: "Missing".into(),
-            position: Point::default(),
-            scale: 1.0,
-            rotation_deg: 0.0,
-        });
+        missing
+            .add_geometry(Geometry::Insert {
+                block_name: "Missing".into(),
+                position: Point::default(),
+                scale: 1.0,
+                rotation_deg: 0.0,
+            })
+            .unwrap();
         assert!(missing.validate().is_err());
         let mut cycle = Document::default();
         cycle.blocks.push(BlockDefinition {
@@ -517,14 +523,18 @@ mod tests {
     #[test]
     fn definition_and_explode_operations_are_transactional() {
         let mut document = Document::default();
-        let a = document.add_geometry(Geometry::Line {
-            start: Point::default(),
-            end: Point::new(4.0, 0.0),
-        });
-        let b = document.add_geometry(Geometry::Circle {
-            center: Point::new(2.0, 2.0),
-            radius: 1.0,
-        });
+        let a = document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(4.0, 0.0),
+            })
+            .unwrap();
+        let b = document
+            .add_geometry(Geometry::Circle {
+                center: Point::new(2.0, 2.0),
+                radius: 1.0,
+            })
+            .unwrap();
         let instance = document
             .define_block_from_selection("Part", Point::new(2.0, 0.0), &[a, b])
             .unwrap();
@@ -547,5 +557,38 @@ mod tests {
                 .all(|entity| entity.id != a && entity.id != b)
         );
         document.validate().unwrap();
+    }
+
+    /// Defining a block and exploding an instance both need several fresh IDs.
+    /// At a nearly exhausted allocator they must refuse with an error and leave
+    /// the saved document byte-identical.
+    #[test]
+    fn block_authoring_and_explosion_refuse_to_panic_at_the_id_limit() {
+        let mut document = Document::default();
+        let a = document
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(4.0, 0.0),
+            })
+            .unwrap();
+        let b = document
+            .add_geometry(Geometry::Line {
+                start: Point::new(0.0, 1.0),
+                end: Point::new(4.0, 1.0),
+            })
+            .unwrap();
+        let instance = document
+            .define_block_from_selection("Part", Point::default(), &[a, b])
+            .unwrap();
+        // Two fresh IDs are required by each operation; only one remains.
+        document.next_id = u64::MAX - 1;
+        let before = document.to_json().unwrap();
+        assert!(
+            document
+                .define_block_from_selection("Second", Point::default(), &[instance])
+                .is_err()
+        );
+        assert!(document.explode_insert(instance).is_err());
+        assert_eq!(document.to_json().unwrap(), before);
     }
 }

@@ -1,2 +1,4 @@
+   Compiling forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
    Compiling forge-craft v0.1.0 (/home/kali/Downloads/autocad/apps/craft-suite)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.32s
+   Compiling forge-cli v0.1.0 (/home/kali/Downloads/autocad/apps/forge-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 31.31s

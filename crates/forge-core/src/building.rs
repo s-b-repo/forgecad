@@ -352,7 +352,12 @@ impl Building {
                 .walls
                 .iter()
                 .find(|w| w.id == opening.wall_id)
-                .expect("validated host");
+                .ok_or_else(|| {
+                    invalid(format!(
+                        "Opening {} refers to a missing host wall",
+                        opening.id
+                    ))
+                })?;
             let kind = match opening.kind {
                 OpeningKind::Door => "door",
                 OpeningKind::Window => "window",

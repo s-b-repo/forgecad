@@ -4,11 +4,11 @@ Forge Craft remains an incomplete counterpart to the full supplied product catal
 
 ## Recorded verification
 
-- 256 workspace tests passed; 0 failed.
+- 294 workspace tests passed; 0 failed.
 - 7 populated native workbench launch/render cases.
 - 9 native drafting/edit/save/reopen interaction checks.
 - 5 documented workflow groups with generated artifacts.
-- Native project format: v6, with older-version migration.
+- Native project format: v7, with older-version migration.
 - Clippy: passed with style warnings.
 
 Exact source/artifact hashes and generation time are in [verification.json](https://github.com/s-b-repo/forgecad/blob/main/validation/results/verification.json). Native screenshots prove startup/rendering; domain tests cover their stated geometry, relationships and export cases. They do not establish full product parity, Windows/macOS release quality or machine acceptance.
@@ -17,9 +17,9 @@ Exact source/artifact hashes and generation time are in [verification.json](http
 
 | Status | Workflow rows |
 | --- | ---: |
-| Implemented | 30 |
+| Implemented | 31 |
 | Partial | 5 |
-| Planned | 20 |
+| Planned | 19 |
 | External evidence | 1 |
 
 Total: 56 tracked workflow groups. [Full feature inventory](features.md).
@@ -47,4 +47,4 @@ Total: 56 tracked workflow groups. [Full feature inventory](features.md).
 
 ## Code audit
 
-The supplied script scanned 52 Rust files. Its raw strict gate is not clean with 2037 overlapping strict pattern hits, including test assertions and legacy invariants. New production issues fixed this round and remaining audit debt are described in [Code audit](code-audit.md). These counts are not a count of confirmed vulnerabilities.
+The supplied script scanned 56 Rust files. Its raw strict gate is not clean with 2655 overlapping strict pattern hits, including test assertions and legacy invariants. New production issues fixed this round and remaining audit debt are described in [Code audit](code-audit.md). These counts are not a count of confirmed vulnerabilities.

@@ -358,7 +358,7 @@ impl Document {
                 .entities
                 .iter_mut()
                 .find(|e| e.id == id)
-                .expect("validated id")
+                .ok_or_else(|| invalid(format!("Entity {id} does not exist")))?
                 .geometry = geometry;
         }
         candidate.validate()?;
@@ -379,9 +379,9 @@ impl Document {
                 .entities
                 .iter()
                 .find(|e| e.id == source_id)
-                .expect("validated id")
+                .ok_or_else(|| invalid(format!("Entity {source_id} does not exist")))?
                 .layer_id;
-            let id = candidate.allocate_id();
+            let id = candidate.try_allocate_id()?;
             candidate.entities.push(Entity {
                 id,
                 layer_id,
@@ -834,10 +834,12 @@ mod tests {
     #[test]
     fn unsupported_transform_is_transactional() {
         let mut d = Document::default();
-        let id = d.add_geometry(Geometry::Circle {
-            center: Point::default(),
-            radius: 3.0,
-        });
+        let id = d
+            .add_geometry(Geometry::Circle {
+                center: Point::default(),
+                radius: 3.0,
+            })
+            .unwrap();
         let before = d.entities.clone();
         assert!(
             d.transform_entities(
@@ -859,11 +861,13 @@ mod tests {
     #[test]
     fn copy_preserves_layer_and_allocates_distinct_ids() {
         let mut d = Document::default();
-        let layer = d.add_layer("Walls", [10, 20, 30]);
-        let id = d.add_geometry(Geometry::Line {
-            start: Point::default(),
-            end: Point::new(5.0, 0.0),
-        });
+        let layer = d.add_layer("Walls", [10, 20, 30]).unwrap();
+        let id = d
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(5.0, 0.0),
+            })
+            .unwrap();
         let ids = d
             .duplicate_entities(&[id, id], Transform2d::translation(10.0, 0.0))
             .unwrap();
@@ -905,7 +909,7 @@ mod tests {
         let b = g.bounds().unwrap();
         near(b.min.y, -1.0);
         near(b.max.y, 0.0);
-        d.add_geometry(g);
+        d.add_geometry(g).unwrap();
         let s = d
             .object_snap(Point::new(0.05, -0.95), 0.1, SnapOptions::default())
             .unwrap();
@@ -919,7 +923,8 @@ mod tests {
         d.add_geometry(Geometry::Line {
             start: Point::default(),
             end: Point::new(10.0, 0.0),
-        });
+        })
+        .unwrap();
         assert!(
             d.object_snap(Point::default(), 1.0, SnapOptions::default())
                 .is_none()
@@ -930,12 +935,14 @@ mod tests {
     #[test]
     fn mirrored_text_is_rejected_without_mutation() {
         let mut d = Document::default();
-        let id = d.add_geometry(Geometry::Text {
-            position: Point::default(),
-            text: "Label".into(),
-            height: 3.0,
-            rotation_deg: 0.0,
-        });
+        let id = d
+            .add_geometry(Geometry::Text {
+                position: Point::default(),
+                text: "Label".into(),
+                height: 3.0,
+                rotation_deg: 0.0,
+            })
+            .unwrap();
         let before = d.entities.clone();
         assert!(
             d.transform_entities(
@@ -945,5 +952,32 @@ mod tests {
             .is_err()
         );
         assert_eq!(d.entities, before);
+    }
+
+    /// Duplication needs one fresh ID per unique source; at a nearly exhausted
+    /// allocator the transaction refuses without mutating the document.
+    #[test]
+    fn duplication_refuses_to_panic_at_the_object_id_limit() {
+        let mut d = Document::default();
+        let a = d
+            .add_geometry(Geometry::Line {
+                start: Point::default(),
+                end: Point::new(5.0, 0.0),
+            })
+            .unwrap();
+        let b = d
+            .add_geometry(Geometry::Line {
+                start: Point::new(0.0, 1.0),
+                end: Point::new(5.0, 1.0),
+            })
+            .unwrap();
+        // Two sources need two fresh IDs; only one remains.
+        d.next_id = u64::MAX - 1;
+        let before = d.to_json().unwrap();
+        assert!(
+            d.duplicate_entities(&[a, b], Transform2d::translation(10.0, 0.0))
+                .is_err()
+        );
+        assert_eq!(d.to_json().unwrap(), before);
     }
 }

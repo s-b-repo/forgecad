@@ -225,10 +225,13 @@ mod tests {
     #[test]
     fn extrusion_edits_are_reversible_and_invalid_profiles_preserve_history() {
         let mut app = ForgeApp::starting_at(Workspace::Model);
-        let entity = app.document.add_geometry(Geometry::Rectangle {
-            a: Point::default(),
-            b: Point::new(8.0, 4.0),
-        });
+        let entity = app
+            .document
+            .add_geometry(Geometry::Rectangle {
+                a: Point::default(),
+                b: Point::new(8.0, 4.0),
+            })
+            .unwrap();
         app.selected_entities.insert(entity);
         app.model_ui.height = 3.0;
         app.extrude_draft_profiles();

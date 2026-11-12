@@ -260,8 +260,14 @@ impl SceneObject {
         if !time.is_finite() {
             return Err(invalid("Scene evaluation time must be finite"));
         }
-        let first = self.keyframes.first().expect("validated keyframes");
-        let last = self.keyframes.last().expect("validated keyframes");
+        let first = self
+            .keyframes
+            .first()
+            .ok_or_else(|| invalid("Scene animation requires at least one keyframe"))?;
+        let last = self
+            .keyframes
+            .last()
+            .ok_or_else(|| invalid("Scene animation requires at least one keyframe"))?;
         if time <= first.time {
             return Ok(first.clone());
         }
@@ -350,7 +356,12 @@ impl Scene {
             if keys > MAX_SCENE_KEYFRAMES {
                 return Err(invalid("Scene exceeds the 10,000 total keyframe limit"));
             }
-            if object.keyframes.last().expect("validated keyframes").time > self.duration {
+            let last_time = object
+                .keyframes
+                .last()
+                .ok_or_else(|| invalid("Scene object requires at least one keyframe"))?
+                .time;
+            if last_time > self.duration {
                 return Err(invalid(
                     "Scene keyframes must lie within the scene duration",
                 ));

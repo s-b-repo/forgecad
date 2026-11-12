@@ -402,7 +402,7 @@ mod tests {
     #[test]
     fn plot_exports_are_nonmutating_and_report_3d_content() {
         let mut app = ForgeApp::default();
-        app.document.add_solid("Box", SolidKind::Box);
+        app.document.add_solid("Box", SolidKind::Box).unwrap();
         app.export_plot();
         assert!(app.status_is_error);
         assert!(app.pending_export.is_none());

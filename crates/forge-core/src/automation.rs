@@ -13,6 +13,18 @@ use std::io;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ProjectEdit {
+    Constraints {
+        constraints: Vec<crate::constraints::SketchConstraint>,
+    },
+    LinkedExtrusion {
+        name: String,
+        entity: u64,
+        base_z: f64,
+        height: f64,
+    },
+    ExtrusionDetach {
+        id: u64,
+    },
     Extrusion {
         name: String,
         profile: crate::Geometry,
@@ -95,6 +107,21 @@ pub fn apply_edits(document: &mut Document, edits: &[ProjectEdit]) -> io::Result
 
 fn apply_one(doc: &mut Document, edit: &ProjectEdit) -> io::Result<()> {
     match edit {
+        ProjectEdit::Constraints { constraints } => {
+            let report = doc.set_constraints(constraints.clone())?;
+            if !report.solved() {
+                return Err(invalid(report.summary()));
+            }
+        }
+        ProjectEdit::LinkedExtrusion {
+            name,
+            entity,
+            base_z,
+            height,
+        } => {
+            doc.add_linked_extrusion(name, *entity, *base_z, *height)?;
+        }
+        ProjectEdit::ExtrusionDetach { id } => doc.detach_extrusion(*id)?,
         ProjectEdit::Extrusion {
             name,
             profile,

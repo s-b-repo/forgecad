@@ -829,10 +829,13 @@ mod tests {
     fn drafting_profiles_convert_to_mm_without_relabeling_source_units() {
         let mut app = ForgeApp::default();
         app.document.units = 1;
-        let id = app.document.add_geometry(Geometry::Rectangle {
-            a: Point::new(0.0, 0.0),
-            b: Point::new(2.0, 1.0),
-        });
+        let id = app
+            .document
+            .add_geometry(Geometry::Rectangle {
+                a: Point::new(0.0, 0.0),
+                b: Point::new(2.0, 1.0),
+            })
+            .unwrap();
         app.selected_entities.insert(id);
         let source = app.document.entities.clone();
         app.copy_draft_profiles_to_cam();
@@ -862,16 +865,18 @@ mod tests {
         std::fs::create_dir_all(&folder).unwrap();
         let path = folder.join("drawing.forge.json");
         let mut drawing = Document::default();
-        drawing.add_geometry(Geometry::Point {
-            position: Point::default(),
-        });
+        drawing
+            .add_geometry(Geometry::Point {
+                position: Point::default(),
+            })
+            .unwrap();
         drawing.save_json(&path).unwrap();
         let mut app = ForgeApp::starting_at(Workspace::Build);
         app.perform_open_document(path.clone());
         assert_eq!(app.active_workspace, Workspace::Draft);
         assert_eq!(app.selected_product_id, "autocad");
         let mut model = Document::default();
-        model.add_solid("Part", SolidKind::Box);
+        model.add_solid("Part", SolidKind::Box).unwrap();
         model.save_json(&path).unwrap();
         app.perform_open_document(path.clone());
         assert_eq!(app.active_workspace, Workspace::Model);

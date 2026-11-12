@@ -1,14 +1,14 @@
 {
-  "finding": "Legacy primitive authoring panics when a loadable native document has exhausted ID capacity",
+  "finding": "Legacy primitive authoring panicked when a loadable native document had exhausted ID capacity",
   "source": "crates/forge-core/src/lib.rs",
-  "function": "Document::allocate_id via Document::add_solid",
-  "source_sha256": "adc7efd8158ee379706d4ebbb4897034ccf915c3af00a19d22bbb79262c3fc70",
-  "reproduction": "use forge_core::{Document, SolidKind};\nfn main() {\n    let mut document = Document::load_json(\"target/audit-id-limit.forge.json\").unwrap();\n    let before = document.clone();\n    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| document.add_solid(\"Box\", SolidKind::Box)));\n    assert!(result.is_err(), \"legacy authoring should expose the audit finding\");\n    assert_eq!(document, before);\n    println!(\"Confirmed panic in legacy primitive authoring; document preserved\");\n}\n",
-  "caught_panic": true,
+  "function": "Document::try_allocate_id via Document::add_solid",
+  "source_sha256": "2deff78e41110e891161ed8d3107c2d6681b3c969b6cde42983c54e48c6abd29",
+  "reproduction": "use forge_core::{Document, SolidKind};\nuse std::io::ErrorKind;\n\n/// Reproduction of the recorded object-ID exhaustion finding, re-run against the\n/// current fallible authoring APIs. The project with an exhausted ID space still\n/// loads; authoring now returns an authoring error instead of panicking, and the\n/// document, its saved bytes and the ID allocator are unchanged.\nfn main() {\n    let mut document = Document::load_json(\"target/audit-id-limit.forge.json\").unwrap();\n    document.validate().unwrap();\n    let before = document.clone();\n    let before_json = document.to_json().unwrap();\n    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {\n        document.add_solid(\"Box\", SolidKind::Box)\n    }));\n    let error = match outcome {\n        Ok(result) => match result {\n            Ok(_) => panic!(\"authoring at the object ID limit must fail\"),\n            Err(error) => error,\n        },\n        Err(_) => panic!(\"authoring must not panic at the object ID limit\"),\n    };\n    assert_eq!(error.kind(), ErrorKind::InvalidData);\n    assert_eq!(error.to_string(), \"Object ID space exhausted\");\n    assert_eq!(\n        document, before,\n        \"a refused authoring call must not mutate the document\"\n    );\n    assert_eq!(document.to_json().unwrap(), before_json);\n    println!(\"Refused authoring at the object ID limit instead of panicking; document preserved\");\n}\n",
+  "caught_panic": false,
   "document_preserved": true,
-  "stdout": "Confirmed panic in legacy primitive authoring; document preserved\n",
-  "stderr": "\nthread 'main' (32) panicked at crates/forge-core/src/lib.rs:734:32:\nObject ID space exhausted: Custom { kind: InvalidData, error: \"Object ID space exhausted\" }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+  "stdout": "Refused authoring at the object ID limit instead of panicking; document preserved\n",
+  "stderr": "",
   "expected_behavior": "Return an authoring error instead of panicking",
-  "status": "open",
-  "scope": "Reproduced by directly invoking the public authoring API on a loaded project; numeric drafting commands and new extrusion authoring preflight/return an error"
+  "status": "fixed",
+  "scope": "Re-run of the original reproduction against the current fallible authoring APIs: the same loaded project with an exhausted ID space now returns 'Object ID space exhausted' without panicking and leaves the saved bytes identical. The committed unit tests crates/forge-core/src/lib.rs::authoring_apis_refuse_to_panic_at_the_object_id_limit and crates/forge-core/tests/model_motion_civil.rs cover add_geometry/add_solid/add_layer/add_mesh and extrusion authoring at the limit without mutating the document"
 }

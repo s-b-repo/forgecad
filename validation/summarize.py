@@ -46,7 +46,9 @@ def main():
         assert digest(ROOT/name)==sha, f"Code audit is stale: {name}"
     reviewed = json.loads((RESULTS / "code-audit-id-exhaustion.json").read_text())
     assert digest(ROOT / reviewed["source"]) == reviewed["source_sha256"]
-    assert reviewed["caught_panic"] and reviewed["document_preserved"] and reviewed["status"] == "open"
+    # The recorded ID-exhaustion finding is fixed: the reproduction now records a
+    # refused authoring call with the document preserved instead of a panic.
+    assert reviewed["document_preserved"] and reviewed["status"] in ("open", "fixed")
     source_files = [ROOT / "Cargo.toml", ROOT / "Cargo.lock", ROOT / "README.md", ROOT / "audit-bad-patterns.sh"]
     for folder in ["apps", "crates", "validation", "examples", "docs", "scripts"]:
         source_files += [path for path in (ROOT / folder).rglob("*") if path.is_file() and path.suffix in [".rs", ".toml", ".py", ".json", ".md", ".forgecmd"] and not {"results", "target", "__pycache__"}.intersection(path.relative_to(ROOT).parts)]
@@ -68,7 +70,7 @@ def main():
         "product_targets": len(json.loads((ROOT / "crates/forge-core/data/products.json").read_text())),
         "workspace_tests_passed": sum(int(passed) for passed, _ in suites),
         "workspace_tests_failed": sum(int(failed) for _, failed in suites),
-        "native_project_format_version": 6,
+        "native_project_format_version": 7,
         "clippy_status": "passed with style warnings" if "warning:" in lint else "passed",
         "code_audit": {"files_scanned":audit["files_scanned"],"raw_strict_passed":audit["raw_strict_passed"],"strict_hits":audit["strict_hits"],"report":"validation/results/code-audit.json"},
         "advanced_workflow_cases": advanced["checks_passed"],

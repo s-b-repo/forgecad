@@ -1,4 +1,3 @@
-    Checking forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
 warning: this `if` statement can be collapsed
   --> crates/forge-core/src/civil.rs:73:13
    |
@@ -63,49 +62,49 @@ warning: using `chunks_exact` with a constant chunk size
    = note: `#[warn(clippy::chunks_exact_to_as_chunks)]` on by default
 
 warning: this `if` can be collapsed into the outer `match`
-   --> crates/forge-core/src/dxf.rs:447:17
+   --> crates/forge-core/src/dxf.rs:451:17
     |
-447 | /                 if parse_number(group.value, "LWPOLYLINE", group.code)?.abs() > 1e-10 {
-448 | |                     report.unsupported("LWPOLYLINE variable widths");
-449 | |                 }
+451 | /                 if parse_number(group.value, "LWPOLYLINE", group.code)?.abs() > 1e-10 {
+452 | |                     report.unsupported("LWPOLYLINE variable widths");
+453 | |                 }
     | |_________________^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_match
     = note: `#[warn(clippy::collapsible_match)]` on by default
 help: collapse nested if block
     |
-446 ~             40 | 41
-447 ~                 if parse_number(group.value, "LWPOLYLINE", group.code)?.abs() > 1e-10 => {
-448 |                     report.unsupported("LWPOLYLINE variable widths");
-449 ~                 }
+450 ~             40 | 41
+451 ~                 if parse_number(group.value, "LWPOLYLINE", group.code)?.abs() > 1e-10 => {
+452 |                     report.unsupported("LWPOLYLINE variable widths");
+453 ~                 }
     |
 
 warning: this `if` statement can be collapsed
-   --> crates/forge-core/src/dxf.rs:614:9
+   --> crates/forge-core/src/dxf.rs:618:9
     |
-614 | /         if let Geometry::Text { text, .. } = &entity.geometry {
-615 | |             if text.chars().count() > 255 {
-616 | |                 return Err(invalid(
-617 | |                     "DXF TEXT cannot exceed 255 characters; it will not be truncated",
+618 | /         if let Geometry::Text { text, .. } = &entity.geometry {
+619 | |             if text.chars().count() > 255 {
+620 | |                 return Err(invalid(
+621 | |                     "DXF TEXT cannot exceed 255 characters; it will not be truncated",
 ...   |
-620 | |         }
+624 | |         }
     | |_________^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
     |
-614 ~         if let Geometry::Text { text, .. } = &entity.geometry
-615 ~             && text.chars().count() > 255 {
-616 |                 return Err(invalid(
-617 |                     "DXF TEXT cannot exceed 255 characters; it will not be truncated",
-618 |                 ));
-619 ~             }
+618 ~         if let Geometry::Text { text, .. } = &entity.geometry
+619 ~             && text.chars().count() > 255 {
+620 |                 return Err(invalid(
+621 |                     "DXF TEXT cannot exceed 255 characters; it will not be truncated",
+622 |                 ));
+623 ~             }
     |
 
 warning: manual implementation of `.is_multiple_of()`
-   --> crates/forge-core/src/dxf.rs:981:33
+   --> crates/forge-core/src/dxf.rs:990:33
     |
-981 |             let saturation = if shade % 2 == 0 { 1.0 } else { 0.5 };
+990 |             let saturation = if shade % 2 == 0 { 1.0 } else { 0.5 };
     |                                 ^^^^^^^^^^^^^^ help: replace with: `shade.is_multiple_of(2)`
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_is_multiple_of
@@ -165,75 +164,133 @@ help: collapse nested if block
    |
 
 warning: this `if` statement can be collapsed
-   --> crates/forge-core/src/lib.rs:163:17
+   --> crates/forge-core/src/lib.rs:164:17
     |
-163 | /                 if let Self::Arc {
-164 | |                     start_angle_deg,
-165 | |                     end_angle_deg,
-166 | |                     ..
+164 | /                 if let Self::Arc {
+165 | |                     start_angle_deg,
+166 | |                     end_angle_deg,
+167 | |                     ..
 ...   |
-172 | |                 }
+173 | |                 }
     | |_________________^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
     |
-167 ~                 } = self
-168 ~                     && (!start_angle_deg.is_finite() || !end_angle_deg.is_finite()) {
-169 |                         return Err(invalid("Arc angles must be finite"));
-170 ~                     }
+168 ~                 } = self
+169 ~                     && (!start_angle_deg.is_finite() || !end_angle_deg.is_finite()) {
+170 |                         return Err(invalid("Arc angles must be finite"));
+171 ~                     }
     |
 
 warning: `forge-core` (lib) generated 12 warnings (run `cargo clippy --fix --lib -p forge-core -- ` to apply 12 suggestions)
     Checking forge-craft v0.1.0 (/home/kali/Downloads/autocad/apps/craft-suite)
+    Checking forge-core v0.1.0 (/home/kali/Downloads/autocad/crates/forge-core)
     Checking forge-cli v0.1.0 (/home/kali/Downloads/autocad/apps/forge-cli)
 warning: this `if` statement can be collapsed
-   --> apps/forge-cli/src/main.rs:274:17
+   --> crates/forge-core/tests/remaining_features.rs:269:17
     |
-274 | /                 if let Some(keyword) = line
-275 | |                     .split('#')
-276 | |                     .next()
-277 | |                     .unwrap_or("")
-...   |
-302 | |                 }
+269 | /                 if let Geometry::Circle { center, radius } = geometry {
+270 | |                     if p.distance(center) > radius - 0.1 {
+271 | |                         continue;
+272 | |                     }
+273 | |                 }
     | |_________________^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
     = note: `#[warn(clippy::collapsible_if)]` on by default
 help: collapse nested if block
     |
-279 ~                     .next()
-280 ~                     && [
-281 |                         "vt",
+269 ~                 if let Geometry::Circle { center, radius } = geometry
+270 ~                     && p.distance(center) > radius - 0.1 {
+271 |                         continue;
+272 ~                     }
+    |
+
+warning: this `if` statement can be collapsed
+  --> crates/forge-core/tests/model_motion_civil.rs:33:9
+   |
+33 | /         if reverse {
+34 | |             if let Geometry::Polyline { vertices, .. } = &mut profile {
+35 | |                 vertices.reverse();
+36 | |             }
+37 | |         }
+   | |_________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+   = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+   |
+33 ~         if reverse
+34 ~             && let Geometry::Polyline { vertices, .. } = &mut profile {
+35 |                 vertices.reverse();
+36 ~             }
+   |
+
+warning: field assignment outside of initializer for an instance created with Default::default()
+   --> crates/forge-core/tests/remaining_features.rs:524:5
+    |
+524 |     job.depth = 2.5;
+    |     ^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `forge_core::cam::CamJob { depth: 2.5, step_down: 1.0, ..Default::default() }` and removing relevant reassignments
+   --> crates/forge-core/tests/remaining_features.rs:523:5
+    |
+523 |     let mut job = CamJob::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+    = note: `#[warn(clippy::field_reassign_with_default)]` on by default
+
+warning: `forge-core` (test "model_motion_civil") generated 1 warning (run `cargo clippy --fix --test "model_motion_civil" -p forge-core -- ` to apply 1 suggestion)
+warning: `forge-core` (test "remaining_features") generated 2 warnings (run `cargo clippy --fix --test "remaining_features" -p forge-core -- ` to apply 1 suggestion)
+warning: this `if` statement can be collapsed
+   --> apps/forge-cli/src/main.rs:281:17
+    |
+281 | /                 if let Some(keyword) = line
+282 | |                     .split('#')
+283 | |                     .next()
+284 | |                     .unwrap_or("")
+...   |
+309 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
+    = note: `#[warn(clippy::collapsible_if)]` on by default
+help: collapse nested if block
+    |
+286 ~                     .next()
+287 ~                     && [
+288 |                         "vt",
 ...
-299 |                         *attributes.entry(keyword).or_default() += 1;
-300 ~                     }
+306 |                         *attributes.entry(keyword).or_default() += 1;
+307 ~                     }
     |
 
 warning: using `chunks_exact` with a constant chunk size
-   --> apps/forge-cli/src/main.rs:327:26
+   --> apps/forge-cli/src/main.rs:334:26
     |
-327 |                         .chunks_exact(50)
+334 |                         .chunks_exact(50)
     |                          ^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<50>().0.iter()`
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
     = note: `#[warn(clippy::chunks_exact_to_as_chunks)]` on by default
 
 warning: using `print!()` with a format string that ends in a single newline
-   --> apps/forge-cli/src/main.rs:669:9
+   --> apps/forge-cli/src/main.rs:680:9
     |
-669 |         print!("{DRAFT_HELP}{}\n", forge_core::command::HELP);
+680 |         print!("{DRAFT_HELP}{}\n", forge_core::command::HELP);
     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#print_with_newline
     = note: `#[warn(clippy::print_with_newline)]` on by default
 help: use `println!` instead
     |
-669 -         print!("{DRAFT_HELP}{}\n", forge_core::command::HELP);
-669 +         println!("{DRAFT_HELP}{}", forge_core::command::HELP);
+680 -         print!("{DRAFT_HELP}{}\n", forge_core::command::HELP);
+680 +         println!("{DRAFT_HELP}{}", forge_core::command::HELP);
     |
 
-warning: `forge-cli` (bin "forge") generated 3 warnings (run `cargo clippy --fix --bin "forge" -p forge-cli -- ` to apply 3 suggestions)
+warning: `forge-cli` (bin "forge" test) generated 3 warnings (run `cargo clippy --fix --bin "forge" -p forge-cli --tests -- ` to apply 3 suggestions)
+warning: `forge-cli` (bin "forge") generated 3 warnings (3 duplicates)
 warning: this `if` statement can be collapsed
    --> apps/craft-suite/src/civil_ui.rs:332:5
     |
@@ -299,260 +356,337 @@ help: collapse nested if block
     |
 
 warning: this `if` statement can be collapsed
-   --> apps/craft-suite/src/app.rs:542:9
+   --> apps/craft-suite/src/app.rs:546:9
     |
-542 | /         if let Some(id) = chosen {
-543 | |             if let Some(product) = catalog::product(&id) {
-544 | |                 self.switch_workspace(workspace_for_area(product.area));
-545 | |                 self.selected_product_id = id;
+546 | /         if let Some(id) = chosen {
+547 | |             if let Some(product) = catalog::product(&id) {
+548 | |                 self.switch_workspace(workspace_for_area(product.area));
+549 | |                 self.selected_product_id = id;
 ...   |
-556 | |         }
+560 | |         }
     | |_________^
     |
     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
     |
-542 ~         if let Some(id) = chosen
-543 ~             && let Some(product) = catalog::product(&id) {
-544 |                 self.switch_workspace(workspace_for_area(product.area));
+546 ~         if let Some(id) = chosen
+547 ~             && let Some(product) = catalog::product(&id) {
+548 |                 self.switch_workspace(workspace_for_area(product.area));
 ...
-554 |                 self.show_products = false;
-555 ~             }
+558 |                 self.show_products = false;
+559 ~             }
     |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1267:9
+    --> apps/craft-suite/src/app.rs:1284:9
      |
-1267 | /         if ui.small_button("Use selection center").clicked() {
-1268 | |             if let Some(bounds) = self.selection_bounds() {
-1269 | |                 self.selection_pivot = [
-1270 | |                     bounds.min.x / 2.0 + bounds.max.x / 2.0,
+1284 | /         if ui.small_button("Use selection center").clicked() {
+1285 | |             if let Some(bounds) = self.selection_bounds() {
+1286 | |                 self.selection_pivot = [
+1287 | |                     bounds.min.x / 2.0 + bounds.max.x / 2.0,
 ...    |
-1274 | |         }
+1291 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1267 ~         if ui.small_button("Use selection center").clicked()
-1268 ~             && let Some(bounds) = self.selection_bounds() {
-1269 |                 self.selection_pivot = [
+1284 ~         if ui.small_button("Use selection center").clicked()
+1285 ~             && let Some(bounds) = self.selection_bounds() {
+1286 |                 self.selection_pivot = [
  ...
-1272 |                 ];
-1273 ~             }
+1289 |                 ];
+1290 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1691:9
+    --> apps/craft-suite/src/app.rs:1708:9
      |
-1691 | /         if let (Some(start), Some(end)) = (self.draft_start, self.preview_point) {
-1692 | |             if matches!(
-1693 | |                 self.draft_tool,
-1694 | |                 DraftTool::Line | DraftTool::Rectangle | DraftTool::Circle
+1708 | /         if let (Some(start), Some(end)) = (self.draft_start, self.preview_point) {
+1709 | |             if matches!(
+1710 | |                 self.draft_tool,
+1711 | |                 DraftTool::Line | DraftTool::Rectangle | DraftTool::Circle
 ...    |
-1699 | |         }
+1716 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1691 ~         if let (Some(start), Some(end)) = (self.draft_start, self.preview_point)
-1692 ~             && matches!(
-1693 |                 self.draft_tool,
+1708 ~         if let (Some(start), Some(end)) = (self.draft_start, self.preview_point)
+1709 ~             && matches!(
+1710 |                 self.draft_tool,
  ...
-1697 |                 paint_geometry(&painter, rect, self.camera_2d, &geometry, ACCENT, false);
-1698 ~             }
+1714 |                 paint_geometry(&painter, rect, self.camera_2d, &geometry, ACCENT, false);
+1715 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1711:13
+    --> apps/craft-suite/src/app.rs:1728:13
      |
-1711 | /             if wheel.abs() > 0.0 {
-1712 | |                 if let Some(pointer) = response.hover_pos() {
-1713 | |                     let before = self.camera_2d.screen_to_world(pointer, rect);
-1714 | |                     let scale = (1.0 + wheel * 0.001).clamp(0.2, 5.0);
+1728 | /             if wheel.abs() > 0.0 {
+1729 | |                 if let Some(pointer) = response.hover_pos() {
+1730 | |                     let before = self.camera_2d.screen_to_world(pointer, rect);
+1731 | |                     let scale = (1.0 + wheel * 0.001).clamp(0.2, 5.0);
 ...    |
-1719 | |             }
+1736 | |             }
      | |_____________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1711 ~             if wheel.abs() > 0.0
-1712 ~                 && let Some(pointer) = response.hover_pos() {
-1713 |                     let before = self.camera_2d.screen_to_world(pointer, rect);
+1728 ~             if wheel.abs() > 0.0
+1729 ~                 && let Some(pointer) = response.hover_pos() {
+1730 |                     let before = self.camera_2d.screen_to_world(pointer, rect);
  ...
-1717 |                     self.camera_2d.pan += pointer - after;
-1718 ~                 }
+1734 |                     self.camera_2d.pan += pointer - after;
+1735 ~                 }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1741:13
+    --> apps/craft-suite/src/app.rs:1758:13
      |
-1741 | /             if response.clicked_by(egui::PointerButton::Primary) {
-1742 | |                 if let Some(pointer) = response.interact_pointer_pos() {
-1743 | |                     self.construction_click(self.world_point(pointer, rect));
-1744 | |                 }
-1745 | |             }
+1758 | /             if response.clicked_by(egui::PointerButton::Primary) {
+1759 | |                 if let Some(pointer) = response.interact_pointer_pos() {
+1760 | |                     self.construction_click(self.world_point(pointer, rect));
+1761 | |                 }
+1762 | |             }
      | |_____________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1741 ~             if response.clicked_by(egui::PointerButton::Primary)
-1742 ~                 && let Some(pointer) = response.interact_pointer_pos() {
-1743 |                     self.construction_click(self.world_point(pointer, rect));
-1744 ~                 }
+1758 ~             if response.clicked_by(egui::PointerButton::Primary)
+1759 ~                 && let Some(pointer) = response.interact_pointer_pos() {
+1760 |                     self.construction_click(self.world_point(pointer, rect));
+1761 ~                 }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1749:9
+    --> apps/craft-suite/src/app.rs:1766:9
      |
-1749 | /         if response.drag_started_by(egui::PointerButton::Primary) {
-1750 | |             if let Some(pointer) = ui
-1751 | |                 .input(|input| input.pointer.press_origin())
-1752 | |                 .or(response.interact_pointer_pos())
+1766 | /         if response.drag_started_by(egui::PointerButton::Primary) {
+1767 | |             if let Some(pointer) = ui
+1768 | |                 .input(|input| input.pointer.press_origin())
+1769 | |                 .or(response.interact_pointer_pos())
 ...    |
-1764 | |         }
+1781 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1749 ~         if response.drag_started_by(egui::PointerButton::Primary)
-1750 ~             && let Some(pointer) = ui
-1751 |                 .input(|input| input.pointer.press_origin())
+1766 ~         if response.drag_started_by(egui::PointerButton::Primary)
+1767 ~             && let Some(pointer) = ui
+1768 |                 .input(|input| input.pointer.press_origin())
  ...
-1762 |                 }
-1763 ~             }
+1779 |                 }
+1780 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1765:9
+    --> apps/craft-suite/src/app.rs:1782:9
      |
-1765 | /         if response.dragged_by(egui::PointerButton::Primary) && self.drag_state == DragState::Draw {
-1766 | |             if let Some(pointer) = response.interact_pointer_pos() {
-1767 | |                 self.preview_point = Some(self.world_point(pointer, rect));
-1768 | |             }
-1769 | |         }
+1782 | /         if response.dragged_by(egui::PointerButton::Primary) && self.drag_state == DragState::Draw {
+1783 | |             if let Some(pointer) = response.interact_pointer_pos() {
+1784 | |                 self.preview_point = Some(self.world_point(pointer, rect));
+1785 | |             }
+1786 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1765 ~         if response.dragged_by(egui::PointerButton::Primary) && self.drag_state == DragState::Draw
-1766 ~             && let Some(pointer) = response.interact_pointer_pos() {
-1767 |                 self.preview_point = Some(self.world_point(pointer, rect));
-1768 ~             }
+1782 ~         if response.dragged_by(egui::PointerButton::Primary) && self.drag_state == DragState::Draw
+1783 ~             && let Some(pointer) = response.interact_pointer_pos() {
+1784 |                 self.preview_point = Some(self.world_point(pointer, rect));
+1785 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1771:13
+    --> apps/craft-suite/src/app.rs:1788:13
      |
-1771 | /             if self.drag_state == DragState::Draw {
-1772 | |                 if let Some(pointer) = response.interact_pointer_pos() {
-1773 | |                     let end = self.world_point(pointer, rect);
-1774 | |                     self.finish_draft(end);
-1775 | |                 }
-1776 | |             }
+1788 | /             if self.drag_state == DragState::Draw {
+1789 | |                 if let Some(pointer) = response.interact_pointer_pos() {
+1790 | |                     let end = self.world_point(pointer, rect);
+1791 | |                     self.finish_draft(end);
+1792 | |                 }
+1793 | |             }
      | |_____________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1771 ~             if self.drag_state == DragState::Draw
-1772 ~                 && let Some(pointer) = response.interact_pointer_pos() {
-1773 |                     let end = self.world_point(pointer, rect);
-1774 |                     self.finish_draft(end);
-1775 ~                 }
+1788 ~             if self.drag_state == DragState::Draw
+1789 ~                 && let Some(pointer) = response.interact_pointer_pos() {
+1790 |                     let end = self.world_point(pointer, rect);
+1791 |                     self.finish_draft(end);
+1792 ~                 }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1779:9
+    --> apps/craft-suite/src/app.rs:1796:9
      |
-1779 | /         if response.clicked_by(egui::PointerButton::Primary) {
-1780 | |             if let Some(pointer) = response.interact_pointer_pos() {
-1781 | |                 let point = self.world_point(pointer, rect);
-1782 | |                 if self.draft_tool == DraftTool::Select {
+1796 | /         if response.clicked_by(egui::PointerButton::Primary) {
+1797 | |             if let Some(pointer) = response.interact_pointer_pos() {
+1798 | |                 let point = self.world_point(pointer, rect);
+1799 | |                 if self.draft_tool == DraftTool::Select {
 ...    |
-1793 | |         }
+1810 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1779 ~         if response.clicked_by(egui::PointerButton::Primary)
-1780 ~             && let Some(pointer) = response.interact_pointer_pos() {
-1781 |                 let point = self.world_point(pointer, rect);
+1796 ~         if response.clicked_by(egui::PointerButton::Primary)
+1797 ~             && let Some(pointer) = response.interact_pointer_pos() {
+1798 |                 let point = self.world_point(pointer, rect);
  ...
-1791 |                 }
-1792 ~             }
+1808 |                 }
+1809 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:1980:9
+    --> apps/craft-suite/src/app.rs:1997:9
      |
-1980 | /         if self.active_workspace == Workspace::Model
-1981 | |             && response.clicked_by(egui::PointerButton::Primary)
-1982 | |         {
-1983 | |             if let Some(pointer) = response.interact_pointer_pos() {
+1997 | /         if self.active_workspace == Workspace::Model
+1998 | |             && response.clicked_by(egui::PointerButton::Primary)
+1999 | |         {
+2000 | |             if let Some(pointer) = response.interact_pointer_pos() {
 ...    |
-2030 | |         }
+2047 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-1981 ~             && response.clicked_by(egui::PointerButton::Primary)
-1982 ~             && let Some(pointer) = response.interact_pointer_pos() {
-1983 |                 let mut nearest = self
+1998 ~             && response.clicked_by(egui::PointerButton::Primary)
+1999 ~             && let Some(pointer) = response.interact_pointer_pos() {
+2000 |                 let mut nearest = self
  ...
-2027 |                 }
-2028 ~             }
+2044 |                 }
+2045 ~             }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:2023:17
+    --> apps/craft-suite/src/app.rs:2040:17
      |
-2023 | /                 if let Some((id, distance)) = nearest_mesh {
-2024 | |                     if nearest.is_none_or(|(_, solid_distance)| distance < solid_distance) {
-2025 | |                         self.selected_mesh = Some(id);
-2026 | |                         self.selected_solid = None;
-2027 | |                     }
-2028 | |                 }
+2040 | /                 if let Some((id, distance)) = nearest_mesh {
+2041 | |                     if nearest.is_none_or(|(_, solid_distance)| distance < solid_distance) {
+2042 | |                         self.selected_mesh = Some(id);
+2043 | |                         self.selected_solid = None;
+2044 | |                     }
+2045 | |                 }
      | |_________________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-2023 ~                 if let Some((id, distance)) = nearest_mesh
-2024 ~                     && nearest.is_none_or(|(_, solid_distance)| distance < solid_distance) {
-2025 |                         self.selected_mesh = Some(id);
-2026 |                         self.selected_solid = None;
-2027 ~                     }
+2040 ~                 if let Some((id, distance)) = nearest_mesh
+2041 ~                     && nearest.is_none_or(|(_, solid_distance)| distance < solid_distance) {
+2042 |                         self.selected_mesh = Some(id);
+2043 |                         self.selected_solid = None;
+2044 ~                     }
      |
 
 warning: this `if` statement can be collapsed
-    --> apps/craft-suite/src/app.rs:2324:9
+    --> apps/craft-suite/src/app.rs:2352:9
      |
-2324 | /         if self.snap_to_objects {
-2325 | |             if let Some(snap) = self.document.object_snap(
-2326 | |                 point,
-2327 | |                 8.0 / self.camera_2d.zoom.max(0.00001) as f64,
+2352 | /         if self.snap_to_objects {
+2353 | |             if let Some(snap) = self.document.object_snap(
+2354 | |                 point,
+2355 | |                 8.0 / self.camera_2d.zoom.max(0.00001) as f64,
 ...    |
-2332 | |         }
+2360 | |         }
      | |_________^
      |
      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#collapsible_if
 help: collapse nested if block
      |
-2324 ~         if self.snap_to_objects
-2325 ~             && let Some(snap) = self.document.object_snap(
-2326 |                 point,
+2352 ~         if self.snap_to_objects
+2353 ~             && let Some(snap) = self.document.object_snap(
+2354 |                 point,
  ...
-2330 |                 return snap.point;
-2331 ~             }
+2358 |                 return snap.point;
+2359 ~             }
      |
 
 warning: `forge-craft` (lib) generated 15 warnings (run `cargo clippy --fix --lib -p forge-craft -- ` to apply 15 suggestions)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.40s
+warning: `forge-craft` (lib test) generated 15 warnings (15 duplicates)
+warning: the variable `id` is used as a loop counter
+   --> crates/forge-core/src/blocks.rs:483:9
+    |
+483 |         for index in 0..=MAX_BLOCK_DEPTH {
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `for (id, index) in (2..).zip((0..=MAX_BLOCK_DEPTH))`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#explicit_counter_loop
+    = note: `#[warn(clippy::explicit_counter_loop)]` on by default
+
+warning: field assignment outside of initializer for an instance created with Default::default()
+    --> crates/forge-core/src/cam.rs:1237:9
+     |
+1237 |         job.profiles = vec![profile; 3];
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: consider initializing the variable with `cam::CamJob { profiles: vec![profile; 3], ..Default::default() }` and removing relevant reassignments
+    --> crates/forge-core/src/cam.rs:1236:9
+     |
+1236 |         let mut job = CamJob::default();
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+     = note: `#[warn(clippy::field_reassign_with_default)]` on by default
+
+warning: field assignment outside of initializer for an instance created with Default::default()
+    --> crates/forge-core/src/cam.rs:1246:9
+     |
+1246 |         job.stock_min = [900000.0, 900000.0, -10.0];
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+note: consider initializing the variable with `cam::CamJob { stock_min: [900000.0, 900000.0, -10.0], stock_max: [901000.0, 901000.0, 0.0], profiles: vec![Profile {
+                  id: 1,
+                  name: "Far origin".into(),
+                  compensation: Compensation::Center,
+                  operation: Operation::Profile,
+                  islands: Vec::new(),
+                  geometry: Geometry::Polyline {
+                      vertices: vec![
+                          Point::new(900100.0, 900100.0),
+                          Point::new(900200.0, 900100.0),
+                          Point::new(900200.0, 900200.0),
+                          Point::new(900100.0, 900200.0),
+                      ]
+                      .into_iter()
+                      .map(crate::PolylineVertex::new)
+                      .collect(),
+                      closed: true,
+                  },
+              }], tool_diameter: 0.00001, ..Default::default() }` and removing relevant reassignments
+    --> crates/forge-core/src/cam.rs:1245:9
+     |
+1245 |         let mut job = CamJob::default();
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+warning: using `chunks_exact` with a constant chunk size
+    --> crates/forge-core/src/dxf.rs:1271:14
+     |
+1271 |             .chunks_exact(2)
+     |              ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<2>().0.iter()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks
+
+warning: field assignment outside of initializer for an instance created with Default::default()
+   --> crates/forge-core/src/lib.rs:942:9
+    |
+942 |         missing.active_layer_id = 99;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `Document { active_layer_id: 99, ..Default::default() }` and removing relevant reassignments
+   --> crates/forge-core/src/lib.rs:941:9
+    |
+941 |         let mut missing = Document::default();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#field_reassign_with_default
+
+warning: `forge-core` (lib test) generated 17 warnings (12 duplicates) (run `cargo clippy --fix --lib -p forge-core --tests -- ` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.58s

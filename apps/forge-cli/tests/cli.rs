@@ -56,14 +56,14 @@ fn near(a: f64, b: f64) {
 }
 
 #[test]
-fn workbench_examples_round_trip_native_v5_with_all_semantic_domains() {
+fn workbench_examples_round_trip_native_v7_with_all_semantic_domains() {
     let files = Files::new();
     let source = files.file("suite.forge.json");
     let copy = files.file("suite-copy.forge.json");
     success(run(&["workbench", "create", "all", path(&source)]));
     let source_bytes = fs::read(&source).unwrap();
     let envelope: Value = serde_json::from_slice(&source_bytes).unwrap();
-    assert_eq!(envelope["format_version"], 6);
+    assert_eq!(envelope["format_version"], 7);
     let document = Document::load_json(&source).unwrap();
     assert!(document.has_workbench_data());
     assert!(!document.building.walls.is_empty());
@@ -337,10 +337,12 @@ fn semantic_export_failures_do_not_write_or_replace_files_and_loss_is_explicit()
     let source = files.file("source.forge.json");
     success(run(&["workbench", "create", "all", path(&source)]));
     let mut document = Document::load_json(&source).unwrap();
-    document.add_geometry(Geometry::Line {
-        start: Point::new(0.0, 0.0),
-        end: Point::new(10.0, 5.0),
-    });
+    document
+        .add_geometry(Geometry::Line {
+            start: Point::new(0.0, 0.0),
+            end: Point::new(10.0, 5.0),
+        })
+        .unwrap();
     document.save_json(&source).unwrap();
     let before = fs::read(&source).unwrap();
     assert!(
@@ -567,7 +569,7 @@ fn plotting_produces_physical_svg_sheets_with_visible_layers_and_escaped_annotat
         .find(|layer| layer.id == pipes)
         .unwrap()
         .color = [0x12, 0x34, 0x56];
-    let hidden = document.add_layer("Hidden", [255, 0, 0]);
+    let hidden = document.add_layer("Hidden", [255, 0, 0]).unwrap();
     document
         .layers
         .iter_mut()
@@ -575,10 +577,12 @@ fn plotting_produces_physical_svg_sheets_with_visible_layers_and_escaped_annotat
         .unwrap()
         .visible = false;
     document.active_layer_id = hidden;
-    document.add_geometry(Geometry::Circle {
-        center: Point::new(10_000.0, 20_000.0),
-        radius: 100.0,
-    });
+    document
+        .add_geometry(Geometry::Circle {
+            center: Point::new(10_000.0, 20_000.0),
+            radius: 100.0,
+        })
+        .unwrap();
     document.save_json(&native).unwrap();
     success(run(&[
         "plot",
@@ -1050,8 +1054,9 @@ fn unsupported_native_formats_and_mixed_scene_transforms_are_refused() {
     doc.add_geometry(Geometry::Line {
         start: Point::default(),
         end: Point::new(10.0, 0.0),
-    });
-    doc.add_solid("Part", forge_core::SolidKind::Box);
+    })
+    .unwrap();
+    doc.add_solid("Part", forge_core::SolidKind::Box).unwrap();
     doc.save_json(&scene).unwrap();
     assert!(
         !run(&[

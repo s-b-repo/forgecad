@@ -98,9 +98,11 @@ fn extrusion_parameters_round_trip_and_mesh_exchange_refuses_silent_parameter_lo
     assert!(forge_core::dxf::write(&doc).is_err());
     assert!(forge_core::plot::export_svg(&doc, Default::default()).is_err());
     let mut loaded = restored;
-    let next = loaded.add_geometry(Geometry::Point {
-        position: Point::default(),
-    });
+    let next = loaded
+        .add_geometry(Geometry::Point {
+            position: Point::default(),
+        })
+        .unwrap();
     assert!(next > id);
     let before = loaded.clone();
     assert!(
@@ -312,7 +314,7 @@ fn major_arcs_and_terrain_profiles_keep_analytic_stationing() {
 #[test]
 fn v5_projects_receive_empty_extrusions_linear_visible_unmodified_objects_and_straight_alignments()
 {
-    assert_eq!(PROJECT_FORMAT_VERSION, 6);
+    assert_eq!(PROJECT_FORMAT_VERSION, 7);
     let mut doc = Document::default();
     doc.scene = Scene::example();
     doc.terrain = Terrain::example();

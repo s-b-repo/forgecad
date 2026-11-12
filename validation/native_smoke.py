@@ -70,7 +70,7 @@ def prepare_cases():
         if area in expected_counts:
             assert info["workbenches"][expected_counts[area]] > 0, f"{area} fixture has no semantic content"
             case["format_version"] = json.loads(source.read_text())["format_version"]
-            assert case["format_version"] == 6
+            assert case["format_version"] == 7
         elif area == "draft":
             assert info["entities"] > 0
             assert info["layouts"] == 1

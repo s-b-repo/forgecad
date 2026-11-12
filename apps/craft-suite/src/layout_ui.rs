@@ -197,10 +197,12 @@ mod tests {
     #[test]
     fn layout_creation_and_edits_are_undoable_and_invalid_frames_preserve_history() {
         let mut app = ForgeApp::default();
-        app.document.add_geometry(Geometry::Rectangle {
-            a: Point::default(),
-            b: Point::new(100.0, 100.0),
-        });
+        app.document
+            .add_geometry(Geometry::Rectangle {
+                a: Point::default(),
+                b: Point::new(100.0, 100.0),
+            })
+            .unwrap();
         app.drafting.layouts.new_name = "Plan".into();
         app.create_print_layout();
         assert_eq!(app.document.layouts.len(), 1);

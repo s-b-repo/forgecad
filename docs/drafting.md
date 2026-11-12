@@ -28,9 +28,66 @@ Selection controls in the inspector expose move, copy, rotate, scale, offset, mi
 | `LAYER` | `name…`; create/select the current layer |
 | `UNITS` | DXF unit code `0..24` (0 unitless, 1 inches, 4 millimetres, 6 metres); sets metadata without rescaling coordinates |
 | `LENGTH`, `DIST` | Selected curve length, or `x1 y1 x2 y2` distance |
+| `RELATION HORIZONTAL`, `RELATION VERTICAL` | `id`; solves that LINE onto the axis |
+| `RELATION COINCIDENT` | `id handle id handle`; joins two handles |
+| `RELATION FIXPOINT` | `id handle x y`; pins one handle at a coordinate |
+| `RELATION DISTX`, `RELATION DISTY` | `id handle id handle value`; axis distance between two handles |
+| `RELATION RADIUS` | `id value`; absolute radius of a CIRCLE |
+| `RELATION EQUALRAD` | `id id`; equal radii on two CIRCLEs |
+| `RELATION REMOVE` | `constraint-id`; removes one relation and re-solves |
+| `RELATION CLEAR` | Removes every relation |
+| `CONSTRAINT` | `REPORT` (read-only) or `SOLVE`; re-solves the current sketch |
 | `HELP` | Show command syntax |
 
+Point handles identify a constrained point on an entity: `START`/`END` on lines, `CENTER` on circles, `POSITION` on points, `CORNERA`/`CORNERB` on rectangles and `VERTEX n` on straight polylines. Handles, relation kinds and command names are case-insensitive. Relation and constraint IDs are their own namespace, independent of drawing object IDs; each new relation takes the next free constraint ID automatically, so `RELATION REMOVE` and `CONSTRAINT REPORT` report those numbers.
+
 Desktop commands also include `UNDO`, `REDO`, `FIT`, `SAVE` and `NEW`. NEW follows the usual unsaved-change decision. Batch commands below exclude these desktop actions. Commands are case-insensitive and accept finite numbers, including decimal/scientific notation. Object IDs appear in the inspector. Names and text use the rest of their command line. This command language is not AutoLISP or an AutoCAD script interpreter.
+
+## Sketch constraints
+
+The **Sketch constraints** section of the Draft inspector authors relations on the current drawing, and `RELATION`/`CONSTRAINT` do the same from the command bar and CLI scripts. Relations persist in native Forge projects; neutral formats (DXF, OBJ/STL, DWG) drop them. `forge constraints handles` lists an entity's valid handles, and `forge constraints report`/`solve` query or re-solve a saved project:
+
+```sh
+./target/desktop/debug/forge draft - target/slope.forge.json --command 'LINE 0 0 100 20'
+./target/desktop/debug/forge draft - target/plate.forge.json \
+  --command 'LINE 0 0 100 20' --command 'RELATION HORIZONTAL 2'
+./target/desktop/debug/forge constraints report target/plate.forge.json --json
+./target/desktop/debug/forge constraints solve target/plate.forge.json target/flat.forge.json
+```
+
+The solver collects the coordinates and radii of every entity a relation references into a linear system and solves it, moving participating geometry the least that satisfies the relations. Horizontal/vertical relations make a LINE axis-aligned, coincident joins two handles, fixed points pin one handle at a coordinate, X/Y distances set the separation between two handles on one axis, radius sets a CIRCLE's absolute radius and equal radius matches two circles. Redundant but consistent relations are reported rather than applied twice.
+
+`CONSTRAINT REPORT` is read-only and `CONSTRAINT SOLVE` re-solves the current sketch. The report carries the sketch **state** (`Satisfied`, `NeedsSolve`, `Conflict` or `NumericalFailure`), the counts of **constraints**, participating **variables**, **equations** and matrix **rank**, the remaining **degrees of freedom**, the number of **redundant equations**, the tolerance, the **maximum error** and the **conflicting constraint IDs** with their per-constraint errors. The command bar and CLI print the summary line plus one line per relation; `--json` returns every field.
+
+Every relation and every solve is one transaction on a candidate copy of the document: a parse error, an unsupported entity, a conflicting set or a numerically invalid result leaves the drawing, the constraint set, the object-ID allocator and the undo history byte-identical, and no output file is written. An already satisfied sketch re-solves as a verified no-op that reports no change.
+
+Supported geometry is LINE, RECTANGLE, CIRCLE, POINT and straight polylines of at most 64 vertices with zero bulge. Only linear relations are solved: there are no angular, general length, diameter, symmetry or driving-dimension relations, and no spline, arc, bulge or 3D sketch constraints. A sketch holds at most 256 constraints and 128 participating coordinate/radius variables, and constrained coordinates, radii and dimensions must be finite and within ±1e9 model units (radii at least 0.000001). Entities referenced by a relation — or by a linked extrusion — cannot be erased or implicitly removed; remove the relations or detach the features first. `RELATION REMOVE` refuses to leave a conflicting set, and clearing all relations is itself validated.
+
+A worked example:
+
+```sh
+./target/desktop/debug/forge draft - target/slope.forge.json --command 'LINE 0 0 100 20'
+./target/desktop/debug/forge draft target/slope.forge.json target/flat.forge.json \
+  --command 'RELATION HORIZONTAL 2' --overwrite
+./target/desktop/debug/forge constraints report target/flat.forge.json
+```
+
+Relation #1 Horizontal #2 · Satisfied: 1 constraints, 3 remaining degrees of freedom, maximum error 0.000000; conflicting IDs []
+  #1 Horizontal #2
+
+The line becomes horizontal with the correction shared between both endpoints: the sloped start `(0,0)` and end `(100,20)` become `(0,10)` and `(100,10)` to floating-point precision. Running `CONSTRAINT SOLVE` once more on the already satisfied sketch sharpens the shared coordinate to its exact midpoint and then verifies as a no-op. Its ID stayed 2, so `RELATION HORIZONTAL 2` addresses it. Conflicting relations name the constraint IDs that cannot hold together:
+
+```sh
+./target/desktop/debug/forge draft - target/conflict.forge.json \
+  --command 'LINE 0 0 10 0' --command 'LINE 20 0 30 0' \
+  --command 'RELATION DISTX 2 START 3 START 50'
+./target/desktop/debug/forge draft target/conflict.forge.json target/conflict.forge.json \
+  --command 'RELATION DISTX 2 START 3 START 70' --overwrite
+```
+
+Relation rejected: Conflict: 2 constraints, 7 remaining degrees of freedom, maximum error 20.000000; conflicting IDs [1, 2]
+
+Both distances cannot hold, so the second relation is refused and `target/conflict.forge.json` keeps exactly the bytes it had before the command. Releasing one side (`RELATION REMOVE 1`) lets the new value commit.
 
 ## Operation limits
 

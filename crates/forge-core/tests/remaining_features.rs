@@ -577,15 +577,19 @@ fn unsupported_or_excessive_machining_is_rejected_before_output() {
 #[test]
 fn layouts_preserve_multiple_clipped_scales_paper_notes_and_viewport_layer_filters() {
     let mut document = Document::new("Layout <drawing>");
-    document.add_geometry(Geometry::Line {
-        start: Point::default(),
-        end: Point::new(100.0, 100.0),
-    });
-    let hidden = document.add_layer("Detail & hatch", [255, 0, 0]);
-    let hidden_entity = document.add_geometry(Geometry::Circle {
-        center: Point::default(),
-        radius: 5.0,
-    });
+    document
+        .add_geometry(Geometry::Line {
+            start: Point::default(),
+            end: Point::new(100.0, 100.0),
+        })
+        .unwrap();
+    let hidden = document.add_layer("Detail & hatch", [255, 0, 0]).unwrap();
+    let hidden_entity = document
+        .add_geometry(Geometry::Circle {
+            center: Point::default(),
+            radius: 5.0,
+        })
+        .unwrap();
     let mut layout = PrintLayout::fitted("Two views", &document, SvgOptions::default()).unwrap();
     layout.viewports[0].paper_size = [100.0, 100.0];
     layout.viewports[0].scale = 1.0;

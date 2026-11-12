@@ -2,7 +2,7 @@
 
 A workflow is verified only within its documented bounds. Product parity requires a release/platform-specific inventory and originating-application acceptance evidence.
 
-The next implementation priorities are persistent sketch constraints, dependent solid features/booleans, and expanded BIM/civil systems. Milestones below describe acceptance gates; catalog entries or launcher routes do not satisfy them.
+The next implementation priorities are dependent solid features/booleans, and expanded BIM/civil systems. Milestones below describe acceptance gates; catalog entries or launcher routes do not satisfy them.
 
 ## M1 — Native editing foundation
 
