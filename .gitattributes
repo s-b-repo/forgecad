@@ -1,0 +1,4 @@
+# Text stays LF in every checkout: include_str! fixtures and sources must be byte-stable.
+* text=auto eol=lf
+*.stl binary
+*.png binary
