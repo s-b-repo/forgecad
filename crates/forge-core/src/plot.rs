@@ -665,7 +665,10 @@ fn n(value: f64) -> String {
     if value == 0.0 {
         "0".to_owned()
     } else {
-        value.to_string()
+        format!("{value:.14e}")
+            .parse::<f64>()
+            .unwrap_or(value)
+            .to_string()
     }
 }
 
