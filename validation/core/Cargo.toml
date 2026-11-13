@@ -11,4 +11,4 @@ path = "../../crates/forge-core/src/lib.rs"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["float_roundtrip"] }

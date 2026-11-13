@@ -21,7 +21,7 @@ path = "../../apps/forge-cli/tests/remaining_cli.rs"
 forge-core = { path = "../../crates/forge-core" }
 forge-dwg = { path = "../../crates/forge-dwg" }
 forge-modeling = { path = "../../crates/forge-modeling" }
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
 
 [profile.dev]
 debug = 0

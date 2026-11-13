@@ -11,4 +11,6 @@ rust-version = "1.95"
 [workspace.dependencies]
 eframe = { version = "0.37.0", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+# The default float parser loses 1 ulp for some shortest-representation
+# decimals, which would silently shift a saved coordinate on reopen.
+serde_json = { version = "1.0", features = ["float_roundtrip"] }

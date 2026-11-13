@@ -838,7 +838,16 @@ mod tests {
         let output = plot(&document);
         assert!(output.contains("<circle cx=\"3\" cy=\"4\" r=\"2\"/>"));
         assert!(output.contains("A 10 10 0 1 1"));
-        assert!(output.contains("M 0 0 A 5 5 0 0 0 10 0"));
+        // A bulge of -1 is an exact semicircle: its sweep magnitude sits on the
+        // 180 degree boundary, so the large-arc flag may round to 0 or 1 by a
+        // single ulp depending on libm's atan. Both describe the identical arc,
+        // so accept either while still requiring the 15-significant-digit
+        // radius "5", x-axis rotation 0, clockwise sweep flag 0, and endpoints
+        // "10 0" (i.e. still fails if the formatter emitted fewer digits).
+        assert!(
+            output.contains("M 0 0 A 5 5 0 0 0 10 0") || output.contains("M 0 0 A 5 5 0 1 0 10 0"),
+            "semicircle bulge must stay analytic with radius 5; got: {output}"
+        );
     }
 
     #[test]

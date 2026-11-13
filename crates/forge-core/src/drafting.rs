@@ -831,6 +831,107 @@ mod tests {
             "{actual:?} != {expected:?}"
         );
     }
+    // Offset vertices are derived through `hypot`-normalized directions, whose
+    // last bit differs by an ulp between libm (glibc) and Miri's libm. Compare
+    // bounds analytically but with a sub-nanometre tolerance so the intent
+    // (outward/inward miter extent) is still enforced.
+    fn assert_bounds(actual: Option<crate::edit::Bounds2d>, expected: crate::edit::Bounds2d) {
+        let actual = actual.expect("offset produced no bounds");
+        let close = |a: f64, b: f64| (a - b).abs() <= 1e-9;
+        assert!(
+            close(actual.min.x, expected.min.x)
+                && close(actual.min.y, expected.min.y)
+                && close(actual.max.x, expected.max.x)
+                && close(actual.max.y, expected.max.y),
+            "bounds {actual:?} not within 1e-9 of {expected:?}"
+        );
+    }
+    /// True when two coordinates are equal or differ by at most a few ulps of
+    /// their magnitude, i.e. the floating-point noise floor of a `hypot`
+    /// normalisation rather than a real geometric difference.
+    fn ulp_close(a: f64, b: f64) -> bool {
+        if a == b {
+            return true;
+        }
+        let scale = a.abs().max(b.abs());
+        (a - b).abs() <= 4.0 * scale * f64::EPSILON
+    }
+    /// Offset vertices are derived through normalized directions, whose last bit
+    /// differs by an ulp between libm (glibc) and Miri's libm. Compare offset
+    /// polylines analytically: identical topology and bit-exact bulges with
+    /// coordinates inside the noise floor, so direction and extent are still
+    /// enforced without demanding bit equality across libms.
+    fn assert_polyline_close(actual: &Geometry, expected: &Geometry, label: &str) {
+        let Geometry::Polyline {
+            vertices: actual_vertices,
+            closed: actual_closed,
+        } = actual
+        else {
+            panic!("{label}: offset is not a polyline: {actual:?}");
+        };
+        let Geometry::Polyline {
+            vertices: expected_vertices,
+            closed: expected_closed,
+        } = expected
+        else {
+            panic!("{label}: expected geometry is not a polyline: {expected:?}");
+        };
+        assert_eq!(actual_closed, expected_closed, "{label}: closure changed");
+        assert_eq!(
+            actual_vertices.len(),
+            expected_vertices.len(),
+            "{label}: vertex count changed"
+        );
+        for (index, (actual, expected)) in actual_vertices
+            .iter()
+            .zip(expected_vertices.iter())
+            .enumerate()
+        {
+            assert_eq!(
+                actual.bulge.to_bits(),
+                expected.bulge.to_bits(),
+                "{label}: bulge {index} changed"
+            );
+            assert!(
+                ulp_close(actual.point.x, expected.point.x)
+                    && ulp_close(actual.point.y, expected.point.y),
+                "{label}: vertex {index} {:?} != {:?}",
+                actual.point,
+                expected.point
+            );
+        }
+    }
+    /// Extend/trim endpoints come from a line intersection parametrisation
+    /// whose last bit differs by an ulp between libm (glibc) and Miri's libm.
+    /// Compare endpoint coordinates analytically so the boundary point is still
+    /// pinned down to the noise floor instead of demanding bit equality.
+    fn assert_line_close(actual: &Geometry, expected: &Geometry, label: &str) {
+        let Geometry::Line {
+            start: actual_start,
+            end: actual_end,
+        } = actual
+        else {
+            panic!("{label}: expected a line, got {actual:?}");
+        };
+        let Geometry::Line {
+            start: expected_start,
+            end: expected_end,
+        } = expected
+        else {
+            panic!("{label}: expected geometry is not a line: {expected:?}");
+        };
+        for (coord, expected, name) in [
+            (actual_start.x, expected_start.x, "start.x"),
+            (actual_start.y, expected_start.y, "start.y"),
+            (actual_end.x, expected_end.x, "end.x"),
+            (actual_end.y, expected_end.y, "end.y"),
+        ] {
+            assert!(
+                ulp_close(coord, expected),
+                "{label}: {name} {coord:?} != {expected:?}"
+            );
+        }
+    }
     fn polyline(points: &[[f64; 2]], closed: bool) -> Geometry {
         Geometry::Polyline {
             vertices: points
@@ -931,11 +1032,12 @@ mod tests {
 
     #[test]
     fn straight_polyline_offsets_miter_corners_and_preserve_outward_direction() {
-        assert_eq!(
-            polyline(&[[0.0, 0.0], [10.0, 0.0], [10.0, 8.0]], false)
+        assert_polyline_close(
+            &polyline(&[[0.0, 0.0], [10.0, 0.0], [10.0, 8.0]], false)
                 .offset(2.0)
                 .unwrap(),
-            polyline(&[[0.0, 2.0], [8.0, 2.0], [8.0, 8.0]], false)
+            &polyline(&[[0.0, 2.0], [8.0, 2.0], [8.0, 8.0]], false),
+            "open miter offset",
         );
         let ccw = polyline(&[[0.0, 0.0], [10.0, 0.0], [10.0, 8.0], [0.0, 8.0]], true);
         let cw = polyline(&[[0.0, 8.0], [10.0, 8.0], [10.0, 0.0], [0.0, 0.0]], true);
@@ -943,14 +1045,14 @@ mod tests {
             min: point(-2.0, -2.0),
             max: point(12.0, 10.0),
         };
-        assert_eq!(ccw.offset(2.0).unwrap().bounds(), Some(expected_bounds));
-        assert_eq!(cw.offset(2.0).unwrap().bounds(), Some(expected_bounds));
-        assert_eq!(
+        assert_bounds(ccw.offset(2.0).unwrap().bounds(), expected_bounds);
+        assert_bounds(cw.offset(2.0).unwrap().bounds(), expected_bounds);
+        assert_bounds(
             ccw.offset(-2.0).unwrap().bounds(),
-            Some(crate::edit::Bounds2d {
+            crate::edit::Bounds2d {
                 min: point(2.0, 2.0),
-                max: point(8.0, 6.0)
-            })
+                max: point(8.0, 6.0),
+            },
         );
         assert_eq!(
             polyline(&[[0.0, 0.0], [5.0, 0.0], [10.0, 0.0]], false)
@@ -1209,15 +1311,45 @@ mod tests {
         );
         assert!(
             document
-                .polar_array_entities(&[id], 2, Point::default(), 1e-30, false)
-                .is_err()
-        );
-        assert!(
-            document
                 .polar_array_entities(&[id], 2, point(1e20, 1e20), 90.0, false)
                 .is_err()
         );
-        assert_eq!(document, before);
+        assert_eq!(
+            document, before,
+            "refused arrays must not touch the document"
+        );
+        // A 1e-30 degree sweep cannot displace a 1e20-magnitude entity by more
+        // than one ulp, so it is refused — unless libm's `cos` of such a tiny
+        // angle is one ulp below 1.0 (Miri's libm) instead of exactly 1.0
+        // (glibc), which makes the sub-ulp translation representable. Accept
+        // either outcome, but require that a copy never leaves the coordinate's
+        // noise floor: the tool must not silently move geometry it was asked to
+        // leave in place.
+        match document.polar_array_entities(&[id], 2, Point::default(), 1e-30, false) {
+            Ok(_) => {
+                assert_eq!(document.entities.len(), before.entities.len() + 1);
+                let Geometry::Circle {
+                    center: copied,
+                    radius: copied_radius,
+                } = document.entities.last().expect("copy appended").geometry
+                else {
+                    panic!("array copy kept the circle shape")
+                };
+                let Geometry::Circle {
+                    center: source,
+                    radius: source_radius,
+                } = before.entities.first().expect("source entity").geometry
+                else {
+                    panic!("source entity kept the circle shape")
+                };
+                assert_eq!(copied_radius, source_radius);
+                assert!(
+                    ulp_close(copied.x, source.x) && ulp_close(copied.y, source.y),
+                    "sub-ulp sweep moved the copy beyond the coordinate noise floor: {copied:?} vs {source:?}"
+                );
+            }
+            Err(_) => assert_eq!(document, before),
+        }
         assert!(
             Geometry::Circle {
                 center: point(f64::MAX, 0.0),
@@ -1261,7 +1393,11 @@ mod tests {
         assert_eq!(block_name, "Part");
         near(position, point(0.0, 1.0));
         assert!((rotation_deg - 90.0).abs() < 1e-10);
-        assert_eq!(scale, 1.0);
+        // The instance scale is derived as hypot(cos, sin) of the rotation
+        // matrix: exactly 1.0 on glibc but 1 ulp off on Miri's libm. Compare
+        // analytically (like the rotation/measurement tolerances below) while
+        // still rejecting any real scaling of the block.
+        assert!((scale - 1.0).abs() < 1e-10, "scale {scale} != 1.0");
         let Geometry::Dimension { ref dimension } = document.entities[3].geometry else {
             panic!()
         };
@@ -1392,13 +1528,18 @@ mod tests {
         document
             .extend_line_to_boundary(target, right, point(9.0, 0.0))
             .unwrap();
-        assert_eq!(document.entities[0].geometry, line([0.0, 0.0], [15.0, 0.0]));
+        assert_line_close(
+            &document.entities[0].geometry,
+            &line([0.0, 0.0], [15.0, 0.0]),
+            "right extension",
+        );
         document
             .extend_line_to_boundary(target, left, point(0.0, 0.0))
             .unwrap();
-        assert_eq!(
-            document.entities[0].geometry,
-            line([-5.0, 0.0], [15.0, 0.0])
+        assert_line_close(
+            &document.entities[0].geometry,
+            &line([-5.0, 0.0], [15.0, 0.0]),
+            "left extension",
         );
     }
 
